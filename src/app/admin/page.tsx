@@ -46,32 +46,32 @@ export default function AdminPage() {
         reservationNumber: 'TRF-001',
         fromLocation: 'Antalya Airport',
         toLocation: 'Kemer',
-        date: '2024-06-15',
+        date: '2025-08-03',
         time: '14:00',
         adults: 4,
         babySeats: 1,
         vehicle: 'Mercedes Vito VIP',
-        customerName: 'John Doe',
-        customerEmail: 'john@example.com',
+        customerName: 'Berkay KILINÇ',
+        customerEmail: 'berkay@gmail.com',
         customerPhone: '+1234567890',
         status: 'confirmed',
-        createdAt: new Date('2024-05-01')
+        createdAt: new Date('2025-08-03')
       },
       {
         id: '2',
         reservationNumber: 'TRF-002',
         fromLocation: 'Kemer',
         toLocation: 'Antalya Airport',
-        date: '2024-06-20',
+        date: '2025-08-13',
         time: '10:00',
         adults: 2,
         babySeats: 0,
-        vehicle: 'BMW 7 Series',
-        customerName: 'Jane Smith',
-        customerEmail: 'jane@example.com',
+        vehicle: 'Mercedes Vito VIP',
+        customerName: 'Berkay KILINÇ',
+        customerEmail: 'berkay@gmail.com',
         customerPhone: '+0987654321',
         status: 'pending',
-        createdAt: new Date('2024-05-02')
+        createdAt: new Date('2025-08-03')
       }
     ]);
   };

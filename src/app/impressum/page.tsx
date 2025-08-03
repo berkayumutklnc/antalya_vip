@@ -13,10 +13,10 @@ export default function ImpressumPage() {
       address: 'Musterstraße 123, 12345 Musterstadt, Deutschland',
       phone: '+49 123 456 789',
       email: 'info@antalya-vip-transfer.de',
-      ceo: 'Max Mustermann',
+      ceo: 'Berkay Umut KILINÇ',
       register: 'Amtsgericht Musterstadt, HRB 12345',
       vat: 'DE123456789',
-      content: 'Max Mustermann'
+      content: 'Berkay Umut KILINÇ'
     },
     en: {
       title: 'Legal Notice',
@@ -24,10 +24,10 @@ export default function ImpressumPage() {
       address: 'Sample Street 123, 12345 Sample City, Germany',
       phone: '+49 123 456 789',
       email: 'info@antalya-vip-transfer.de',
-      ceo: 'Max Mustermann',
+      ceo: 'Berkay Umut KILINÇ',
       register: 'District Court Sample City, HRB 12345',
       vat: 'DE123456789',
-      content: 'Max Mustermann'
+      content: 'Berkay Umut KILINÇ'
     },
     tr: {
       title: 'Yasal Uyarı',
@@ -35,10 +35,10 @@ export default function ImpressumPage() {
       address: 'Örnek Sokak 123, 12345 Örnek Şehir, Almanya',
       phone: '+49 123 456 789',
       email: 'info@antalya-vip-transfer.de',
-      ceo: 'Max Mustermann',
+      ceo: 'Berkay Umut KILINÇ',
       register: 'Örnek Şehir Bölge Mahkemesi, HRB 12345',
       vat: 'DE123456789',
-      content: 'Max Mustermann'
+      content: 'Berkay Umut KILINÇ'
     },
     ru: {
       title: 'Правовая информация',
@@ -46,10 +46,10 @@ export default function ImpressumPage() {
       address: 'Образцовая улица 123, 12345 Образцовый город, Германия',
       phone: '+49 123 456 789',
       email: 'info@antalya-vip-transfer.de',
-      ceo: 'Max Mustermann',
+      ceo: 'Berkay Umut KILINÇ',
       register: 'Окружной суд Образцового города, HRB 12345',
       vat: 'DE123456789',
-      content: 'Max Mustermann'
+      content: 'Berkay Umut KILINÇ'
     }
   };
 

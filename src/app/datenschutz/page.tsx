@@ -9,19 +9,19 @@ export default function DatenschutzPage() {
   const content = {
     de: {
       title: 'Datenschutzerklärung',
-      lastUpdated: 'Zuletzt aktualisiert: 1. Januar 2024'
+      lastUpdated: 'Zuletzt aktualisiert: 3. August 2025'
     },
     en: {
       title: 'Privacy Policy',
-      lastUpdated: 'Last updated: January 1, 2024'
+      lastUpdated: 'Last updated: August 3, 2025'
     },
     tr: {
       title: 'Gizlilik Politikası',
-      lastUpdated: 'Son güncelleme: 1 Ocak 2024'
+      lastUpdated: 'Son güncelleme: 3 Ağustos 2025'
     },
     ru: {
       title: 'Политика конфиденциальности',
-      lastUpdated: 'Последнее обновление: 1 января 2024'
+      lastUpdated: 'Последнее обновление: 3 августа 2025'
     }
   };
 

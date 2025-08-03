@@ -9,19 +9,19 @@ export default function AGBPage() {
   const content = {
     de: {
       title: 'Allgemeine Geschäftsbedingungen',
-      lastUpdated: 'Zuletzt aktualisiert: 1. Januar 2024'
+      lastUpdated: 'Zuletzt aktualisiert: 3. August 2025'
     },
     en: {
       title: 'Terms and Conditions',
-      lastUpdated: 'Last updated: January 1, 2024'
+      lastUpdated: 'Last updated: August 3, 2025'
     },
     tr: {
       title: 'Kullanım Şartları',
-      lastUpdated: 'Son güncelleme: 1 Ocak 2024'
+      lastUpdated: 'Son güncelleme: 3 Ağustos 2025'
     },
     ru: {
       title: 'Условия использования',
-      lastUpdated: 'Последнее обновление: 1 января 2024'
+      lastUpdated: 'Последнее обновление: 3 августа 2025'
     }
   };
 

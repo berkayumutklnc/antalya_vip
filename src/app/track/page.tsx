@@ -30,16 +30,16 @@ export default function TrackPage() {
           reservationNumber: reservationNumber,
           fromLocation: 'Antalya Airport',
           toLocation: 'Kemer',
-          date: '2024-06-15',
+          date: '2025-08-03',
           time: '14:00',
           adults: 4,
           babySeats: 1,
           vehicle: 'Mercedes Vito VIP',
-          customerName: 'John Doe',
+          customerName: 'Berkay KILINÇ',
           customerPhone: '+1234567890',
           customerEmail: email,
           status: 'confirmed',
-          createdAt: new Date('2024-05-01')
+          createdAt: new Date('2025-08-03')
         });
       } else {
         setError(language === 'de' ? 'Reservierung nicht gefunden' : 'Reservation not found');
