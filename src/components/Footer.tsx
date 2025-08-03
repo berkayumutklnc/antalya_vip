@@ -45,19 +45,19 @@ const Footer: React.FC = () => {
   const currentLinks = footerLinks[language];
 
   return (
-    <footer className="bg-[#0F1E3C] text-[#F3F4F6]">
+    <footer className="bg-[#1E1E2F] text-[#EAEAEA]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Company Info */}
           <div className="col-span-1 md:col-span-2">
-            <h3 className="text-lg font-semibold mb-4 text-white">Antalya VIP Transfer</h3>
-            <p className="text-[#F3F4F6] mb-4">
+            <h3 className="text-lg font-semibold mb-4 text-[#EAEAEA]">Antalya VIP Transfer</h3>
+            <p className="text-[#B0B0B0] mb-4">
               {language === 'de' && 'Ihr zuverlässiger Partner für luxuriöse Transfers in Antalya'}
               {language === 'en' && 'Your reliable partner for luxury transfers in Antalya'}
               {language === 'tr' && 'Antalya\'da lüks transfer için güvenilir partneriniz'}
               {language === 'ru' && 'Ваш надежный партнер для роскошных трансферов в Анталье'}
             </p>
-            <div className="text-[#F3F4F6]">
+            <div className="text-[#B0B0B0]">
               <p>{currentLinks.address}</p>
               <p>{currentLinks.phone}</p>
             </div>
@@ -65,7 +65,7 @@ const Footer: React.FC = () => {
 
           {/* Quick Links */}
           <div>
-            <h4 className="text-lg font-semibold mb-4 text-white">
+            <h4 className="text-lg font-semibold mb-4 text-[#EAEAEA]">
               {language === 'de' && 'Schnelllinks'}
               {language === 'en' && 'Quick Links'}
               {language === 'tr' && 'Hızlı Bağlantılar'}
@@ -73,7 +73,7 @@ const Footer: React.FC = () => {
             </h4>
             <ul className="space-y-2">
               <li>
-                <Link href="/" className="text-[#F3F4F6] hover:text-[#FFD700] transition-colors">
+                <Link href="/" className="text-[#B0B0B0] hover:text-[#D6A756] transition-colors">
                   {language === 'de' && 'Startseite'}
                   {language === 'en' && 'Home'}
                   {language === 'tr' && 'Ana Sayfa'}
@@ -81,7 +81,7 @@ const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
-                <Link href="/reservation" className="text-[#F3F4F6] hover:text-[#FFD700] transition-colors">
+                <Link href="/reservation" className="text-[#B0B0B0] hover:text-[#D6A756] transition-colors">
                   {language === 'de' && 'Reservierung'}
                   {language === 'en' && 'Reservation'}
                   {language === 'tr' && 'Rezervasyon'}
@@ -89,7 +89,7 @@ const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
-                <Link href="/track" className="text-[#F3F4F6] hover:text-[#FFD700] transition-colors">
+                <Link href="/track" className="text-[#B0B0B0] hover:text-[#D6A756] transition-colors">
                   {language === 'de' && 'Reservierung verfolgen'}
                   {language === 'en' && 'Track Reservation'}
                   {language === 'tr' && 'Rezervasyon Takip'}
@@ -101,7 +101,7 @@ const Footer: React.FC = () => {
 
           {/* Legal Links */}
           <div>
-            <h4 className="text-lg font-semibold mb-4 text-white">
+            <h4 className="text-lg font-semibold mb-4 text-[#EAEAEA]">
               {language === 'de' && 'Rechtliches'}
               {language === 'en' && 'Legal'}
               {language === 'tr' && 'Yasal'}
@@ -109,17 +109,17 @@ const Footer: React.FC = () => {
             </h4>
             <ul className="space-y-2">
               <li>
-                <Link href="/impressum" className="text-[#F3F4F6] hover:text-[#FFD700] transition-colors">
+                <Link href="/impressum" className="text-[#B0B0B0] hover:text-[#D6A756] transition-colors">
                   {currentLinks.impressum}
                 </Link>
               </li>
               <li>
-                <Link href="/datenschutz" className="text-[#F3F4F6] hover:text-[#FFD700] transition-colors">
+                <Link href="/datenschutz" className="text-[#B0B0B0] hover:text-[#D6A756] transition-colors">
                   {currentLinks.datenschutz}
                 </Link>
               </li>
               <li>
-                <Link href="/agb" className="text-[#F3F4F6] hover:text-[#FFD700] transition-colors">
+                <Link href="/agb" className="text-[#B0B0B0] hover:text-[#D6A756] transition-colors">
                   {currentLinks.agb}
                 </Link>
               </li>
@@ -127,8 +127,15 @@ const Footer: React.FC = () => {
           </div>
         </div>
 
-        <div className="border-t border-[#0F1E3C]/50 mt-8 pt-8 text-center text-[#F3F4F6]">
-          <p>&copy; 2024 Antalya VIP Transfer. {language === 'de' && 'Alle Rechte vorbehalten.'}</p>
+        <div className="border-t border-[#2A2A3C] mt-8 pt-8 text-center text-[#B0B0B0]">
+          <p>&copy; 2025 Antalya VIP Transfer. {language === 'de' && 'Alle Rechte vorbehalten.'}</p>
+          <p className="mt-2 text-sm">
+            {language === 'de' && 'Entwickelt von'} 
+            {language === 'en' && 'Developed by'} 
+            {language === 'tr' && 'Geliştirici'} 
+            {language === 'ru' && 'Разработано'} 
+            <span className="text-[#D6A756] font-semibold"> Berkay Umut KILINÇ</span>
+          </p>
         </div>
       </div>
     </footer>

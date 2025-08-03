@@ -1,12 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  --background: #F9F9F9;
-  --foreground: #1F2937;
-  --primary: #0F1E3C;
-  --accent: #FFD700;
+  --background: #121212;
+  --foreground: #EAEAEA;
+  --primary: #1E1E2F;
+  --accent: #D6A756;
   --success: #10B981;
   --error: #DC2626;
+  --secondary: #2A2A3C;
+  --placeholder: #9A9A9A;
+  --subtitle: #B0B0B0;
 }
 
 @theme inline {
@@ -16,23 +19,29 @@
   --color-accent: var(--accent);
   --color-success: var(--success);
   --color-error: var(--error);
+  --color-secondary: var(--secondary);
+  --color-placeholder: var(--placeholder);
+  --color-subtitle: var(--subtitle);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
+@media (prefers-color-scheme: light) {
   :root {
-    --background: #0F1E3C;
-    --foreground: #F9F9F9;
-    --primary: #FFD700;
-    --accent: #F5C542;
+    --background: #F9F9F9;
+    --foreground: #1F2937;
+    --primary: #0F1E3C;
+    --accent: #FFD700;
     --success: #10B981;
     --error: #DC2626;
+    --secondary: #F3F4F6;
+    --placeholder: #6B7280;
+    --subtitle: #4B5563;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Inter', 'DM Sans', 'Poppins', Arial, Helvetica, sans-serif;
 }

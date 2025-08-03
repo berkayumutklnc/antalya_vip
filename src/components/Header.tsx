@@ -10,12 +10,12 @@ const Header: React.FC = () => {
   const { language } = useLanguage();
 
   return (
-    <header className="bg-[#0F1E3C] shadow-lg border-b border-[#0F1E3C]/20">
+    <header className="bg-[#1E1E2F] shadow-lg border-b border-[#2A2A3C]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center">
-            <Link href="/" className="text-xl font-bold text-white hover:text-[#FFD700] transition-colors">
+            <Link href="/" className="text-xl font-bold text-[#EAEAEA] hover:text-[#D6A756] transition-colors">
               Antalya VIP Transfer
             </Link>
           </div>
@@ -24,25 +24,25 @@ const Header: React.FC = () => {
           <nav className="hidden md:flex space-x-8">
             <Link 
               href="/" 
-              className="text-white hover:text-[#FFD700] px-3 py-2 text-sm font-medium transition-colors"
+              className="text-[#EAEAEA] hover:text-[#D6A756] px-3 py-2 text-sm font-medium transition-colors"
             >
               {t('home', language)}
             </Link>
             <Link 
               href="/reservation" 
-              className="text-white hover:text-[#FFD700] px-3 py-2 text-sm font-medium transition-colors"
+              className="text-[#EAEAEA] hover:text-[#D6A756] px-3 py-2 text-sm font-medium transition-colors"
             >
               {t('reservation', language)}
             </Link>
             <Link 
               href="/track" 
-              className="text-white hover:text-[#FFD700] px-3 py-2 text-sm font-medium transition-colors"
+              className="text-[#EAEAEA] hover:text-[#D6A756] px-3 py-2 text-sm font-medium transition-colors"
             >
               {t('trackReservation', language)}
             </Link>
             <Link 
               href="/admin" 
-              className="text-white hover:text-[#FFD700] px-3 py-2 text-sm font-medium transition-colors"
+              className="text-[#EAEAEA] hover:text-[#D6A756] px-3 py-2 text-sm font-medium transition-colors"
             >
               {t('admin', language)}
             </Link>
@@ -55,7 +55,7 @@ const Header: React.FC = () => {
 
           {/* Mobile menu button */}
           <div className="md:hidden">
-            <button className="text-white hover:text-[#FFD700] transition-colors">
+            <button className="text-[#EAEAEA] hover:text-[#D6A756] transition-colors">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>

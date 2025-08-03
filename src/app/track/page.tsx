@@ -56,7 +56,7 @@ export default function TrackPage() {
       case 'confirmed': return 'text-[#10B981] bg-[#10B981]/10';
       case 'pending': return 'text-[#F59E0B] bg-[#F59E0B]/10';
       case 'canceled': return 'text-[#DC2626] bg-[#DC2626]/10';
-      default: return 'text-[#1F2937] bg-[#1F2937]/10';
+      default: return 'text-[#EAEAEA] bg-[#EAEAEA]/10';
     }
   };
 
@@ -70,13 +70,13 @@ export default function TrackPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F9F9F9] py-12">
+    <div className="min-h-screen bg-[#121212] py-12">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-[#1F2937] mb-4">
+          <h1 className="text-4xl font-bold text-[#EAEAEA] mb-4">
             {t('trackReservation', language)}
           </h1>
-          <p className="text-xl text-[#1F2937]">
+          <p className="text-xl text-[#B0B0B0]">
             {language === 'de' && 'Verfolgen Sie den Status Ihrer Reservierung'}
             {language === 'en' && 'Track the status of your reservation'}
             {language === 'tr' && 'Rezervasyonunuzun durumunu takip edin'}
@@ -85,11 +85,11 @@ export default function TrackPage() {
         </div>
 
         {/* Search Form */}
-        <div className="bg-white rounded-lg shadow-md border border-[#0F1E3C]/20 p-8 mb-8">
+        <div className="bg-[#1E1E2F] rounded-2xl shadow-lg border border-[#2A2A3C] p-8 mb-8">
           <form onSubmit={handleSearch} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-[#1F2937] mb-2">
+                <label className="block text-sm font-medium text-[#EAEAEA] mb-2">
                   {t('reservationNumber', language)}
                 </label>
                 <input
@@ -97,13 +97,13 @@ export default function TrackPage() {
                   value={reservationNumber}
                   onChange={(e) => setReservationNumber(e.target.value)}
                   placeholder={language === 'de' ? 'TRF-XXXXX' : 'TRF-XXXXX'}
-                  className="w-full px-3 py-2 border border-[#0F1E3C] rounded-md focus:outline-none focus:ring-2 focus:ring-[#FFD700] focus:border-[#FFD700] text-[#1F2937]"
+                  className="w-full px-3 py-2 border border-[#2A2A3C] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D6A756] focus:border-[#D6A756] text-[#EAEAEA] bg-[#121212] placeholder-[#9A9A9A]"
                   required
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-[#1F2937] mb-2">
+                <label className="block text-sm font-medium text-[#EAEAEA] mb-2">
                   {t('customerEmail', language)}
                 </label>
                 <input
@@ -111,7 +111,7 @@ export default function TrackPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder={language === 'de' ? 'ihre@email.de' : 'your@email.com'}
-                  className="w-full px-3 py-2 border border-[#0F1E3C] rounded-md focus:outline-none focus:ring-2 focus:ring-[#FFD700] focus:border-[#FFD700] text-[#1F2937]"
+                  className="w-full px-3 py-2 border border-[#2A2A3C] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D6A756] focus:border-[#D6A756] text-[#EAEAEA] bg-[#121212] placeholder-[#9A9A9A]"
                   required
                 />
               </div>
@@ -120,7 +120,7 @@ export default function TrackPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full md:w-auto px-8 py-3 bg-[#FFD700] text-[#0F1E3C] rounded-md hover:bg-[#F5C542] disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold"
+              className="w-full md:w-auto px-8 py-3 bg-[#D6A756] text-[#121212] rounded-lg hover:bg-[#c09445] disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold"
             >
               {loading ? t('loading', language) : t('trackButton', language)}
             </button>
@@ -129,16 +129,16 @@ export default function TrackPage() {
 
         {/* Error Message */}
         {error && (
-          <div className="bg-[#DC2626]/10 border border-[#DC2626]/20 rounded-lg p-4 mb-8">
+          <div className="bg-[#DC2626]/10 border border-[#DC2626]/20 rounded-2xl p-4 mb-8">
             <p className="text-[#DC2626]">{error}</p>
           </div>
         )}
 
         {/* Reservation Details */}
         {reservation && (
-          <div className="bg-white rounded-lg shadow-md border border-[#0F1E3C]/20 p-8">
+          <div className="bg-[#1E1E2F] rounded-2xl shadow-lg border border-[#2A2A3C] p-8">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-[#1F2937]">
+              <h2 className="text-2xl font-bold text-[#EAEAEA]">
                 {language === 'de' ? 'Reservierungsdetails' : 'Reservation Details'}
               </h2>
               <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(reservation.status)}`}>
@@ -149,84 +149,84 @@ export default function TrackPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div>
-                  <h3 className="text-sm font-medium text-[#1F2937]">
+                  <h3 className="text-sm font-medium text-[#B0B0B0]">
                     {t('reservationNumber', language)}
                   </h3>
-                  <p className="text-lg font-semibold text-[#1F2937]">{reservation.reservationNumber}</p>
+                  <p className="text-lg font-semibold text-[#EAEAEA]">{reservation.reservationNumber}</p>
                 </div>
                 
                 <div>
-                  <h3 className="text-sm font-medium text-[#1F2937]">
+                  <h3 className="text-sm font-medium text-[#B0B0B0]">
                     {t('from', language)}
                   </h3>
-                  <p className="text-lg text-[#1F2937]">{reservation.fromLocation}</p>
+                  <p className="text-lg text-[#EAEAEA]">{reservation.fromLocation}</p>
                 </div>
                 
                 <div>
-                  <h3 className="text-sm font-medium text-[#1F2937]">
+                  <h3 className="text-sm font-medium text-[#B0B0B0]">
                     {t('to', language)}
                   </h3>
-                  <p className="text-lg text-[#1F2937]">{reservation.toLocation}</p>
+                  <p className="text-lg text-[#EAEAEA]">{reservation.toLocation}</p>
                 </div>
                 
                 <div>
-                  <h3 className="text-sm font-medium text-[#1F2937]">
+                  <h3 className="text-sm font-medium text-[#B0B0B0]">
                     {t('date', language)}
                   </h3>
-                  <p className="text-lg text-[#1F2937]">{reservation.date}</p>
+                  <p className="text-lg text-[#EAEAEA]">{reservation.date}</p>
                 </div>
                 
                 <div>
-                  <h3 className="text-sm font-medium text-[#1F2937]">
+                  <h3 className="text-sm font-medium text-[#B0B0B0]">
                     {t('time', language)}
                   </h3>
-                  <p className="text-lg text-[#1F2937]">{reservation.time}</p>
+                  <p className="text-lg text-[#EAEAEA]">{reservation.time}</p>
                 </div>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <h3 className="text-sm font-medium text-[#1F2937]">
+                  <h3 className="text-sm font-medium text-[#B0B0B0]">
                     {t('adults', language)}
                   </h3>
-                  <p className="text-lg text-[#1F2937]">{reservation.adults}</p>
+                  <p className="text-lg text-[#EAEAEA]">{reservation.adults}</p>
                 </div>
                 
                 <div>
-                  <h3 className="text-sm font-medium text-[#1F2937]">
+                  <h3 className="text-sm font-medium text-[#B0B0B0]">
                     {t('babySeats', language)}
                   </h3>
-                  <p className="text-lg text-[#1F2937]">{reservation.babySeats}</p>
+                  <p className="text-lg text-[#EAEAEA]">{reservation.babySeats}</p>
                 </div>
                 
                 <div>
-                  <h3 className="text-sm font-medium text-[#1F2937]">
+                  <h3 className="text-sm font-medium text-[#B0B0B0]">
                     {t('vehicle', language)}
                   </h3>
-                  <p className="text-lg text-[#1F2937]">{reservation.vehicle}</p>
+                  <p className="text-lg text-[#EAEAEA]">{reservation.vehicle}</p>
                 </div>
                 
                 <div>
-                  <h3 className="text-sm font-medium text-[#1F2937]">
+                  <h3 className="text-sm font-medium text-[#B0B0B0]">
                     {t('customerName', language)}
                   </h3>
-                  <p className="text-lg text-[#1F2937]">{reservation.customerName}</p>
+                  <p className="text-lg text-[#EAEAEA]">{reservation.customerName}</p>
                 </div>
                 
                 <div>
-                  <h3 className="text-sm font-medium text-[#1F2937]">
+                  <h3 className="text-sm font-medium text-[#B0B0B0]">
                     {t('customerPhone', language)}
                   </h3>
-                  <p className="text-lg text-[#1F2937]">{reservation.customerPhone}</p>
+                  <p className="text-lg text-[#EAEAEA]">{reservation.customerPhone}</p>
                 </div>
               </div>
             </div>
 
             {/* Cancel Button */}
             {reservation.status === 'confirmed' && (
-              <div className="mt-8 pt-6 border-t border-[#0F1E3C]/20">
+              <div className="mt-8 pt-6 border-t border-[#2A2A3C]">
                 <button
-                  className="px-6 py-2 bg-[#DC2626] text-white rounded-md hover:bg-[#B91C1C] transition-colors"
+                  className="px-6 py-2 bg-[#DC2626] text-white rounded-lg hover:bg-[#B91C1C] transition-colors"
                   onClick={() => {
                     // TODO: Implement cancel functionality
                     alert(language === 'de' ? 'Stornierungsanfrage gesendet' : 'Cancel request sent');

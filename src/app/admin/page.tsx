@@ -6,278 +6,255 @@ import { t } from '@/lib/i18n';
 
 export default function AdminPage() {
   const { language } = useLanguage();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('reservations');
+  const [error, setError] = useState('');
+  const [reservations, setReservations] = useState<any[]>([]);
+  const [filter, setFilter] = useState('all');
 
-  // Mock data for demonstration
-  const mockReservations = [
-    {
-      id: '1',
-      reservationNumber: 'TRF-00123',
-      fromLocation: 'Antalya Airport',
-      toLocation: 'Kemer',
-      date: '2024-06-15',
-      time: '14:00',
-      adults: 4,
-      babySeats: 1,
-      vehicle: 'Mercedes Vito VIP',
-      customerName: 'John Doe',
-      customerPhone: '+1234567890',
-      customerEmail: 'john@example.com',
-      status: 'confirmed',
-      createdAt: new Date('2024-05-01')
-    },
-    {
-      id: '2',
-      reservationNumber: 'TRF-00124',
-      fromLocation: 'Belek',
-      toLocation: 'Antalya Airport',
-      date: '2024-06-16',
-      time: '10:00',
-      adults: 2,
-      babySeats: 0,
-      vehicle: 'Mercedes Sprinter VIP',
-      customerName: 'Jane Smith',
-      customerPhone: '+0987654321',
-      customerEmail: 'jane@example.com',
-      status: 'pending',
-      createdAt: new Date('2024-05-02')
-    }
-  ];
-
+  // Mock login function
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
+    setError('');
+
     try {
       // TODO: Implement Firebase Auth
       await new Promise(resolve => setTimeout(resolve, 1000));
-      setIsLoggedIn(true);
-    } catch (error) {
-      console.error('Login failed:', error);
+      
+      if (email === 'admin@antalya-vip.com' && password === 'admin123') {
+        setIsLoggedIn(true);
+        loadReservations();
+      } else {
+        setError(language === 'de' ? 'Ungültige Anmeldedaten' : 'Invalid credentials');
+      }
+    } catch (err) {
+      setError(language === 'de' ? 'Ein Fehler ist aufgetreten' : 'An error occurred');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-    setEmail('');
-    setPassword('');
+  const loadReservations = async () => {
+    // TODO: Implement Firebase fetch
+    // Mock data
+    setReservations([
+      {
+        id: '1',
+        reservationNumber: 'TRF-001',
+        fromLocation: 'Antalya Airport',
+        toLocation: 'Kemer',
+        date: '2024-06-15',
+        time: '14:00',
+        adults: 4,
+        babySeats: 1,
+        vehicle: 'Mercedes Vito VIP',
+        customerName: 'John Doe',
+        customerEmail: 'john@example.com',
+        customerPhone: '+1234567890',
+        status: 'confirmed',
+        createdAt: new Date('2024-05-01')
+      },
+      {
+        id: '2',
+        reservationNumber: 'TRF-002',
+        fromLocation: 'Kemer',
+        toLocation: 'Antalya Airport',
+        date: '2024-06-20',
+        time: '10:00',
+        adults: 2,
+        babySeats: 0,
+        vehicle: 'BMW 7 Series',
+        customerName: 'Jane Smith',
+        customerEmail: 'jane@example.com',
+        customerPhone: '+0987654321',
+        status: 'pending',
+        createdAt: new Date('2024-05-02')
+      }
+    ]);
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'confirmed': return 'text-[#10B981] bg-[#10B981]/10';
-      case 'pending': return 'text-[#F59E0B] bg-[#F59E0B]/10';
-      case 'canceled': return 'text-[#DC2626] bg-[#DC2626]/10';
-      default: return 'text-[#1F2937] bg-[#1F2937]/10';
-    }
+  const updateStatus = async (id: string, newStatus: string) => {
+    // TODO: Implement Firebase update
+    setReservations(prev => 
+      prev.map(res => 
+        res.id === id ? { ...res, status: newStatus } : res
+      )
+    );
   };
 
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'confirmed': return t('status.confirmed', language);
-      case 'pending': return t('status.pending', language);
-      case 'canceled': return t('status.canceled', language);
-      default: return status;
-    }
-  };
+  const filteredReservations = reservations.filter(res => {
+    if (filter === 'all') return true;
+    return res.status === filter;
+  });
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen bg-[#F9F9F9] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8">
-          <div>
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-[#1F2937]">
-              {t('admin', language)}
-            </h2>
-            <p className="mt-2 text-center text-sm text-[#1F2937]">
-              {language === 'de' ? 'Anmelden Sie sich in Ihr Admin-Konto' : 'Sign in to your admin account'}
-            </p>
-          </div>
-          <form className="mt-8 space-y-6" onSubmit={handleLogin}>
-            <div className="rounded-md shadow-sm -space-y-px">
+      <div className="min-h-screen bg-[#121212] flex items-center justify-center py-12">
+        <div className="max-w-md w-full">
+          <div className="bg-[#1E1E2F] rounded-2xl shadow-lg border border-[#2A2A3C] p-8">
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-bold text-[#EAEAEA] mb-2">
+                {language === 'de' ? 'Admin Login' : 'Admin Login'}
+              </h1>
+              <p className="text-[#B0B0B0]">
+                {language === 'de' ? 'Melden Sie sich an, um Reservierungen zu verwalten' : 'Sign in to manage reservations'}
+              </p>
+            </div>
+
+            <form onSubmit={handleLogin} className="space-y-6">
               <div>
-                <label htmlFor="email" className="sr-only">
-                  {language === 'de' ? 'E-Mail-Adresse' : 'Email address'}
+                <label className="block text-sm font-medium text-[#EAEAEA] mb-2">
+                  {language === 'de' ? 'E-Mail' : 'Email'}
                 </label>
                 <input
-                  id="email"
-                  name="email"
                   type="email"
-                  required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-[#0F1E3C] placeholder-[#1F2937] text-[#1F2937] rounded-t-md focus:outline-none focus:ring-[#FFD700] focus:border-[#FFD700] focus:z-10 sm:text-sm"
-                  placeholder={language === 'de' ? 'E-Mail-Adresse' : 'Email address'}
+                  className="w-full px-3 py-2 border border-[#2A2A3C] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D6A756] focus:border-[#D6A756] text-[#EAEAEA] bg-[#121212] placeholder-[#9A9A9A]"
+                  required
                 />
               </div>
+
               <div>
-                <label htmlFor="password" className="sr-only">
+                <label className="block text-sm font-medium text-[#EAEAEA] mb-2">
                   {language === 'de' ? 'Passwort' : 'Password'}
                 </label>
                 <input
-                  id="password"
-                  name="password"
                   type="password"
-                  required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-[#0F1E3C] placeholder-[#1F2937] text-[#1F2937] rounded-b-md focus:outline-none focus:ring-[#FFD700] focus:border-[#FFD700] focus:z-10 sm:text-sm"
-                  placeholder={language === 'de' ? 'Passwort' : 'Password'}
+                  className="w-full px-3 py-2 border border-[#2A2A3C] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D6A756] focus:border-[#D6A756] text-[#EAEAEA] bg-[#121212] placeholder-[#9A9A9A]"
+                  required
                 />
               </div>
-            </div>
 
-            <div>
+              {error && (
+                <div className="bg-[#DC2626]/10 border border-[#DC2626]/20 rounded-lg p-3">
+                  <p className="text-[#DC2626] text-sm">{error}</p>
+                </div>
+              )}
+
               <button
                 type="submit"
                 disabled={loading}
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-[#0F1E3C] bg-[#FFD700] hover:bg-[#F5C542] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FFD700] disabled:opacity-50 transition-colors"
+                className="w-full px-6 py-3 bg-[#D6A756] text-[#121212] rounded-lg hover:bg-[#c09445] disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold"
               >
-                {loading ? t('loading', language) : t('login', language)}
+                {loading ? t('loading', language) : (language === 'de' ? 'Anmelden' : 'Sign In')}
               </button>
+            </form>
+
+            <div className="mt-6 text-center text-sm text-[#B0B0B0]">
+              <p>Demo: admin@antalya-vip.com / admin123</p>
             </div>
-          </form>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#F9F9F9]">
-      {/* Header */}
-      <div className="bg-white shadow-md border-b border-[#0F1E3C]/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <h1 className="text-xl font-semibold text-[#1F2937]">
-              {t('admin', language)} Dashboard
+    <div className="min-h-screen bg-[#121212] py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-[#EAEAEA] mb-2">
+              {language === 'de' ? 'Admin Dashboard' : 'Admin Dashboard'}
             </h1>
-            <button
-              onClick={handleLogout}
-              className="px-4 py-2 text-sm font-medium text-[#1F2937] hover:text-[#0F1E3C] transition-colors"
-            >
-              {t('logout', language)}
-            </button>
+            <p className="text-[#B0B0B0]">
+              {language === 'de' ? 'Verwalten Sie alle Reservierungen' : 'Manage all reservations'}
+            </p>
           </div>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Tabs */}
-        <div className="border-b border-[#0F1E3C]/20 mb-8">
-          <nav className="-mb-px flex space-x-8">
-            <button
-              onClick={() => setActiveTab('reservations')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'reservations'
-                  ? 'border-[#FFD700] text-[#0F1E3C]'
-                  : 'border-transparent text-[#1F2937] hover:text-[#0F1E3C] hover:border-[#0F1E3C]/30'
-              }`}
-            >
-              {t('allReservations', language)}
-            </button>
-            <button
-              onClick={() => setActiveTab('calendar')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'calendar'
-                  ? 'border-[#FFD700] text-[#0F1E3C]'
-                  : 'border-transparent text-[#1F2937] hover:text-[#0F1E3C] hover:border-[#0F1E3C]/30'
-              }`}
-            >
-              {t('calendar', language)}
-            </button>
-          </nav>
+          
+          <button
+            onClick={() => setIsLoggedIn(false)}
+            className="px-4 py-2 bg-[#DC2626] text-white rounded-lg hover:bg-[#B91C1C] transition-colors"
+          >
+            {language === 'de' ? 'Abmelden' : 'Logout'}
+          </button>
         </div>
 
-        {/* Content */}
-        {activeTab === 'reservations' && (
-          <div className="bg-white shadow-md rounded-lg border border-[#0F1E3C]/20">
-            <div className="px-4 py-5 sm:p-6">
-              <h3 className="text-lg leading-6 font-medium text-[#1F2937] mb-4">
-                {t('allReservations', language)}
-              </h3>
-              
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-[#0F1E3C]/20">
-                  <thead className="bg-[#F9F9F9]">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-[#1F2937] uppercase tracking-wider">
-                        {t('reservationNumber', language)}
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-[#1F2937] uppercase tracking-wider">
-                        {t('customerName', language)}
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-[#1F2937] uppercase tracking-wider">
-                        {t('from', language)} - {t('to', language)}
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-[#1F2937] uppercase tracking-wider">
-                        {t('date', language)} / {t('time', language)}
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-[#1F2937] uppercase tracking-wider">
-                        {t('vehicle', language)}
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-[#1F2937] uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-[#1F2937] uppercase tracking-wider">
-                        {t('edit', language)}
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-[#0F1E3C]/20">
-                    {mockReservations.map((reservation) => (
-                      <tr key={reservation.id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-[#1F2937]">
-                          {reservation.reservationNumber}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[#1F2937]">
-                          {reservation.customerName}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[#1F2937]">
-                          {reservation.fromLocation} → {reservation.toLocation}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[#1F2937]">
-                          {reservation.date} {reservation.time}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[#1F2937]">
-                          {reservation.vehicle}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(reservation.status)}`}>
-                            {getStatusText(reservation.status)}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <button className="text-[#FFD700] hover:text-[#F5C542] transition-colors">
-                            {t('edit', language)}
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+        {/* Filter */}
+        <div className="bg-[#1E1E2F] rounded-2xl shadow-lg border border-[#2A2A3C] p-6 mb-8">
+          <div className="flex items-center space-x-4">
+            <label className="text-sm font-medium text-[#EAEAEA]">
+              {language === 'de' ? 'Filter:' : 'Filter:'}
+            </label>
+            <select
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              className="px-3 py-2 border border-[#2A2A3C] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D6A756] focus:border-[#D6A756] text-[#EAEAEA] bg-[#121212]"
+            >
+              <option value="all">{language === 'de' ? 'Alle' : 'All'}</option>
+              <option value="pending">{language === 'de' ? 'Ausstehend' : 'Pending'}</option>
+              <option value="confirmed">{language === 'de' ? 'Bestätigt' : 'Confirmed'}</option>
+              <option value="canceled">{language === 'de' ? 'Storniert' : 'Canceled'}</option>
+            </select>
           </div>
-        )}
+        </div>
 
-        {activeTab === 'calendar' && (
-          <div className="bg-white shadow-md rounded-lg border border-[#0F1E3C]/20">
-            <div className="px-4 py-5 sm:p-6">
-              <h3 className="text-lg leading-6 font-medium text-[#1F2937] mb-4">
-                {t('calendar', language)}
-              </h3>
-              <div className="h-96 bg-[#F9F9F9] rounded-lg flex items-center justify-center">
-                <p className="text-[#1F2937]">
-                  {language === 'de' ? 'Kalender wird hier angezeigt' : 'Calendar will be displayed here'}
-                </p>
+        {/* Reservations List */}
+        <div className="space-y-6">
+          {filteredReservations.map((reservation) => (
+            <div key={reservation.id} className="bg-[#1E1E2F] rounded-2xl shadow-lg border border-[#2A2A3C] p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-xl font-semibold text-[#EAEAEA]">
+                    {reservation.reservationNumber}
+                  </h3>
+                  <p className="text-[#B0B0B0]">{reservation.customerName}</p>
+                </div>
+                
+                <div className="flex items-center space-x-4">
+                  <select
+                    value={reservation.status}
+                    onChange={(e) => updateStatus(reservation.id, e.target.value)}
+                    className="px-3 py-1 border border-[#2A2A3C] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D6A756] focus:border-[#D6A756] text-[#EAEAEA] bg-[#121212] text-sm"
+                  >
+                    <option value="pending">{language === 'de' ? 'Ausstehend' : 'Pending'}</option>
+                    <option value="confirmed">{language === 'de' ? 'Bestätigt' : 'Confirmed'}</option>
+                    <option value="canceled">{language === 'de' ? 'Storniert' : 'Canceled'}</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div>
+                  <span className="text-[#B0B0B0]">{t('from', language)}: </span>
+                  <span className="text-[#EAEAEA]">{reservation.fromLocation}</span>
+                </div>
+                <div>
+                  <span className="text-[#B0B0B0]">{t('to', language)}: </span>
+                  <span className="text-[#EAEAEA]">{reservation.toLocation}</span>
+                </div>
+                <div>
+                  <span className="text-[#B0B0B0]">{t('date', language)}: </span>
+                  <span className="text-[#EAEAEA]">{reservation.date}</span>
+                </div>
+                <div>
+                  <span className="text-[#B0B0B0]">{t('time', language)}: </span>
+                  <span className="text-[#EAEAEA]">{reservation.time}</span>
+                </div>
+                <div>
+                  <span className="text-[#B0B0B0]">{t('vehicle', language)}: </span>
+                  <span className="text-[#EAEAEA]">{reservation.vehicle}</span>
+                </div>
+                <div>
+                  <span className="text-[#B0B0B0]">{t('customerEmail', language)}: </span>
+                  <span className="text-[#EAEAEA]">{reservation.customerEmail}</span>
+                </div>
               </div>
             </div>
+          ))}
+        </div>
+
+        {filteredReservations.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-[#B0B0B0] text-lg">
+              {language === 'de' ? 'Keine Reservierungen gefunden' : 'No reservations found'}
+            </p>
           </div>
         )}
       </div>
