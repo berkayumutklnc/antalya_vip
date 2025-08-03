@@ -90,6 +90,28 @@ export default function AdminPage() {
     return res.status === filter;
   });
 
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return language === 'de' ? 'Ausstehend' : 
+               language === 'en' ? 'Pending' : 
+               language === 'tr' ? 'Beklemede' : 
+               language === 'ru' ? 'В ожидании' : 'Pending';
+      case 'confirmed':
+        return language === 'de' ? 'Bestätigt' : 
+               language === 'en' ? 'Confirmed' : 
+               language === 'tr' ? 'Onaylandı' : 
+               language === 'ru' ? 'Подтверждено' : 'Confirmed';
+      case 'canceled':
+        return language === 'de' ? 'Storniert' : 
+               language === 'en' ? 'Canceled' : 
+               language === 'tr' ? 'İptal Edildi' : 
+               language === 'ru' ? 'Отменено' : 'Canceled';
+      default:
+        return status;
+    }
+  };
+
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen bg-[#121212] flex items-center justify-center py-12">
@@ -187,10 +209,30 @@ export default function AdminPage() {
               onChange={(e) => setFilter(e.target.value)}
               className="px-3 py-2 border border-[#2A2A3C] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D6A756] focus:border-[#D6A756] text-[#EAEAEA] bg-[#121212]"
             >
-              <option value="all">{language === 'de' ? 'Alle' : 'All'}</option>
-              <option value="pending">{language === 'de' ? 'Ausstehend' : 'Pending'}</option>
-              <option value="confirmed">{language === 'de' ? 'Bestätigt' : 'Confirmed'}</option>
-              <option value="canceled">{language === 'de' ? 'Storniert' : 'Canceled'}</option>
+              <option value="all">
+                {language === 'de' ? 'Alle' : 
+                 language === 'en' ? 'All' : 
+                 language === 'tr' ? 'Tümü' : 
+                 language === 'ru' ? 'Все' : 'All'}
+              </option>
+              <option value="pending">
+                {language === 'de' ? 'Ausstehend' : 
+                 language === 'en' ? 'Pending' : 
+                 language === 'tr' ? 'Beklemede' : 
+                 language === 'ru' ? 'В ожидании' : 'Pending'}
+              </option>
+              <option value="confirmed">
+                {language === 'de' ? 'Bestätigt' : 
+                 language === 'en' ? 'Confirmed' : 
+                 language === 'tr' ? 'Onaylandı' : 
+                 language === 'ru' ? 'Подтверждено' : 'Confirmed'}
+              </option>
+              <option value="canceled">
+                {language === 'de' ? 'Storniert' : 
+                 language === 'en' ? 'Canceled' : 
+                 language === 'tr' ? 'İptal Edildi' : 
+                 language === 'ru' ? 'Отменено' : 'Canceled'}
+              </option>
             </select>
           </div>
         </div>
@@ -213,9 +255,24 @@ export default function AdminPage() {
                     onChange={(e) => updateStatus(reservation.id, e.target.value)}
                     className="px-3 py-1 border border-[#2A2A3C] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D6A756] focus:border-[#D6A756] text-[#EAEAEA] bg-[#121212] text-sm"
                   >
-                    <option value="pending">{language === 'de' ? 'Ausstehend' : 'Pending'}</option>
-                    <option value="confirmed">{language === 'de' ? 'Bestätigt' : 'Confirmed'}</option>
-                    <option value="canceled">{language === 'de' ? 'Storniert' : 'Canceled'}</option>
+                    <option value="pending">
+                      {language === 'de' ? 'Ausstehend' : 
+                       language === 'en' ? 'Pending' : 
+                       language === 'tr' ? 'Beklemede' : 
+                       language === 'ru' ? 'В ожидании' : 'Pending'}
+                    </option>
+                    <option value="confirmed">
+                      {language === 'de' ? 'Bestätigt' : 
+                       language === 'en' ? 'Confirmed' : 
+                       language === 'tr' ? 'Onaylandı' : 
+                       language === 'ru' ? 'Подтверждено' : 'Confirmed'}
+                    </option>
+                    <option value="canceled">
+                      {language === 'de' ? 'Storniert' : 
+                       language === 'en' ? 'Canceled' : 
+                       language === 'tr' ? 'İptal Edildi' : 
+                       language === 'ru' ? 'Отменено' : 'Canceled'}
+                    </option>
                   </select>
                 </div>
               </div>

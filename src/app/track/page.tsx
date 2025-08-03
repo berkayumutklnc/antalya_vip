@@ -62,10 +62,23 @@ export default function TrackPage() {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'confirmed': return t('status.confirmed', language);
-      case 'pending': return t('status.pending', language);
-      case 'canceled': return t('status.canceled', language);
-      default: return status;
+      case 'confirmed': 
+        return language === 'de' ? 'Bestätigt' : 
+               language === 'en' ? 'Confirmed' : 
+               language === 'tr' ? 'Onaylandı' : 
+               language === 'ru' ? 'Подтверждено' : 'Confirmed';
+      case 'pending': 
+        return language === 'de' ? 'Ausstehend' : 
+               language === 'en' ? 'Pending' : 
+               language === 'tr' ? 'Beklemede' : 
+               language === 'ru' ? 'В ожидании' : 'Pending';
+      case 'canceled': 
+        return language === 'de' ? 'Storniert' : 
+               language === 'en' ? 'Canceled' : 
+               language === 'tr' ? 'İptal Edildi' : 
+               language === 'ru' ? 'Отменено' : 'Canceled';
+      default: 
+        return status;
     }
   };
 
