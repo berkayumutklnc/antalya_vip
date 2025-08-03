@@ -1,103 +1,135 @@
-import Image from "next/image";
+'use client';
+
+import React from 'react';
+import Link from 'next/link';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { t } from '@/lib/i18n';
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const { language } = useLanguage();
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  return (
+    <div className="min-h-screen bg-[#F9F9F9]">
+      {/* Hero Section */}
+      <section className="relative bg-gradient-to-r from-[#0F1E3C] to-[#1a2a4a] text-white">
+        <div className="absolute inset-0 bg-black opacity-10"></div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+          <div className="text-center">
+            <h1 className="text-4xl md:text-6xl font-bold mb-6">
+              {t('heroTitle', language)}
+            </h1>
+            <p className="text-xl md:text-2xl mb-8 text-[#F3F4F6]">
+              {t('heroSubtitle', language)}
+            </p>
+            <Link
+              href="/reservation"
+              className="inline-block bg-[#FFD700] text-[#0F1E3C] px-8 py-4 rounded-lg font-semibold text-lg hover:bg-[#F5C542] transition-colors shadow-lg"
+            >
+              {t('heroButton', language)}
+            </Link>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </section>
+
+      {/* Features Section */}
+      <section className="py-16 bg-[#F9F9F9]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-[#1F2937] mb-4">
+              {language === 'de' && 'Warum uns wählen?'}
+              {language === 'en' && 'Why Choose Us?'}
+              {language === 'tr' && 'Neden Bizi Seçmelisiniz?'}
+              {language === 'ru' && 'Почему выбирают нас?'}
+            </h2>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="text-center bg-white p-6 rounded-lg shadow-md">
+              <div className="bg-[#FFD700] w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-[#0F1E3C]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold mb-2 text-[#1F2937]">
+                {language === 'de' && 'Pünktlichkeit'}
+                {language === 'en' && 'Punctuality'}
+                {language === 'tr' && 'Zamanında Hizmet'}
+                {language === 'ru' && 'Пунктуальность'}
+              </h3>
+              <p className="text-[#1F2937]">
+                {language === 'de' && 'Wir sind immer pünktlich und zuverlässig'}
+                {language === 'en' && 'We are always punctual and reliable'}
+                {language === 'tr' && 'Her zaman zamanında ve güveniliriz'}
+                {language === 'ru' && 'Мы всегда пунктуальны и надежны'}
+              </p>
+            </div>
+            
+            <div className="text-center bg-white p-6 rounded-lg shadow-md">
+              <div className="bg-[#FFD700] w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-[#0F1E3C]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold mb-2 text-[#1F2937]">
+                {language === 'de' && 'Qualität'}
+                {language === 'en' && 'Quality'}
+                {language === 'tr' && 'Kalite'}
+                {language === 'ru' && 'Качество'}
+              </h3>
+              <p className="text-[#1F2937]">
+                {language === 'de' && 'Luxuriöse Fahrzeuge und professioneller Service'}
+                {language === 'en' && 'Luxury vehicles and professional service'}
+                {language === 'tr' && 'Lüks araçlar ve profesyonel hizmet'}
+                {language === 'ru' && 'Роскошные автомобили и профессиональный сервис'}
+              </p>
+            </div>
+            
+            <div className="text-center bg-white p-6 rounded-lg shadow-md">
+              <div className="bg-[#FFD700] w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-[#0F1E3C]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold mb-2 text-[#1F2937]">
+                {language === 'de' && 'Erfahrung'}
+                {language === 'en' && 'Experience'}
+                {language === 'tr' && 'Deneyim'}
+                {language === 'ru' && 'Опыт'}
+              </h3>
+              <p className="text-[#1F2937]">
+                {language === 'de' && 'Jahrelange Erfahrung im Transfer-Service'}
+                {language === 'en' && 'Years of experience in transfer service'}
+                {language === 'tr' && 'Transfer hizmetinde yılların deneyimi'}
+                {language === 'ru' && 'Многолетний опыт в трансферном сервисе'}
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-16 bg-[#0F1E3C] text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl font-bold mb-4">
+            {language === 'de' && 'Bereit für Ihre Reise?'}
+            {language === 'en' && 'Ready for Your Journey?'}
+            {language === 'tr' && 'Yolculuğunuza Hazır mısınız?'}
+            {language === 'ru' && 'Готовы к путешествию?'}
+          </h2>
+          <p className="text-xl mb-8 text-[#F3F4F6]">
+            {language === 'de' && 'Buchen Sie jetzt Ihren VIP-Transfer'}
+            {language === 'en' && 'Book your VIP transfer now'}
+            {language === 'tr' && 'VIP transferinizi şimdi rezerve edin'}
+            {language === 'ru' && 'Забронируйте VIP трансфер сейчас'}
+          </p>
+          <Link
+            href="/reservation"
+            className="inline-block bg-[#FFD700] text-[#0F1E3C] px-8 py-4 rounded-lg font-semibold text-lg hover:bg-[#F5C542] transition-colors shadow-lg"
+          >
+            {t('heroButton', language)}
+          </Link>
+        </div>
+      </section>
     </div>
   );
 }
