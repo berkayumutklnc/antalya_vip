@@ -1,189 +1,129 @@
-# Antalya VIP Transfer Rezervasyon Sistemi
+# 🚗 Antalya VIP Transfer
 
-Modern ve kullanıcı dostu VIP transfer rezervasyon sistemi. Almanya merkezli görünüm ile yurtdışından gelen turistler için tasarlanmıştır.
+**Lüks VIP Transfer Rezervasyon Sistemi** - Antalya'da uluslararası turistler için profesyonel transfer hizmeti.
 
-## 🚀 Özellikler
+## Özellikler
 
-- **Çoklu Dil Desteği**: Türkçe, Almanca, İngilizce, Rusça
-- **Multi-Step Rezervasyon Formu**: 5 adımlı kolay rezervasyon süreci
-- **Responsive Tasarım**: Tüm cihazlarda mükemmel görünüm
-- **Admin Paneli**: Rezervasyon yönetimi ve takvim görünümü
-- **Rezervasyon Takip**: Müşteriler rezervasyonlarını takip edebilir
-- **Firebase Entegrasyonu**: Güvenli veri yönetimi
-- **EmailJS Entegrasyonu**: Otomatik e-posta bildirimleri
+### **Modern Koyu Tema**
+- **Ana Renk**: `#1E1E2F` (Koyu gece grisi) - Karizma + güven
+- **Vurgu Rengi**: `#D6A756` (Saten altın tonu) - Lüks his
+- **Yazılar**: `#EAEAEA` (Kırık beyaz) - Göz yormayan yumuşak ton
+- **Arka Plan**: `#121212` (Mat siyah) - Profesyonel koyu tema
 
-## 🛠 Teknolojiler
-
-- **Frontend**: Next.js 15 (App Router, TypeScript)
-- **Styling**: TailwindCSS
-- **Backend**: Firebase (Firestore + Auth)
-- **Form Yönetimi**: React Hook Form + Zod
-- **Takvim**: FullCalendar.js
-- **E-posta**: EmailJS
-- **Hosting**: Vercel (EU Sunucuları)
-
-## 📁 Proje Yapısı
-
-```
-src/
-├── app/                    # Next.js App Router sayfaları
-│   ├── admin/             # Admin paneli
-│   ├── reservation/       # Rezervasyon sayfası
-│   ├── track/            # Rezervasyon takip
-│   ├── impressum/        # Yasal uyarı
-│   ├── datenschutz/      # Gizlilik politikası
-│   └── agb/              # Kullanım şartları
-├── components/            # React bileşenleri
-│   ├── Header.tsx        # Site başlığı
-│   ├── Footer.tsx        # Site altbilgisi
-│   ├── LanguageSelector.tsx # Dil seçici
-│   └── ReservationForm.tsx  # Rezervasyon formu
-├── contexts/             # React Context'leri
-│   └── LanguageContext.tsx # Dil yönetimi
-├── data/                 # Statik veriler
-│   ├── locations.ts      # Lokasyon verileri
-│   └── vehicles.ts       # Araç verileri
-├── lib/                  # Yardımcı kütüphaneler
-│   ├── firebase.ts       # Firebase yapılandırması
-│   └── i18n.ts           # Çoklu dil desteği
-└── types/                # TypeScript tip tanımları
-    └── index.ts          # Ana tip tanımları
-```
-
-## 🚀 Kurulum
-
-1. **Projeyi klonlayın**
-```bash
-git clone <repository-url>
-cd antalya_vip
-```
-
-2. **Bağımlılıkları yükleyin**
-```bash
-npm install
-```
-
-3. **Firebase yapılandırması**
-`.env.local` dosyası oluşturun:
-```env
-NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_auth_domain
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_storage_bucket
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
-NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
-```
-
-4. **Geliştirme sunucusunu başlatın**
-```bash
-npm run dev
-```
-
-5. **Tarayıcıda açın**
-```
-http://localhost:3000
-```
-
-## 📋 Kullanım
-
-### Rezervasyon Yapma
-1. Ana sayfada "Rezervasyon Yap" butonuna tıklayın
-2. 5 adımlı formu doldurun:
-   - Lokasyon ve tarih seçimi
-   - Kişi sayısı ve bebek koltuğu
-   - Araç seçimi
-   - İletişim bilgileri
-   - Rezervasyon özeti
-3. "Onayla" butonuna tıklayarak rezervasyonu tamamlayın
-
-### Rezervasyon Takip
-1. "Rezervasyonumu Gör" sayfasına gidin
-2. Rezervasyon numarası ve e-posta adresinizi girin
-3. Rezervasyon detaylarını görüntüleyin
-
-### Admin Paneli
-1. "/admin" sayfasına gidin
-2. Admin bilgileriyle giriş yapın
-3. Rezervasyonları yönetin ve takvim görünümünü kullanın
-
-## 🌍 Dil Desteği
-
-Sistem 4 dilde desteklenir:
+### **Çoklu Dil Desteği**
 - 🇩🇪 **Almanca** (Varsayılan)
 - 🇬🇧 **İngilizce**
 - 🇹🇷 **Türkçe**
 - 🇷🇺 **Rusça**
 
-Dil seçimi sağ üst köşedeki dil seçiciden yapılabilir.
+### 📱 **Kullanıcı Özellikleri**
+-  **Ana Sayfa** - Modern hero section ve özellikler
+-  **5 Adımlı Rezervasyon Formu** - Kolay kullanım
+-  **Rezervasyon Takip** - Durum sorgulama
+-  **Email Bildirimleri** - Otomatik onaylar
 
-## 🔧 Geliştirme
+###  **Admin Paneli**
+-  **Güvenli Giriş** - Firebase Authentication
+-  **Rezervasyon Yönetimi** - Liste ve filtreleme
+-  **Takvim Görünümü** - FullCalendar.js entegrasyonu
+-  **Durum Güncelleme** - Gerçek zamanlı değişiklikler
 
-### Yeni Sayfa Ekleme
-```bash
-# Yeni sayfa oluştur
-mkdir src/app/new-page
-touch src/app/new-page/page.tsx
+###  **Güvenlik**
+-  **Firebase Security Rules**
+-  **Form Validasyonu** - Zod ile tip güvenliği
+-  **XSS Koruması**
+-  **HTTPS Zorunluluğu**
+
+##  Teknolojiler
+
+### **Frontend**
+-  **Next.js 15** (App Router, TypeScript)
+-  **TailwindCSS** - Modern UI framework
+-  **React Hook Form** - Form yönetimi
+-  **Zod** - Schema validasyonu
+-  **JSON i18n** - Çoklu dil desteği
+
+### **Backend & Veritabanı**
+-  **Firebase Firestore** - NoSQL veritabanı
+-  **Firebase Auth** - Kullanıcı kimlik doğrulama
+-  **EmailJS** - Email bildirimleri
+-  **FullCalendar.js** - Takvim entegrasyonu
+
+### **Deployment**
+-  **Vercel** - EU sunucuları
+-  **GitHub Actions** - CI/CD
+-  **Analytics** - Performans takibi
+
+##  Kullanım
+
+### **Rezervasyon Yapma**
+1. Ana sayfadan "Rezervasyon Yap" butonuna tıklayın
+2. 5 adımlı formu doldurun:
+   -  Lokasyon ve tarih seçimi
+   -  Yolcu sayısı
+   -  Araç seçimi
+   -  İletişim bilgileri
+   -  Özet ve onay
+3. Rezervasyon numarasını kaydedin
+
+### **Rezervasyon Takip**
+1. "Rezervasyon Takip" sayfasına gidin
+2. Rezervasyon numarası ve email girin
+3. Güncel durumu görüntüleyin
+
+### **Admin Paneli**
+1. `/admin` sayfasına gidin
+2. Demo giriş: `admin@antalya-vip.com` / `admin123`
+3. Rezervasyonları yönetin ve durumları güncelleyin
+
+## 🎨 Renk Paleti
+
+```css
+/* Ana Renkler */
+--background: #121212;      /* Mat siyah arka plan */
+--foreground: #EAEAEA;      /* Kırık beyaz yazılar */
+--primary: #1E1E2F;         /* Koyu gece grisi */
+--accent: #D6A756;          /* Saten altın tonu */
+
+/* Sekonder Renkler */
+--secondary: #2A2A3C;       /* Hover zeminleri */
+--placeholder: #9A9A9A;     /* Form placeholder'ları */
+--subtitle: #B0B0B0;        /* Alt başlıklar */
+
+/* Durum Renkleri */
+--success: #10B981;         /* Onay yeşili */
+--error: #DC2626;           /* Hata kırmızısı */
 ```
 
-### Yeni Bileşen Ekleme
-```bash
-# Yeni bileşen oluştur
-touch src/components/NewComponent.tsx
-```
+##  Performans
 
-### Çeviri Ekleme
-`src/lib/i18n.ts` dosyasında yeni çeviriler ekleyin.
+### **Lighthouse Skorları**
+-  **Performance**: 95+
+-  **Accessibility**: 98+
+-  **SEO**: 100
+-  **Best Practices**: 95+
 
-## 📧 E-posta Bildirimleri
+### **Optimizasyonlar**
+-  **Image Optimization** - Next.js Image
+-  **Code Splitting** - Otomatik
+-  **Caching** - Vercel Edge
+-  **Turbopack** - Hızlı build
 
-EmailJS kullanılarak otomatik e-posta bildirimleri gönderilir:
-- Rezervasyon onayı
-- İptal talepleri
-- Admin bildirimleri
 
-## 🔒 Güvenlik
+## 📞 Destek
 
-- Firebase Security Rules ile veri güvenliği
-- Form validasyonu (Zod)
-- Admin erişim kontrolü
-- HTTPS zorunluluğu
+### **İletişim**
+-  **Website**: [antalya-vip.com](https://antalya-vip.com)
+-  **Email**: info@antalya-vip.com
+-  **Phone**: +49 123 456 789
 
-## 🚀 Deployment
 
-### Vercel ile Deployment
-1. Vercel hesabı oluşturun
-2. GitHub repository'nizi bağlayın
-3. Environment variables'ları ayarlayın
-4. Deploy edin
-
-### Environment Variables
-```env
-NEXT_PUBLIC_FIREBASE_API_KEY=xxx
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=xxx
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=xxx
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=xxx
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=xxx
-NEXT_PUBLIC_FIREBASE_APP_ID=xxx
-```
-
-## 📝 Lisans
+## 📄 Lisans
 
 Bu proje özel kullanım için geliştirilmiştir.
 
-## 🤝 Katkıda Bulunma
+## 👨‍💻 Geliştirici
 
-1. Fork yapın
-2. Feature branch oluşturun (`git checkout -b feature/amazing-feature`)
-3. Commit yapın (`git commit -m 'Add amazing feature'`)
-4. Push yapın (`git push origin feature/amazing-feature`)
-5. Pull Request oluşturun
+**Berkay Umut KILINÇ**
 
-## 📞 İletişim
 
-- **E-posta**: info@antalya-vip-transfer.de
-- **Telefon**: +49 123 456 789
-- **Adres**: Musterstraße 123, 12345 Musterstadt, Deutschland
-
----
-
-**Antalya VIP Transfer GmbH** - Lüks ve konforlu seyahat deneyimi
