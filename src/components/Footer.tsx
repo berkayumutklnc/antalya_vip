@@ -48,15 +48,12 @@ export default function Footer() {
 
       <div className="mx-auto max-w-6xl px-4 py-12">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-          {/* Marka */}
           <div className="rounded-2xl bg-white/[0.02] ring-1 ring-white/10 p-5">
             <div className="text-lg font-semibold text-white">{SITE.name}</div>
             {SITE.address ? (
               <p className="mt-3 text-sm leading-relaxed text-white/70">{SITE.address}</p>
             ) : null}
           </div>
-
-          {/* İletişim */}
           <div className="rounded-2xl bg-white/[0.02] ring-1 ring-white/10 p-5">
             <div className="mb-3 text-white/90 font-semibold">{contactTitle}</div>
             <ul className="space-y-2 text-sm">
@@ -79,15 +76,12 @@ export default function Footer() {
               {SITE.whatsapp ? (
                 <li>
                   <a href={waHref} target="_blank" rel="noopener noreferrer" className="group inline-flex items-center gap-2 text-white/70 hover:text-white transition">
-                    {/* basit WA işareti yerine metin */}
                     WhatsApp
                   </a>
                 </li>
               ) : null}
             </ul>
           </div>
-
-          {/* Hızlı linkler */}
           <div className="rounded-2xl bg-white/[0.02] ring-1 ring-white/10 p-5">
             <div className="mb-3 text-white/90 font-semibold">{linksTitle}</div>
             <ul className="space-y-2 text-sm text-white/70">

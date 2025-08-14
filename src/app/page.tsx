@@ -44,16 +44,12 @@ export default function HomePage() {
           </a>
         </div>
       </section>
-
-      {/* WIZARD KARTI */}
       <main id="rezervasyon" className="container mx-auto w-full max-w-5xl flex-1 px-4">
         <div className="relative -mt-16 md:-mt-20">
           <div className="rounded-2xl border border-white/10 bg-black/70 p-4 shadow-2xl backdrop-blur md:p-6">
             <Wizard />
           </div>
         </div>
-
-        {/* GÜVEN UNSURLARI */}
         <section className="mx-auto mt-12 grid grid-cols-2 gap-4 md:grid-cols-4">
           {badges.map((b) => (
             <div key={b.title} className="rounded-xl border border-white/10 bg-black p-4">
@@ -62,8 +58,6 @@ export default function HomePage() {
             </div>
           ))}
         </section>
-
-        {/* HİZMETLER */}
         <section id="hizmetler" className="mt-16">
           <h2 className="mb-6 text-2xl font-bold">{t("home.services.title")}</h2>
           <div className="grid gap-6 md:grid-cols-4">
@@ -77,8 +71,6 @@ export default function HomePage() {
             ))}
           </div>
         </section>
-
-        {/* ARAÇ FİLOSU */}
         <section id="filo" className="mt-16">
           <h2 className="mb-6 text-2xl font-bold">{t("home.fleet.title")}</h2>
           <div className="grid gap-6 md:grid-cols-3">

@@ -14,16 +14,12 @@ export async function GET(req: Request) {
   if (!date || !time || !typeParam) {
     return NextResponse.json({ error: "missing params" }, { status: 400 });
   }
-
-  // 1) Araç kapasitesi
   const vSnap = await adminDb.collection("vehicles").get();
   const vehiclesAll = vSnap.docs.map(d => ({ id: d.id, ...(d.data() as any) }));
   const norm = (s: any) => String(s ?? "").trim().toLowerCase();
   const vehicles = vehiclesAll.filter(v => norm(v.type) === typeParam);
   const capacity = vehicles.length;
 
-  // 2) Aynı slotta pending+confirmed rezervasyon sayısı
-  // Not: "in" filtresi için composite index isteyebilir; konsolda oluşturulmasını önerir.
   const rSnap = await adminDb
     .collection("reservations")
     .where("date", "==", date)

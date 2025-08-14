@@ -9,7 +9,6 @@ import { requestCancel } from "@/lib/reservations";
 import { I18nPublicProvider, useI18nPublic } from "@/lib/i18n-public";
 import LanguageSwitchPublic from "@/components/public/LanguageSwitchPublic";
 
-/** Yardımcı: startAt ms hesapla (ms/saniye + date/time fallback) */
 function resolveStartAtMs(rec: { startAt?: any; date: string; time: string }) {
   const n = Number(rec.startAt);
   if (Number.isFinite(n) && n > 0) {

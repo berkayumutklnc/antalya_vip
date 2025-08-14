@@ -41,7 +41,7 @@ export default function Step2({ formData, updateData, prevStep, nextStep }: Prop
       const fn = field === "firstName" ? val : formData.firstName || "";
       const ln = field === "lastName"  ? val : formData.lastName  || "";
       const full = `${fn} ${ln}`.trim();
-      updateData({ fullName: full } as any); // Context’te fullName’i de güncelle
+      updateData({ fullName: full } as any); 
     }
   }
 

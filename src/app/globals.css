@@ -34,9 +34,9 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 .react-tel-input .form-control {
-  background-color: #1f2937 !important; /* gray-800 */
+  background-color: #1f2937 !important; 
   color: white !important;
-  border: 1px solid #374151 !important; /* gray-700 */
+  border: 1px solid #374151 !important;
 }
 
 .react-tel-input .flag-dropdown {

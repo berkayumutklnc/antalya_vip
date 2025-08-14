@@ -13,15 +13,15 @@ type FormShape = {
   lang: "de" | "en" | "tr" | "ru";
   from: string;
   to: string;
-  date: string;  // "YYYY-MM-DD"
-  time: string;  // "HH:mm"
+  date: string;
+  time: string; 
   adults: number;
   babySeat: number;
   firstName: string;
   lastName: string;
-  phone: string; // +905xxxxxxxxx
+  phone: string;
   email: string;
-  vehicleType?: VehicleType; // "vip-6" | "vip-10"
+  vehicleType?: VehicleType; 
   price?: number | null;
 };
 
@@ -46,14 +46,10 @@ export default function Wizard() {
 
   const [step, setStep] = useState(1);
   const [formData, setFormDataState] = useState<FormShape>(makeInitial(lang));
-
-  // createReservation sonrası Step4’ün başarı ekranı için:
   const [rid, setRid] = useState<string | null>(null);
   const [pnr, setPnr] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-
-  // Dil değişince form.lang’i güncelle
   useEffect(() => {
     setFormDataState((prev) => ({ ...prev, lang }));
   }, [lang]);
@@ -64,17 +60,14 @@ export default function Wizard() {
   const nextStep = () => setStep((s) => Math.min(4, s + 1));
   const prevStep = () => setStep((s) => Math.max(1, s - 1));
 
-  // Step4 -> onSubmit
   const submit = async () => {
     if (submitting) return;
     setSubmitting(true);
     try {
-      // Zamanı UTC ms
+
       const [y, m, d] = formData.date.split("-").map(Number);
       const [H, M] = formData.time.split(":").map(Number);
       const startAt = Date.UTC(y, m - 1, d, H, M);
-
-      // Merkez tek yer: lib/reservations.createReservation
       const res = await createReservation({
         from: formData.from,
         to: formData.to,
@@ -90,13 +83,9 @@ export default function Wizard() {
         vehicleType: formData.vehicleType,
         price: formData.price ?? null,
       });
-
-      // Step4’ün başarı ekranında .ics butonunu göstermek için:
       setRid(res.id);
       setPnr(res.code ?? res.id);
       setSubmitted(true);
-
-      // en üste kaydır
       window?.scrollTo?.({ top: 0, behavior: "smooth" });
     } catch (e: any) {
       console.error(e);
@@ -108,7 +97,6 @@ export default function Wizard() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      {/* Adım göstergesi */}
       {step <= 4 && !submitted && (
         <div className="mb-6 flex items-center gap-2 text-sm text-neutral-300">
           {[1, 2, 3, 4].map((n) => (
@@ -123,8 +111,6 @@ export default function Wizard() {
           ))}
         </div>
       )}
-
-      {/* Adımlar: Success ekranını Step4 yönetir. */}
       {step === 1 ? (
         <Step1 formData={formData} updateData={setFormData} nextStep={nextStep} />
       ) : step === 2 ? (

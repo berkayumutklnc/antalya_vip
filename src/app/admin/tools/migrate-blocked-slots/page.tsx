@@ -23,8 +23,6 @@ export default function MigrateBlockedSlotsPage() {
       for (const d of snap.docs) {
         const v = d.data() as any;
         const bs = v?.blockedSlots;
-
-        // Eski format ise: ["2025-08-30T08:00", "2025-08-09T10:30", ...]
         if (Array.isArray(bs) && bs.length > 0 && typeof bs[0] === "string") {
           const arr = (bs as string[])
             .map((iso) => {
@@ -32,7 +30,7 @@ export default function MigrateBlockedSlotsPage() {
               if (!startAt) return null;
               return {
                 startAt,
-                endAt: startAt + 60 * 60 * 1000, // 60 dk slot
+                endAt: startAt + 60 * 60 * 1000, 
                 reason: "manual-block",
               };
             })

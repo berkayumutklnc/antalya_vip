@@ -1,3 +1,4 @@
+// src/components/ReservationForm/ReservationContext.tsx
 "use client";
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
@@ -12,16 +13,27 @@ const makeDefault = (lang: ReservationFormData["lang"]): ReservationFormData => 
   time: "",
   adults: 1,
   babySeat: 0,
-  fullName: "",      // Step2’de ad/soyadı birleştirip buraya yazıyoruz
+
+  fullName: "",
   phone: "",
   email: "",
-  vehicleType: undefined,
+
+  flightNo: "",
+  terminal: "",
+  baggageCount: 0,
+
+  vehicleType: undefined, // henüz seçili değil
   price: 0,
+
+  note: "",
+  acceptPolicy: false,
+  acceptKvkk: false,
+  acceptComms: false,
 });
 
 const Ctx = createContext<{
   form: ReservationFormData;
-  setForm: (p: Partial<ReservationFormData>) => void;
+  setForm: (patch: Partial<ReservationFormData>) => void;
   reset: () => void;
 }>({
   form: makeDefault("de"),
@@ -32,10 +44,9 @@ const Ctx = createContext<{
 export const useReservation = () => useContext(Ctx);
 
 export function ReservationProvider({ children }: { children: ReactNode }) {
-  const { lang } = useI18nPublic(); // public provider’daki dil
+  const { lang } = useI18nPublic();
   const [form, setFormState] = useState<ReservationFormData>(makeDefault(lang));
 
-  // Header’daki dil değişirse form.lang’i de senkronla
   useEffect(() => {
     setFormState((prev) => ({ ...prev, lang }));
   }, [lang]);

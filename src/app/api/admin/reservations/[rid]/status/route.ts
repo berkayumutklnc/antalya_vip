@@ -43,8 +43,6 @@ export async function PATCH(req: Request, { params }: { params: { rid: string } 
       }
 
       const vRef = adminDb.collection("vehicles").doc(picked.id);
-
-      // 2) transaction: slotu araca yaz + rezervasyona atamayı bas
       await adminDb.runTransaction(async (tx) => {
         const freshV = await tx.get(vRef);
         const data = freshV.data() as any;
@@ -65,7 +63,6 @@ export async function PATCH(req: Request, { params }: { params: { rid: string } 
     }
 
     if (status === "canceled") {
-      // slotu araçtan geri al (varsayılan)
       const vId = r.vehicleId;
       if (vId) {
         const vRef = adminDb.collection("vehicles").doc(vId);

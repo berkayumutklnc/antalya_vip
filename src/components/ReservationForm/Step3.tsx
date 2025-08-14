@@ -19,8 +19,8 @@ type FormShape = {
   lang: "de" | "en" | "tr" | "ru";
   from: string;
   to: string;
-  date?: string; // "YYYY-MM-DD"
-  time?: string; // "HH:mm"
+  date?: string;
+  time?: string; 
   adults: number;
   babySeat: number;
   phone: string;
@@ -41,15 +41,14 @@ const SLOT_MIN = 60;
 const clamp = (n: number, min: number, max: number) =>
   Math.max(min, Math.min(max, n));
 
-/** blockedSlots çakışma kontrolü (local) */
 function isVehicleFreeLocal(v: Vehicle, startAt: number, endAt: number): boolean {
   const slots = Array.isArray((v as any).blockedSlots) ? (v as any).blockedSlots : [];
   return !slots.some((s: any) => {
     const a = Number(s?.startAt ?? 0);
     const b = Number(s?.endAt ?? 0);
-    const A = a > 0 && a < 1e12 ? a * 1000 : a; // saniye gelirse ms'e çevir
+    const A = a > 0 && a < 1e12 ? a * 1000 : a; 
     const B = b > 0 && b < 1e12 ? b * 1000 : b;
-    return A < endAt && startAt < B; // [A,B) x [startAt,endAt)
+    return A < endAt && startAt < B; 
   });
 }
 
@@ -71,7 +70,6 @@ export default function Step3({
     else if (setFormDataProp) setFormDataProp(patch);
   };
 
-  // passengers UI
   const setAdults = (n: number) => patchForm({ adults: clamp(n, 1, 8) });
   const setBaby = (n: number) => patchForm({ babySeat: clamp(n, 0, 3) });
 
@@ -106,7 +104,7 @@ export default function Step3({
       const free = isVehicleFreeLocal(v, startAt, endAt);
       const tp = v.type as VehicleType;
       if (map[tp] == null) map[tp] = free;
-      else map[tp] = map[tp] || free; // aynı tipten bir araç bile boşsa tip müsait
+      else map[tp] = map[tp] || free; 
     }
     return map;
   }, [vehicles, startAt, endAt]);
@@ -133,10 +131,7 @@ export default function Step3({
           {t("step3.pickDateFirst")}
         </div>
       )}
-
-      {/* Yolcu / Bebek koltuğu kontrolleri */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        {/* Adults */}
         <div className="rounded-lg border border-white/10 p-4">
           <label className="block text-sm font-medium mb-2">{t("step3.adults")}</label>
           <div className="flex items-center gap-2">
@@ -166,8 +161,6 @@ export default function Step3({
             </button>
           </div>
         </div>
-
-        {/* Baby seat */}
         <div className="rounded-lg border border-white/10 p-4">
           <label className="block text-sm font-medium mb-2">{t("step3.babySeat")}</label>
           <div className="flex items-center gap-2">
@@ -222,7 +215,6 @@ export default function Step3({
                   !available || !dateTimeReady ? "opacity-50 cursor-not-allowed" : "",
                 ].join(" ")}
               >
-                {/* Kapak görseli */}
                 {cat?.image ? (
                   <Image
                     src={cat.image}
@@ -244,8 +236,6 @@ export default function Step3({
                       {available ? t("step3.available") : t("step3.unavailable")}
                     </div>
                   </div>
-
-                  {/* Özellik rozetleri */}
                   <div className="flex flex-wrap gap-2">
                     {(cat?.features || []).map((f) => (
                       <span

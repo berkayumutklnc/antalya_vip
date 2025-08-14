@@ -19,12 +19,10 @@ const ADMIN_UIDS = raw
 
 async function isAdmin(user: User | null): Promise<boolean> {
   if (!user) return false;
-  // 1) custom claim admin:true
   try {
     const token = await user.getIdTokenResult(true);
     if (token.claims?.admin === true) return true;
   } catch {}
-  // 2) env whitelist fallback
   return ADMIN_UIDS.includes(user.uid);
 }
 
@@ -36,12 +34,12 @@ export default function AdminLoginPage() {
 
   const router = useRouter();
   const sp = useSearchParams();
-  const nextUrl = sp.get("next") || "/admin"; // <— varsayılan dashboard
+  const nextUrl = sp.get("next") || "/admin";
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (await isAdmin(user)) {
-        router.replace(nextUrl); // zaten girişli ve admin → next
+        router.replace(nextUrl);
       }
     });
     return () => unsub();

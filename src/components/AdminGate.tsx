@@ -13,12 +13,10 @@ const ADMIN_UIDS = rawInput
 
 async function isAdmin(user: User | null): Promise<boolean> {
   if (!user) return false;
-  // 1) Custom claim
   try {
     const token = await user.getIdTokenResult(true);
     if (token.claims?.admin === true) return true;
   } catch {}
-  // 2) Env whitelist fallback
   return ADMIN_UIDS.includes(user.uid);
 }
 
@@ -40,16 +38,14 @@ export default function AdminGate({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (bypass) {
-        setReady(true); // dev/test için ?admin=1 ile kapıyı aç
+        setReady(true);
         return;
       }
       if (!user) {
-        // Giriş yok → login’e ve next paramıyla geri çağır
         router.replace(`/admin/login?next=${encodeURIComponent(pathname || "/admin")}`);
         return;
       }
       if (!(await isAdmin(user))) {
-        // Admin değil → çıkış + login’e geri
         await signOut(auth).catch(() => {});
         router.replace(`/admin/login?next=${encodeURIComponent(pathname || "/admin")}&err=notadmin`);
         return;

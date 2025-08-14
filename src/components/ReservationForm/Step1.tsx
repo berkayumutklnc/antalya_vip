@@ -13,8 +13,8 @@ interface Step1Props {
     to: string;
     phone: string;
     email?: string;
-    date?: string; // "YYYY-MM-DD"
-    time?: string; // "HH:mm"
+    date?: string; 
+    time?: string; 
   
     flightNo?: string;
     terminal?: string;
@@ -23,7 +23,7 @@ interface Step1Props {
   nextStep: () => void;
 }
 
-/** 🔹 Öneri listesi (istediğin gibi çoğalt) */
+
 const PLACES = [
   "Antalya Airport (AYT)",
   "Antalya City Center",
@@ -92,7 +92,6 @@ const Step1: React.FC<Step1Props> = ({ formData, updateData, nextStep }) => {
     !!selectedDate &&
     !!emailValid;
 
-  // 🔹 input’a yazdıkça önerileri filtrelemek istersen (opsiyonel):
   const filteredFrom = useMemo(() => {
     const q = (formData.from || "").toLowerCase();
     return q ? PLACES.filter(p => p.toLowerCase().includes(q)) : PLACES;
@@ -105,40 +104,36 @@ const Step1: React.FC<Step1Props> = ({ formData, updateData, nextStep }) => {
 
   return (
     <div className="space-y-6">
-      {/* Başlık */}
+
       <div>
         <h2 className="text-xl font-semibold">{t("step1.title")}</h2>
         <p className="text-sm text-gray-400">{t("step1.subtitle")}</p>
       </div>
 
-      {/* Nereden & Nereye */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Nereden */}
+
         <div>
           <label className="block mb-1 text-sm font-medium">{t("step1.from.label")}</label>
           <input
             type="text"
-            list="place-list-from"                 // 🔸 datalist bağla
+            list="place-list-from"               
             value={formData.from}
             onChange={(e) => handleChange("from", e.target.value)}
             className="w-full rounded-md border border-white/15 bg-black px-3 py-2 outline-none focus:border-blue-500"
             placeholder={t("step1.from.placeholder")}
             autoComplete="off"
           />
-          {/* 🔸 native öneriler */}
           <datalist id="place-list-from">
             {filteredFrom.map((p) => (
               <option key={p} value={p} />
             ))}
           </datalist>
         </div>
-
-        {/* Nereye */}
         <div>
           <label className="block mb-1 text-sm font-medium">{t("step1.to.label")}</label>
           <input
             type="text"
-            list="place-list-to"                   // 🔸 datalist bağla
+            list="place-list-to"                   
             value={formData.to}
             onChange={(e) => handleChange("to", e.target.value)}
             className="w-full rounded-md border border-white/15 bg-black px-3 py-2 outline-none focus:border-blue-500"
@@ -153,7 +148,6 @@ const Step1: React.FC<Step1Props> = ({ formData, updateData, nextStep }) => {
         </div>
       </div>
 
-      {/* Tarih & Saat */}
       <div>
         <label className="block mb-1 text-sm font-medium">{t("step1.datetime.label")}</label>
         <DatePicker
@@ -176,8 +170,6 @@ const Step1: React.FC<Step1Props> = ({ formData, updateData, nextStep }) => {
           </div>
         )}
       </div>
-
-      {/* Telefon */}
       <div>
         <label className="block mb-1 text-sm font-medium">{t("step1.phone.label")}</label>
         <PhoneInput
@@ -188,8 +180,6 @@ const Step1: React.FC<Step1Props> = ({ formData, updateData, nextStep }) => {
           buttonClass="!bg-neutral-800 !border !border-white/15 !rounded-l-md"
         />
       </div>
-
-      {/* E-posta */}
       <div>
         <label className="block mb-1 text-sm font-medium">{t("step1.email.label")}</label>
         <input
@@ -203,8 +193,6 @@ const Step1: React.FC<Step1Props> = ({ formData, updateData, nextStep }) => {
           <div className="mt-1 text-xs text-red-400">{t("step1.email.invalid")}</div>
         )}
       </div>
-
-      {/* Devam */}
       <div className="flex items-center justify-end">
         <button
           onClick={nextStep}

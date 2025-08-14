@@ -207,9 +207,6 @@ export default function Step4({
           }
         />
       </div>
-
-
-{/* Ek alanlar */}
 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
   <div>
     <label className="block text-sm text-white/70 mb-1">{t("step4.baggage")}</label>
@@ -253,8 +250,6 @@ export default function Step4({
     className="w-full rounded-md bg-neutral-900 border border-white/10 px-3 py-2"
   />
 </div>
-
-{/* Onay kutuları */}
 <div className="space-y-2">
   <label className="flex items-start gap-2 text-sm">
     <input
@@ -281,7 +276,6 @@ export default function Step4({
     <span>{t("step4.acceptComms")}</span>
   </label>
 </div>
-
       <div className="flex items-center justify-between">
         <button onClick={prevStep} type="button" className="px-4 py-2 rounded bg-neutral-700 hover:bg-neutral-600">
           {t("step4.back")}

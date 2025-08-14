@@ -214,7 +214,6 @@ export default function AdminReservationsPage() {
                       </td>
                       <td className="p-2 text-right">
                         <div className="flex gap-2 justify-end">
-                          {/* Araç Ata – sadece pending ve iptal talebi yoksa */}
                           {r.status === "pending" && !r.cancel?.requested && (
                             <button
                               className="px-3 py-1 rounded bg-green-700 hover:bg-green-800"
@@ -223,8 +222,6 @@ export default function AdminReservationsPage() {
                               Araç Ata
                             </button>
                           )}
-
-                          {/* Pending: hızlı müşteri WA */}
                           {r.status === "pending" && (
                             <a
                               className="px-3 py-1 rounded bg-emerald-700 hover:bg-emerald-800"
@@ -236,7 +233,6 @@ export default function AdminReservationsPage() {
                             </a>
                           )}
 
-                          {/* CONFIRMED: WA müşteri + WA şoför */}
                           {r.status === "confirmed" && (
                             <>
                               <a
@@ -259,8 +255,6 @@ export default function AdminReservationsPage() {
                               </a>
                             </>
                           )}
-
-                          {/* İptal talebi varsa sebebi gör / onayla-red et */}
                           {r.cancel?.requested && (
                             <button
                               className="px-3 py-1 rounded bg-neutral-800 border border-white/10"
@@ -282,8 +276,6 @@ export default function AdminReservationsPage() {
             </table>
           </div>
         )}
-
-        {/* Araç atama modalı */}
         {assignFor && (
           <AssignVehicleModal
             open={true}
@@ -297,7 +289,6 @@ export default function AdminReservationsPage() {
           />
         )}
 
-        {/* İptal talebi modalı */}
         {cancelFor && (
           <CancelRequestModal
             open={true}
