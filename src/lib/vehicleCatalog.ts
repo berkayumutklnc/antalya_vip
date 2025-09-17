@@ -21,4 +21,10 @@ export const VEHICLE_CATALOG: Record<VehicleType, VehicleCatalogItem> = {
     image: "/vehicles/vip-10.jpg",
     features: ["wifi", "usb", "ac", "water", "luggage"],
   },
+  "vip-16": {
+    title: "VIP Minibus",
+    capacity: 16,
+    image: "/vehicles/vip-16.jpg",
+    features: ["wifi", "usb", "ac", "water", "luggage"],
+  },
 };

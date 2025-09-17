@@ -1,7 +1,7 @@
 // src/app/api/availability/route.ts
 import { NextResponse } from "next/server";
-import { adminDb } from "@/lib/firebaseAdmin";
-
+import { getAdminDbOrThrow } from "@/lib/firebaseAdmin";
+const adminDb = getAdminDbOrThrow();
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 

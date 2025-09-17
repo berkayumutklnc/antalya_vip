@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { collection, getDocs, doc, updateDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { getClientDb } from "@/lib/firebase";
 
 function toMs(s: unknown): number | null {
   if (typeof s === "string") {
@@ -18,7 +18,7 @@ export default function MigrateBlockedSlotsPage() {
   const run = async () => {
     try {
       setLog("Scanning vehicles...");
-      const snap = await getDocs(collection(db, "vehicles"));
+      const snap = await getDocs(collection(getClientDb(), "vehicles"));
 
       for (const d of snap.docs) {
         const v = d.data() as any;
@@ -36,7 +36,7 @@ export default function MigrateBlockedSlotsPage() {
             })
             .filter(Boolean);
 
-          await updateDoc(doc(db, "vehicles", d.id), {
+          await updateDoc(doc(getClientDb(), "vehicles", d.id), {
             blockedSlots: arr,
             updatedAt: Date.now(),
           });

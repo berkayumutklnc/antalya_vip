@@ -1,4 +1,5 @@
 // src/lib/vehicles.ts
+'use client';
 import {
   collection,
   deleteDoc,
@@ -9,7 +10,7 @@ import {
   setDoc,
   updateDoc,
 } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { getClientDb } from "@/lib/firebase";
 import type { Vehicle, VehicleType } from "@/types";
 
 export type VehicleBlockSlot = {
@@ -51,7 +52,7 @@ function toVehicle(raw: any, id: string): Vehicle {
 }
 
 export async function fetchVehicles(): Promise<Vehicle[]> {
-  const snap = await getDocs(query(collection(db, "vehicles")));
+  const snap = await getDocs(query(collection(getClientDb(), "vehicles")));
   return snap.docs.map(d => toVehicle(d.data(), d.id));
 }
 
@@ -67,7 +68,7 @@ export type UpsertVehicleInput = {
 export async function createVehicle(input: UpsertVehicleInput) {
   const id = input.id.trim();
   if (!id) throw new Error("Araç ID zorunludur.");
-  const ref = doc(db, "vehicles", id);
+  const ref = doc(getClientDb(), "vehicles", id);
   await setDoc(ref, {
     id,
     type: input.type ?? null,
@@ -84,7 +85,7 @@ export async function createVehicle(input: UpsertVehicleInput) {
 export async function updateVehicle(input: UpsertVehicleInput) {
   const id = input.id.trim();
   if (!id) throw new Error("Araç ID zorunludur.");
-  const ref = doc(db, "vehicles", id);
+  const ref = doc(getClientDb(), "vehicles", id);
   await updateDoc(ref, {
     type: input.type ?? null,
     plate: input.plate ?? null,
@@ -96,7 +97,7 @@ export async function updateVehicle(input: UpsertVehicleInput) {
 }
 
 export async function deleteVehicle(id: string) {
-  const ref = doc(db, "vehicles", id);
+  const ref = doc(getClientDb(), "vehicles", id);
   await deleteDoc(ref);
 }
 
@@ -104,7 +105,7 @@ export async function addVehicleBlockSlot(vehicleId: string, slot: VehicleBlockS
   if (!slot.startAt || !slot.endAt || slot.endAt <= slot.startAt) {
     throw new Error("Geçersiz zaman aralığı.");
   }
-  const ref = doc(db, "vehicles", vehicleId);
+  const ref = doc(getClientDb(), "vehicles", vehicleId);
   const snap = await getDoc(ref);
   if (!snap.exists()) throw new Error("Araç bulunamadı.");
   const v = snap.data() as any;
@@ -114,7 +115,7 @@ export async function addVehicleBlockSlot(vehicleId: string, slot: VehicleBlockS
 }
 
 export async function removeVehicleBlockSlot(vehicleId: string, index: number) {
-  const ref = doc(db, "vehicles", vehicleId);
+  const ref = doc(getClientDb(), "vehicles", vehicleId);
   const snap = await getDoc(ref);
   if (!snap.exists()) throw new Error("Araç bulunamadı.");
   const v = snap.data() as any;

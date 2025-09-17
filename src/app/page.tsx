@@ -1,8 +1,14 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
+import Image from "next/image";
+import Link from "next/link";
 import Wizard from "@/components/ReservationForm/Wizard";
 import { VEHICLES } from "@/types/reservation";
 import { useI18nPublic } from "@/lib/i18n-public";
+import LocalBusinessJSONLD from "@/components/SEO/LocalBusiness";
+import FAQJSONLD from "@/components/SEO/FAQ";
 
 export default function HomePage() {
   const { t } = useI18nPublic();
@@ -23,6 +29,8 @@ export default function HomePage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-950 text-white">
+      <LocalBusinessJSONLD />
+      <FAQJSONLD />
       {/* HERO */}
       <section
         className="relative flex h-[70vh] items-center justify-center bg-cover bg-center"
@@ -61,14 +69,38 @@ export default function HomePage() {
         <section id="hizmetler" className="mt-16">
           <h2 className="mb-6 text-2xl font-bold">{t("home.services.title")}</h2>
           <div className="grid gap-6 md:grid-cols-4">
-            {services.map((s) => (
-              <div key={s.title} className="overflow-hidden rounded-2xl border border-white/10 bg-black">
-                <img src={s.img} alt={s.title} className="h-40 w-full object-cover" />
+            <Link href="/antalya-havalimani-transfer">
+              <div className="overflow-hidden rounded-2xl border border-white/10 bg-black">
+                <Image src="/images/airport.jpg" alt="Antalya Havalimanı VIP Transfer" width={400} height={160} className="h-40 w-full object-cover" />
                 <div className="p-4">
-                  <div className="text-lg font-semibold">{s.title}</div>
+                  <div className="text-lg font-semibold">Antalya Havalimanı Transferi</div>
                 </div>
               </div>
-            ))}
+            </Link>
+            <Link href="/vip-transfer-antalya">
+              <div className="overflow-hidden rounded-2xl border border-white/10 bg-black">
+                <Image src="/images/hotel.jpg" alt="VIP Transfer Antalya" width={400} height={160} className="h-40 w-full object-cover" />
+                <div className="p-4">
+                  <div className="text-lg font-semibold">VIP Transfer Antalya</div>
+                </div>
+              </div>
+            </Link>
+            <Link href="/lara-transfer">
+              <div className="overflow-hidden rounded-2xl border border-white/10 bg-black">
+                <Image src="/images/city.jpg" alt="Lara/Kundu Transfer" width={400} height={160} className="h-40 w-full object-cover" />
+                <div className="p-4">
+                  <div className="text-lg font-semibold">Lara/Kundu Transfer</div>
+                </div>
+              </div>
+            </Link>
+            <Link href="/belek-transfer">
+              <div className="overflow-hidden rounded-2xl border border-white/10 bg-black">
+                <Image src="/images/tour.jpg" alt="Belek Transfer" width={400} height={160} className="h-40 w-full object-cover" />
+                <div className="p-4">
+                  <div className="text-lg font-semibold">Belek Transfer</div>
+                </div>
+              </div>
+            </Link>
           </div>
         </section>
         <section id="filo" className="mt-16">
@@ -76,7 +108,7 @@ export default function HomePage() {
           <div className="grid gap-6 md:grid-cols-3">
             {VEHICLES.map((v: any) => (
               <div key={v.id} className="overflow-hidden rounded-2xl border border-white/10 bg-black">
-                <img src={v.image} alt={v.title || v.name} className="h-48 w-full object-cover" />
+                <Image src={v.image} alt={v.title || v.name} width={400} height={192} className="h-48 w-full object-cover" />
                 <div className="space-y-1 p-4">
                   <div className="text-lg font-semibold">{v.title || v.name}</div>
                   {v.features?.length ? (

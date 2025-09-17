@@ -2,7 +2,7 @@
 
 export default function WhatsAppButton() {
   // 📌 .env.local içinden al (örn: NEXT_PUBLIC_WHATSAPP_PHONE ve NEXT_PUBLIC_WHATSAPP_MESSAGE)
-  const phone = process.env.NEXT_PUBLIC_WHATSAPP_PHONE || "905541790203";
+  const phone = process.env.NEXT_PUBLIC_WHATSAPP_PHONE || "905446850705";
   const message = encodeURIComponent(
     process.env.NEXT_PUBLIC_WHATSAPP_MESSAGE || "Merhaba, VIP Transfer için bilgi almak istiyorum."
   );
@@ -13,6 +13,7 @@ export default function WhatsAppButton() {
       target="_blank"
       rel="noopener noreferrer"
       className="fixed bottom-4 left-4 z-50 flex items-center gap-2 rounded-full bg-green-500 px-4 py-2 text-white shadow-lg transition hover:bg-green-600"
+      onClick={() => (window as any).gtag?.("event","whatsapp_click",{location:"button"})}
     >
       {/* WhatsApp Icon */}
       <svg

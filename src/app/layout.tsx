@@ -1,27 +1,34 @@
-import type { Metadata } from "next";
 import "./globals.css";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import WhatsAppButton from "@/components/WhatsAppButton";
-import GA from "@/components/GA";
-import { I18nPublicProvider } from "@/lib/i18n-public";
+import type { Metadata } from "next";
+import GA from "@/components/analytics/GA";
 
 export const metadata: Metadata = {
-  title: "Antalya VIP Transfer",
-  description: "Yurtdışından gelen turistler için VIP transfer rezervasyon sistemi",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://sonnenlichttransfer.com"),
+  title: {
+    default: "Antalya VIP Transfer | Sonnenlicht",
+    template: "%s | Sonnenlicht",
+  },
+  description:
+    "Antalya Havalimanı (AYT) → otel/şehir içi VIP transfer. 7/24 karşılama, uçuş takibi, çocuk koltuğu, sabit fiyat.",
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    url: "/",
+    siteName: "Sonnenlicht VIP Transfer",
+    title: "Antalya VIP Transfer",
+    description:
+      "AYT’den otele VIP transfer ve şehir içi özel taşımacılık. 7/24 karşılama, uçuş takibi.",
+    images: [{ url: "/og.jpg", width: 1200, height: 630, alt: "Sonnenlicht VIP Transfer" }],
+  },
+  twitter: { card: "summary_large_image", title: "Antalya VIP Transfer", description: "AYT → Otel VIP transfer" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="tr">
-      <body className="bg-black text-white min-h-screen flex flex-col [scroll-padding-top:4rem]">
-        <I18nPublicProvider>
-          <Header />
-          <main className="flex-1 max-w-6xl mx-auto w-full p-4">{children}</main>
-          <Footer />
-          <WhatsAppButton />
-          <GA />
-        </I18nPublicProvider>
+      <body>
+        <GA />
+        {children}
       </body>
     </html>
   );

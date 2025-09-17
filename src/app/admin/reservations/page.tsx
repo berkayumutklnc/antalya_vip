@@ -1,5 +1,5 @@
 "use client";
-
+export const dynamic = 'force-dynamic';
 import AdminGate from "@/components/AdminGate";
 import { useEffect, useMemo, useState } from "react";
 import { listReservations, assignVehicle, approveCancel, rejectCancel } from "@/lib/reservations";
@@ -9,7 +9,6 @@ import { waLink } from "@/utils/links";
 import StatusBadge from "@/components/admin/StatusBadge";
 import AssignVehicleModal from "@/components/admin/AssignVehicleModal";
 import CancelRequestModal from "@/components/admin/CancelRequestModal";
-
 type Tab = "all" | "pending" | "confirmed" | "canceled";
 
 function msgForCustomer(r: Reservation) {
@@ -28,7 +27,6 @@ export default function AdminReservationsPage() {
   const [q, setQ] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
   const [assignFor, setAssignFor] = useState<Reservation | null>(null);
   const [cancelFor, setCancelFor] = useState<Reservation | null>(null);
   const [busy, setBusy] = useState(false);

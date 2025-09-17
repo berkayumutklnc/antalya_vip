@@ -49,7 +49,7 @@ export default function Footer() {
       <div className="mx-auto max-w-6xl px-4 py-12">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
           <div className="rounded-2xl bg-white/[0.02] ring-1 ring-white/10 p-5">
-            <div className="text-lg font-semibold text-white">{SITE.name}</div>
+            <div className="text-lg font-semibold text-white">Antalya VIP Transfer | Sonnenlicht</div>
             {SITE.address ? (
               <p className="mt-3 text-sm leading-relaxed text-white/70">{SITE.address}</p>
             ) : null}
@@ -59,23 +59,21 @@ export default function Footer() {
             <ul className="space-y-2 text-sm">
               {SITE.phone ? (
                 <li>
-                  <a href={phoneHref} className="group inline-flex items-center gap-2 text-white/70 hover:text-white transition">
-                    <PhoneIcon className="h-4 w-4 opacity-70 group-hover:opacity-100" />
-                    {SITE.phone}
+                  <a href="tel:+905446850705" className="text-white/70 hover:text-white transition">
+                    +90 544 685 0705
                   </a>
                 </li>
               ) : null}
               {SITE.email ? (
                 <li>
-                  <a href={`mailto:${SITE.email}`} className="group inline-flex items-center gap-2 text-white/70 hover:text-white transition">
-                    <MailIcon className="h-4 w-4 opacity-70 group-hover:opacity-100" />
+                  <a href={`mailto:${SITE.email}`} className="text-white/70 hover:text-white transition">
                     {SITE.email}
                   </a>
                 </li>
               ) : null}
               {SITE.whatsapp ? (
                 <li>
-                  <a href={waHref} target="_blank" rel="noopener noreferrer" className="group inline-flex items-center gap-2 text-white/70 hover:text-white transition">
+                  <a href={waHref} target="_blank" rel="noopener noreferrer" className="text-white/70 hover:text-white transition" onClick={() => (window as any).gtag?.("event","whatsapp_click",{location:"footer"})}>
                     WhatsApp
                   </a>
                 </li>

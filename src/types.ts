@@ -1,4 +1,4 @@
-export type VehicleType = "vip-6" | "vip-10";
+export type VehicleType = "vip-6" | "vip-10" | "vip-16";
 
 export interface BlockedSlot {
   startAt: number;   // UTC ms

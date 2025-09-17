@@ -9,6 +9,7 @@ export const LANGS: Lang[] = ["tr", "en", "de", "ru"];
 /** Basit sözlük tipi */
 type Dict = Record<string, string>;
 
+
 /** Tüm sözlükler */
 const dictionaries = {
   /* ========================= TURKISH ========================= */
@@ -192,6 +193,9 @@ const dictionaries = {
   en: {
 
 // Home hero & badges
+"home.hero.title"   : "Sonnenlicht VIP Transfer",
+"home.hero.subtitle": "From airport to hotel, city transfers and private tours with punctual and comfortable service.",
+"home.hero.cta": "Book Now",
 "home.badge.support": "24/7 Support",
 "home.badge.supportDesc": "Instant contact via WhatsApp & phone.",
 "home.badge.driver": "Pro Drivers",
@@ -358,6 +362,9 @@ const dictionaries = {
   de: {
 
 // Home hero & badges
+"home.hero.title"   : "Sonnenlicht VIP Transfer",
+"home.hero.subtitle": "Vom Flughafen zum Hotel, Stadtransfers und private Touren mit pünktlichem und komfortablem Service.",
+"home.hero.cta": "Jetzt buchen",
 "home.badge.support": "24/7 Support",
 "home.badge.supportDesc": "Sofort per WhatsApp & Telefon erreichbar.",
 "home.badge.driver": "Profi-Fahrer",
@@ -522,6 +529,9 @@ const dictionaries = {
   ru: {
 
 // Home hero & badges
+"home.hero.title"   : "Сонненлихт VIP Трансфер",
+"home.hero.subtitle": "Из аэропорта в отель, городские трансферы и частные туры с точным и комфортным обслуживанием.",
+"home.hero.cta": "Забронировать",
 "home.badge.support": "Поддержка 24/7",
 "home.badge.supportDesc": "Связь по WhatsApp и телефону.",
 "home.badge.driver": "Профессиональные водители",

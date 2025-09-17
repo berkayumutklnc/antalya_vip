@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { adminDb } from "@/lib/firebaseAdmin";
+import { getAdminDbOrThrow } from "@/lib/firebaseAdmin";
 import { FieldValue } from "firebase-admin/firestore";
-
+const adminDb = getAdminDbOrThrow();
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 

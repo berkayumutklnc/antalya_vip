@@ -10,7 +10,7 @@ import {
   doc,
   setDoc,
 } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { getClientDb } from "@/lib/firebase";
 import type { Vehicle } from "@/types";
 
 export default function ResetToolsPage() {
@@ -28,7 +28,7 @@ function DangerZoneInner() {
   const push = (m: string) => setLog((xs) => [m, ...xs]);
 
   async function deleteCollectionBatched(colName: string, chunk = 400) {
-    const snap = await getDocs(collection(db, colName));
+    const snap = await getDocs(collection(getClientDb(), colName));
     const refs = snap.docs.map((d) => d.ref);
     let deleted = 0;
 
@@ -61,7 +61,7 @@ function DangerZoneInner() {
   async function resetVehicleBlocks() {
     setBusy(true);
     try {
-      const vsnap = await getDocs(collection(db, "vehicles"));
+      const vsnap = await getDocs(collection(getClientDb(), "vehicles"));
       const refs = vsnap.docs.map((d) => d.ref);
       let updated = 0;
 
@@ -116,10 +116,20 @@ function DangerZoneInner() {
           createdAt: now,
           updatedAt: now,
         },
+        {
+          id: "VIP-16-01",
+          type: "vip-16",
+          plate: "07 ABC 101",
+          driverName: "Mehmet Kaya",
+          driverPhone: "+905550000003",
+          blockedSlots: [],
+          createdAt: now,
+          updatedAt: now,
+        },
       ];
 
       for (const v of seed) {
-        await setDoc(doc(db, "vehicles", v.id), v, { merge: true });
+        await setDoc(doc(getClientDb(), "vehicles", v.id), v, { merge: true });
       }
       push(`seed: ${seed.length} araç yazıldı/merge edildi.`);
     } catch (e: any) {

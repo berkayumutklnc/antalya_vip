@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { getClientDb } from "@/lib/firebase";
 import { addMinutes } from "@/utils/time";
 import { makeReservationIcs, downloadIcs } from "@/utils/ics";
 import { requestCancel } from "@/lib/reservations";
@@ -71,7 +71,7 @@ function PageInner() {
 
     setLoading(true);
     try {
-      const ref = doc(db, "reservations", normCode);
+      const ref = doc(getClientDb(), "reservations", normCode);
       const snap = await getDoc(ref);
       if (!snap.exists()) {
         setErr(t("public.error.notfound"));

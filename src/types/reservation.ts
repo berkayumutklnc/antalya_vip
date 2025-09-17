@@ -2,7 +2,7 @@
 
 // --- Basic enums ---
 export type Lang = "de" | "en" | "tr" | "ru";
-export type VehicleType = "vip-6" | "vip-10" | (string & {});
+export type VehicleType = "vip-6" | "vip-10" |  "vip-16";
 
 // --- Form model (UI'de tuttuğumuz state) ---
 export interface ReservationFormData {
@@ -77,6 +77,15 @@ export const VEHICLES: {
     seats: 10,
     bags: 8,
     image: "/vehicles/vip-10.jpg",
+    features: ["Wi-Fi", "USB", "Klima", "Su", "8× Bagaj"],
+    basePriceEur: 90,
+  },
+  {
+    id: "vip-16",
+    title: "VIP Minibus (16 Koltuk)",
+    seats: 16,
+    bags: 8,
+    image: "/vehicles/vip-16.jpg",
     features: ["Wi-Fi", "USB", "Klima", "Su", "8× Bagaj"],
     basePriceEur: 90,
   },

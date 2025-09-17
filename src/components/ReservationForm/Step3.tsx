@@ -98,7 +98,7 @@ export default function Step3({
   }, []);
 
   const availabilityByType: Record<VehicleType, boolean> = useMemo(() => {
-    const map: Record<VehicleType, boolean> = { "vip-6": true, "vip-10": true } as any;
+    const map: Record<VehicleType, boolean> = { "vip-6": true, "vip-10": true, "vip-16": true } as any;
     if (!startAt || !endAt) return map;
     for (const v of vehicles) {
       const free = isVehicleFreeLocal(v, startAt, endAt);
@@ -198,7 +198,7 @@ export default function Step3({
         <div className="text-red-400">{t("step3.error")}: {err}</div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {(["vip-6", "vip-10"] as VehicleType[]).map((tkey) => {
+          {(["vip-6", "vip-10", "vip-16"] as VehicleType[]).map((tkey) => {
             const cat = VEHICLE_CATALOG[tkey];
             const available = availabilityByType[tkey];
             const active = selected === tkey;

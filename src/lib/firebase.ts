@@ -1,9 +1,10 @@
-// src/lib/firebase.ts
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
+"use client";
 
-const firebaseConfig = {
+import { getApps, getApp, initializeApp, type FirebaseApp } from "firebase/app";
+import { getAuth, type Auth } from "firebase/auth";
+import { getFirestore, type Firestore } from "firebase/firestore";
+
+const cfg = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN!,
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID!,
@@ -12,6 +13,25 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
 };
 
-export const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-export const db = getFirestore(app);
-export const auth = getAuth(app);
+let _app: FirebaseApp | null = null;
+
+export function getFirebaseApp(): FirebaseApp {
+  if (_app) return _app!;
+  if (typeof window === "undefined") {
+    throw new Error("Firebase client sadece client bileşenlerde kullanılmalı.");
+  }
+  _app = getApps().length ? getApp() : initializeApp(cfg);
+  return _app!;
+}
+
+export function getClientAuth(): Auth {
+  return getAuth(getFirebaseApp());
+}
+
+export function getClientDb(): Firestore {
+  return getFirestore(getFirebaseApp());
+}
+
+// Eski kullanım kırılmasın diye:
+export const auth =
+  typeof window !== "undefined" ? getClientAuth() : (null as any);
