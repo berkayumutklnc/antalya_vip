@@ -1,6 +1,7 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import GA from "@/components/analytics/GA";
+import { I18nPublicProvider } from "@/lib/i18n-public";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://sonnenlichttransfer.com"),
@@ -27,8 +28,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="tr">
       <body>
-        <GA />
-        {children}
+        <I18nPublicProvider>
+          <GA />
+          {children}
+        </I18nPublicProvider>
       </body>
     </html>
   );

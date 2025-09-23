@@ -13,6 +13,8 @@ export function buildMetadata({ title, description, canonical }: LandingProps): 
   return { title, description, alternates: { canonical } };
 }
 
+import WhatsAppReserveButton from "@/components/WhatsAppReserveButton";
+
 export default function TransferLanding(props: LandingProps) {
   return (
     <main className="prose prose-invert mx-auto max-w-3xl px-4 py-10">
@@ -43,17 +45,7 @@ export default function TransferLanding(props: LandingProps) {
       <details><summary>Gece/erken saatlerde çalışıyor musunuz?</summary><p>Evet, 7/24 hizmet.</p></details>
 
       <p>
-        <a
-          className="inline-block rounded bg-emerald-600 px-5 py-3 font-semibold text-white"
-          href="https://wa.me/905446850705?text=Merhaba%2C%20rezervasyon%20yapmak%20istiyorum"
-          onClick={() => {
-            if (typeof window !== "undefined" && (window as any).gtag) {
-              (window as any).gtag("event","whatsapp_click",{location: props.citySlug});
-            }
-          }}
-        >
-          WhatsApp’tan Rezervasyon
-        </a>
+        <WhatsAppReserveButton city={props.citySlug} />
       </p>
     </main>
   );
