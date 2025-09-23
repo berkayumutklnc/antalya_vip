@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "react-datepicker/dist/react-datepicker.css";
+@import "react-phone-input-2/lib/style.css";
 
 :root {
   --background: #ffffff;
