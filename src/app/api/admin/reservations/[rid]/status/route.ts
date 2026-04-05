@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { getAdminDbOrThrow } from "@/lib/firebaseAdmin";
 import { FieldValue } from "firebase-admin/firestore";
-const adminDb = getAdminDbOrThrow();
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function PATCH(req: Request, { params }: { params: { rid: string } }) {
   try {
+    const adminDb = getAdminDbOrThrow();
     const token = req.headers.get("x-admin-token");
     if (!token || token !== process.env.ADMIN_TOKEN) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

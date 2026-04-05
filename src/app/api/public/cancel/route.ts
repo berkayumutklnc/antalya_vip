@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
 import { getAdminDbOrThrow } from "@/lib/firebaseAdmin";
-
-const adminDb = getAdminDbOrThrow();
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
+    const adminDb = getAdminDbOrThrow();
     const { code, email, reason } = await req.json();
 
     if (!code || !email) {

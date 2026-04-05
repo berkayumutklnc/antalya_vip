@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { getAdminDbOrThrow } from "@/lib/firebaseAdmin";
-const adminDb = getAdminDbOrThrow();
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
+  const adminDb = getAdminDbOrThrow();
   const { searchParams } = new URL(req.url);
   const date = searchParams.get("date") || "";
   const time = searchParams.get("time") || "";
