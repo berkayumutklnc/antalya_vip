@@ -1,10 +1,15 @@
 export type VehicleType = "vip-6" | "vip-10" | "vip-16";
 
 export interface BlockedSlot {
-  startAt: number;   // UTC ms
-  endAt: number;     // UTC ms
-  reason: "confirmed-reservation" | "manual-block";
+  startAt: number;
+  endAt: number;
+  reason: "admin-assign" | "manual" | "confirmed-reservation" | "manual-block";
   reservationId?: string;
+  driverName?: string | null;
+  driverPhone?: string | null;
+  plate?: string | null;
+  type?: VehicleType | null;
+  updatedAt?: number;
 }
 
 export interface Vehicle {
@@ -13,6 +18,7 @@ export interface Vehicle {
   plate?: string;
   driverName?: string;
   driverPhone?: string;
+  capacity?: number | null;
   blockedSlots: BlockedSlot[];
   createdAt: number;
   updatedAt: number;
@@ -21,8 +27,8 @@ export interface Vehicle {
 export type ReservationStatus = "pending" | "confirmed" | "canceled";
 
 export interface Reservation {
-  id: string;              // TRF-XXXXX
-  code?: string;           // istersen kaldır
+  id: string;
+  code?: string;
   createdAt: number;
   updatedAt?: number;
 
@@ -30,9 +36,9 @@ export interface Reservation {
 
   from: string;
   to: string;
-  date: string;            // YYYY-MM-DD
-  time: string;            // HH:mm
-  startAt: number;         // UTC ms
+  date: string;
+  time: string;
+  startAt: number;
 
   lang: "de" | "en" | "tr" | "ru";
   adults: number;

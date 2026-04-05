@@ -1,4 +1,3 @@
-// src/app/api/availability/route.ts
 import { NextResponse } from "next/server";
 import { getAdminDbOrThrow } from "@/lib/firebaseAdmin";
 const adminDb = getAdminDbOrThrow();

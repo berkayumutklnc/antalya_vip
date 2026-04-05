@@ -1,4 +1,5 @@
 "use client";
+export const dynamic = "force-dynamic";
 
 import { useEffect, useMemo, useState } from "react";
 import AdminGate from "@/components/AdminGate";
@@ -15,7 +16,7 @@ import { addMinutes } from "@/utils/time";
 import { useI18n } from "@/lib/i18n-admin";
 
 type Tab = "list" | "new" | "edit";
-const VEHICLE_TYPES: VehicleType[] = ["sedan","minivan","vip-van","suv","bus"] as any;
+const VEHICLE_TYPES: VehicleType[] = ["vip-6", "vip-10", "vip-16"];
 
 function fmt(ms: number) {
   const d = new Date(ms);

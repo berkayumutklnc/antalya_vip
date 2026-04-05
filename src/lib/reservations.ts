@@ -21,8 +21,6 @@ import {
 import { istToUtcMs, addMinutes } from "@/utils/time";
 import { stripUndefined } from "@/utils/fire";
 
-/* ----------------------------- helpers ----------------------------- */
-
 const now = () => Date.now();
 
 function genTRF(): string {
@@ -30,9 +28,7 @@ function genTRF(): string {
   return `TRF-${n}`;
 }
 
-// Admin doğrudan iptal fonksiyonu
 export async function adminCancel(reservationId: string, reason?: string) {
-  // admin doğrudan iptal eder: requested=false, reason yazılabilir
   await updateDoc(doc(getClientDb(), "reservations", reservationId), {
     status: "canceled",
     cancel: {
@@ -102,16 +98,15 @@ function toReservation(d: any, docId: string): Reservation {
         ? d.updatedAt.toMillis()
         : 0,
     lang: d?.lang ?? "tr",
-    cancel, // normalize
+    cancel, 
   } as Reservation;
 }
-/* ------------------------------ CREATE ------------------------------ */
 
 export type CreateReservationInput = {
   from: string;
   to: string;
-  date: string; // YYYY-MM-DD
-  time: string; // HH:mm
+  date: string;
+  time: string;
   startAt?: number | null;
   fullName: string;
   phone: string;
@@ -121,6 +116,13 @@ export type CreateReservationInput = {
   babySeat?: number;
   vehicleType?: VehicleType;
   price?: number | null;
+  flightNo?: string | null;
+  terminal?: string | null;
+  baggageCount?: number | null;
+  note?: string | null;
+  acceptPolicy?: boolean;
+  acceptKvkk?: boolean;
+  acceptComms?: boolean;
 };
 
 export async function createReservation(form: CreateReservationInput) {
@@ -135,7 +137,7 @@ export async function createReservation(form: CreateReservationInput) {
   }
 
   const payload = stripUndefined({
-    id: code, // doküman id ile aynı
+    id: code,
     code,
     from: form.from,
     to: form.to,
@@ -145,10 +147,10 @@ export async function createReservation(form: CreateReservationInput) {
     fullName: form.fullName,
     phone: form.phone,
     email: form.email.toLowerCase(),
-  status: "pending" as const,
+    status: "pending" as const,
     adults: Number(form.adults ?? 1),
     babySeat: Number(form.babySeat ?? 0),
-    vehicleType: form.vehicleType ?? null, // null olsun, undefined değil
+    vehicleType: form.vehicleType ?? null,
     price:
       form.price === null || form.price === undefined
         ? null
@@ -157,15 +159,19 @@ export async function createReservation(form: CreateReservationInput) {
     updatedAt: createdAt,
     lang: form.lang ?? "tr",
     cancel: { requested: false, reason: null, requestedAt: null, canceledAt: null },
+    flightNo: form.flightNo ?? null,
+    terminal: form.terminal ?? null,
+    baggageCount: form.baggageCount ?? null,
+    note: form.note ?? null,
+    acceptPolicy: form.acceptPolicy ?? false,
+    acceptKvkk: form.acceptKvkk ?? false,
+    acceptComms: form.acceptComms ?? false,
   });
 
-  // reservations/{code}
   await setDoc(doc(getClientDb(), "reservations", code), payload, { merge: true });
 
-  // pnr/{code}
   await setDoc(doc(getClientDb(), "pnr", code), { rid: code, createdAt }, { merge: true });
 
-  // public özet
   await setDoc(
     doc(getClientDb(), "reservations_public", code),
     stripUndefined({
@@ -185,17 +191,13 @@ export async function createReservation(form: CreateReservationInput) {
     { merge: true }
   );
 
-  // Mail (opsiyonel)
   try {
     await sendReservationMail(payload);
   } catch (e) {
-    console.error("Email gönderilemedi (rezervasyon)", e);
   }
 
   return { id: code, code };
 }
-
-/* ------------------------------ READ/LIST --------------------------- */
 
 export async function getReservation(id: string): Promise<Reservation | null> {
   const snap = await getDoc(doc(getClientDb(), "reservations", id));
@@ -224,8 +226,6 @@ export async function listReservations(): Promise<Reservation[]> {
   return snap.docs.map((d) => toReservation(d.data(), d.id));
 }
 
-/* ----------------------------- ADMIN ACTIONS ------------------------ */
-
 export async function assignVehicle(
   reservationId: string,
   vehicle: Vehicle,
@@ -240,7 +240,6 @@ export async function assignVehicle(
 
   const r = toReservation(rSnap.data(), rSnap.id);
 
-  // 🔒 İş kuralı: iptal edilmiş ya da iptal talebi bulunan rezervasyona atama YOK
   if (r.status === "canceled") {
     throw new Error("İptal edilmiş rezervasyona araç atanamaz.");
   }
@@ -265,7 +264,6 @@ export async function assignVehicle(
 
   const batch = writeBatch(getClientDb());
 
-  // reservation → confirmed + araç bilgileri
   batch.update(
     rRef,
     stripUndefined({
@@ -279,7 +277,6 @@ export async function assignVehicle(
     })
   );
 
-  // vehicle → blockedSlots ekle
   const newSlot = stripUndefined({
     startAt,
     endAt,
@@ -296,7 +293,6 @@ export async function assignVehicle(
     updatedAt: now(),
   });
 
-  // public mirror
   batch.set(
     doc(getClientDb(), "reservations_public", reservationId),
     stripUndefined({
@@ -321,7 +317,6 @@ export async function assignVehicle(
 
   await batch.commit();
 
-  // Mail (opsiyonel)
   try {
     await sendAssignMail({
       code: r.code ?? r.id,
@@ -336,13 +331,9 @@ export async function assignVehicle(
       vehiclePlate: vehicle.plate,
     });
   } catch (e) {
-    console.error("Email gönderilemedi (araç atama)", e);
   }
 }
 
-/* ------------------------ CANCEL WORKFLOW --------------------------- */
-
-// Müşteri iptal talebi (reason zorunlu)
 export async function requestCancel(reservationId: string, reason: string) {
   const ref = doc(getClientDb(), "reservations", reservationId);
   const snap = await getDoc(ref);
@@ -365,7 +356,6 @@ export async function requestCancel(reservationId: string, reason: string) {
     } as any
   );
 
-  // Mail (opsiyonel)
   try {
     await sendCancelRequestMail({
       code: r.code ?? r.id,
@@ -378,11 +368,9 @@ export async function requestCancel(reservationId: string, reason: string) {
       reason,
     });
   } catch (e) {
-    console.error("Email gönderilemedi (iptal talebi)", e);
   }
 }
 
-// Admin iptali ONAYLAR → status=canceled + timestamps
 export async function approveCancel(reservationId: string) {
   const ref = doc(getClientDb(), "reservations", reservationId);
   const snap = await getDoc(ref);
@@ -395,8 +383,8 @@ export async function approveCancel(reservationId: string) {
       status: "canceled",
       cancel: {
         requested: false,
-        reason: r.cancel?.reason ?? null, // sebebi koru
-        requestedAt: r.cancel?.requestedAt ?? null, // talep zamanını koru
+        reason: r.cancel?.reason ?? null,
+        requestedAt: r.cancel?.requestedAt ?? null,
         canceledAt: now(),
       },
       updatedAt: now(),
@@ -415,14 +403,13 @@ export async function approveCancel(reservationId: string) {
   );
 }
 
-// Admin iptali REDDEDER → cancel.requested=false (sebep & requestedAt korunur)
 export async function rejectCancel(reservationId: string) {
   const ref = doc(getClientDb(), "reservations", reservationId);
   const snap = await getDoc(ref);
   if (!snap.exists()) throw new Error("Rezervasyon bulunamadı.");
   const r = toReservation(snap.data(), snap.id);
 
-  if (!r.cancel?.requested) return; // talep yoksa no-op
+  if (!r.cancel?.requested) return;
 
   await updateDoc(
     ref,

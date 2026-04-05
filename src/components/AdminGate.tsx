@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { onAuthStateChanged, signOut, User } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { getClientAuth } from "@/lib/firebase";
 import { useRouter, usePathname } from "next/navigation";
 
 const rawInput = (process.env.NEXT_PUBLIC_ADMIN_UID || "").replace(/["']/g, "");
@@ -20,40 +20,26 @@ async function isAdmin(user: User | null): Promise<boolean> {
   return ADMIN_UIDS.includes(user.uid);
 }
 
-function getBypass(): boolean {
-  if (typeof window === "undefined") return false;
-  try {
-    return new URLSearchParams(window.location.search).get("admin") === "1";
-  } catch {
-    return false;
-  }
-}
-
 export default function AdminGate({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [ready, setReady] = useState(false);
-  const bypass = getBypass();
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (user) => {
-      if (bypass) {
-        setReady(true);
-        return;
-      }
+    const unsub = onAuthStateChanged(getClientAuth(), async (user) => {
       if (!user) {
         router.replace(`/admin/login?next=${encodeURIComponent(pathname || "/admin")}`);
         return;
       }
       if (!(await isAdmin(user))) {
-        await signOut(auth).catch(() => {});
+        await signOut(getClientAuth()).catch(() => {});
         router.replace(`/admin/login?next=${encodeURIComponent(pathname || "/admin")}&err=notadmin`);
         return;
       }
       setReady(true);
     });
     return () => unsub();
-  }, [router, pathname, bypass]);
+  }, [router, pathname]);
 
   if (!ready) return <div className="p-6 text-white/60">Yükleniyor…</div>;
   return <>{children}</>;

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import AdminGate from "@/components/AdminGate";
 import LanguageSwitch from "@/components/admin/LanguageSwitch";
-import { I18nProvider, useI18n } from "@/lib/i18n";
+import { I18nProvider, useI18n } from "@/lib/i18n-admin";
 
 const NAV = [
   { href: "/admin", key: "nav.dashboard", icon: "🏠" },
@@ -20,7 +20,6 @@ function Shell({ children }: { children: React.ReactNode }) {
   return (
     <AdminGate>
       <div className="min-h-screen grid grid-cols-[240px_1fr] bg-neutral-950 text-white">
-        {/* Sidebar */}
         <aside className="border-r border-white/10 p-4 space-y-4">
           <div className="text-xl font-bold">Admin</div>
           <nav className="space-y-1">
@@ -44,7 +43,6 @@ function Shell({ children }: { children: React.ReactNode }) {
           </nav>
         </aside>
 
-        {/* Main */}
         <div className="p-4">
           <header className="flex items-center justify-end mb-4 gap-2">
             <LanguageSwitch />

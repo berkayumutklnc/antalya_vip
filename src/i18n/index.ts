@@ -1,9 +1,7 @@
-// Basit i18n helper – querystring ?lang=tr|en|de|ru
 export type Lang = "tr" | "en" | "de" | "ru";
 
-// SSR/CSR ortak kullanım için basit bir okuma
 export function resolveLang(searchParams?: URLSearchParams): Lang {
-  const fallback: Lang = "de"; // Almanca varsayılan isteniyordu
+  const fallback: Lang = "de";
   try {
     if (typeof window !== "undefined" && !searchParams) {
       const sp = new URLSearchParams(window.location.search);

@@ -1,6 +1,3 @@
-// src/utils/links.ts
-
-// --- WhatsApp linki (güvenli) ---
 export function waLink(phone?: string, text?: string) {
   const raw = (phone ?? "").toString().trim();
   if (!raw) return "#";
@@ -10,31 +7,18 @@ export function waLink(phone?: string, text?: string) {
   return `https://wa.me/${normalized}?text=${q}`;
 }
 
-// --- Google Calendar linki ---
 type CalendarOptions = {
-  title: string;        // Etkinlik adı
-  startAt: number;      // UTC ms
-  endAt: number;        // UTC ms
-  details?: string;     // Açıklama
-  location?: string;    // Konum (örn. "Antalya Havalimanı → Lara")
+  title: string;
+  startAt: number;
+  endAt: number;
+  details?: string;
+  location?: string;
 };
 
-// GCal tarih formatı: YYYYMMDDTHHMMSSZ
 function toGCalDate(ms: number): string {
   return new Date(ms).toISOString().replace(/[-:]|\.\d{3}/g, "");
 }
 
-/**
- * Google Calendar "Add to Calendar" URL'si üretir.
- * Örnek kullanım:
- *   calendarUrl({
- *     title: "VIP Transfer",
- *     startAt,
- *     endAt: addMinutes(startAt, 60),
- *     details: "TRF-12345 • Yolcu: Ad Soyad",
- *     location: "AYT → Lara"
- *   })
- */
 export function calendarUrl(opts: CalendarOptions): string {
   const params = new URLSearchParams({
     action: "TEMPLATE",

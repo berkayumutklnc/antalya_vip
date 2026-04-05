@@ -99,7 +99,6 @@ export default function AdminReservationsPage() {
   return (
     <AdminGate>
       <div className="p-4 space-y-4">
-        {/* Header */}
         <div className="flex items-center justify-between gap-2">
           <h1 className="text-2xl font-bold">Rezervasyonlar</h1>
           <div className="flex items-center gap-2">
@@ -133,8 +132,7 @@ export default function AdminReservationsPage() {
                     cancelReason: r.cancel?.reason ?? "",
                   }));
                   downloadCsv(`reservations_${new Date().toISOString().slice(0, 10)}`, rows);
-                } catch (e) {
-                  console.error(e);
+                } catch {
                   alert("CSV oluşturulamadı.");
                 }
               }}
@@ -144,7 +142,6 @@ export default function AdminReservationsPage() {
           </div>
         </div>
 
-        {/* Tabs */}
         <div className="flex items-center gap-2">
           {([["all","Tümü"],["pending","Bekleyen"],["confirmed","Onaylı"],["canceled","İptal"]] as [Tab,string][])
             .map(([key,label]) => (
@@ -158,7 +155,6 @@ export default function AdminReservationsPage() {
           ))}
         </div>
 
-        {/* Content */}
         {error && <div className="rounded border border-red-600/40 bg-red-900/20 p-3 text-red-200">{error}</div>}
 
         {loading ? (

@@ -4,7 +4,7 @@ export type FeatureKey = "wifi" | "usb" | "ac" | "water" | "luggage";
 export type VehicleCatalogItem = {
   title: string;
   capacity: number;
-  image: string; // public/ altında dosya yolu
+  image: string;
   features: FeatureKey[];
 };
 

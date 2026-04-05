@@ -2,20 +2,15 @@
 
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 
-/** Desteklenen diller */
 export type Lang = "tr" | "en" | "de" | "ru";
 export const LANGS: Lang[] = ["tr", "en", "de", "ru"];
 
-/** Basit sözlük tipi */
 type Dict = Record<string, string>;
 
 
-/** Tüm sözlükler */
 const dictionaries = {
-  /* ========================= TURKISH ========================= */
   tr: {
 
-// Home hero & badges
 "home.hero.title": "Antalya VIP Transfer",
 "home.hero.subtitle": "Havalimanından otele, şehiriçi ve turlarda dakik ve konforlu ulaşım.",
 "home.hero.cta": "Rezervasyon Yap",
@@ -27,48 +22,40 @@ const dictionaries = {
 "home.badge.insuredDesc": "Araç ve yolcu güvenliği önceliğimiz.",
 "home.badge.ontime": "Zamanında",
 "home.badge.ontimeDesc": "Uçuşunuza göre takip ve zamanında karşılama.",
-// Home services
 "home.svc.title": "Hizmetlerimiz",
 "home.svc.airport": "Havalimanı Transferi",
 "home.svc.hotel": "Otel Transferi",
 "home.svc.city": "Şehiriçi Transfer",
 "home.svc.tour": "Özel Tur ve Gezi",
-// Fleet
 "home.fleet.title": "Araç Filomuz",
 "home.fleet.cta": "Şimdi Rezervasyon",
 
 
-// Step1 (flight info)
 "step1.flightNo": "Uçuş No",
 "step1.terminal": "Terminal",
-// Step4 (extra fields)
 "step4.baggage": "Bagaj adedi",
 "step4.note": "Not",
 "step4.acceptPolicy": "Rezervasyon ve iptal politikasını kabul ediyorum",
 "step4.acceptKvkk": "KVKK/Aydınlatma metnini okudum, onaylıyorum",
 "step4.acceptComms": "Kampanya ve bilgilendirme mesajları almak istiyorum (opsiyonel)",
 
-    // Header
     "header.links.services": "Hizmetler",
     "header.links.fleet": "Araç Filosu",
     "header.links.myReservation": "Rezervasyonumu Gör",
     "header.cta.whatsapp": "WhatsApp",
     "header.cta.book": "Rezervasyon Yap",
 
-    // Home (kısa)
     "home.services.title": "Hizmetlerimiz",
 
-    // Footer
     "footer.about": "Antalya’da profesyonel VIP transfer hizmeti. Deneyimli şoförler, sigortalı taşımacılık ve şeffaf fiyat.",
     "footer.quick": "Hızlı Bağlantılar",
     "footer.contact": "İletişim",
     "footer.social": "Sosyal",
     "footer.rights": "Tüm hakları saklıdır.",
 
-    // Ortak / Fleet
     "fleet.seats": "{n} Koltuk",
 
-    // Public “rezervasyonumu gör”
+
     "public.title": "Rezervasyonumu Gör",
     "public.search": "Sorgula",
     "public.email.placeholder": "ornek@mail.com",
@@ -83,7 +70,6 @@ const dictionaries = {
     "public.cancel.reason.placeholder": "İptal sebebini yazabilirsin (opsiyonel)",
     "public.cancel.submit": "İptal Talebi Gönder",
 
-    // Step1
     "step1.title": "Nereden & Nereye • Tarih & Saat",
     "step1.subtitle": "Transfer noktalarınızı, tarih-saat ve iletişim bilgilerinizi giriniz.",
     "step1.from.label": "Nereden",
@@ -99,7 +85,6 @@ const dictionaries = {
     "step1.email.invalid": "Geçerli bir e-posta giriniz.",
     "step1.next": "İleri",
 
-    // Step2
     "step2.title": "Kişisel Bilgiler",
     "step2.firstName": "Ad",
     "step2.lastName": "Soyad",
@@ -107,7 +92,6 @@ const dictionaries = {
     "step2.back": "Geri",
     "step2.next": "İleri",
 
-    // Step3
     "step3.title": "Araç Seçimi",
     "step3.pickDateFirst": "Lütfen önce Tarih ve Saat seçin.",
     "step3.loading": "Yükleniyor…",
@@ -121,7 +105,6 @@ const dictionaries = {
     "step3.back": "Geri",
     "step3.next": "Devam",
 
-    // Step4
     "step4.title": "Özet & Onay",
     "step4.row.from": "Nereden",
     "step4.row.to": "Nereye",
@@ -189,10 +172,8 @@ const dictionaries = {
 
   },
 
-  /* ========================= ENGLISH ========================= */
   en: {
 
-// Home hero & badges
 "home.hero.title"   : "Sonnenlicht VIP Transfer",
 "home.hero.subtitle": "From airport to hotel, city transfers and private tours with punctual and comfortable service.",
 "home.hero.cta": "Book Now",
@@ -204,19 +185,13 @@ const dictionaries = {
 "home.badge.insuredDesc": "Vehicle and passenger safety first.",
 "home.badge.ontime": "On Time",
 "home.badge.ontimeDesc": "Flight tracking & punctual pickup.",
-// Home services
 "home.svc.airport": "Airport Transfer",
 "home.svc.hotel": "Hotel Transfer",
 "home.svc.city": "City Transfer",
 "home.svc.tour": "Private Tours",
-// Fleet
 "home.fleet.cta": "Book Now",
-
-
-// Step1 (flight info)
 "step1.flightNo": "Flight No",
 "step1.terminal": "Terminal",
-// Step4 (extra fields)
 "step4.baggage": "Baggage count",
 "step4.note": "Note",
 "step4.acceptPolicy": "I accept the reservation & cancellation policy",
@@ -358,10 +333,8 @@ const dictionaries = {
 
   },
 
-  /* ========================= GERMAN ========================= */
   de: {
 
-// Home hero & badges
 "home.hero.title"   : "Sonnenlicht VIP Transfer",
 "home.hero.subtitle": "Vom Flughafen zum Hotel, Stadtransfers und private Touren mit pünktlichem und komfortablem Service.",
 "home.hero.cta": "Jetzt buchen",
@@ -373,19 +346,13 @@ const dictionaries = {
 "home.badge.insuredDesc": "Sicherheit für Fahrzeug & Passagiere.",
 "home.badge.ontime": "Pünktlich",
 "home.badge.ontimeDesc": "Flugverfolgung & pünktliche Abholung.",
-// Home services
 "home.svc.airport": "Flughafentransfer",
 "home.svc.hotel": "Hoteltransfer",
 "home.svc.city": "Stadttransfer",
 "home.svc.tour": "Private Touren",
-// Fleet
 "home.fleet.cta": "Jetzt buchen",
-
-
-// Step1 (Fluginfo)
 "step1.flightNo": "Flugnummer",
 "step1.terminal": "Terminal",
-// Step4 (Zusatzfelder)
 "step4.baggage": "Gepäckanzahl",
 "step4.note": "Hinweis",
 "step4.acceptPolicy": "Ich akzeptiere die Reservierungs- & Stornobedingungen",
@@ -525,10 +492,8 @@ const dictionaries = {
 "nav.privacy":"Datenschutzhinweis",
   },
 
-  /* ========================= RUSSIAN ========================= */
   ru: {
 
-// Home hero & badges
 "home.hero.title"   : "Сонненлихт VIP Трансфер",
 "home.hero.subtitle": "Из аэропорта в отель, городские трансферы и частные туры с точным и комфортным обслуживанием.",
 "home.hero.cta": "Забронировать",
@@ -540,19 +505,13 @@ const dictionaries = {
 "home.badge.insuredDesc": "Безопасность пассажиров и авто прежде всего.",
 "home.badge.ontime": "Точно вовремя",
 "home.badge.ontimeDesc": "Отслеживание рейса и своевременная встреча.",
-// Home services
 "home.svc.airport": "Трансфер из аэропорта",
 "home.svc.hotel": "Трансфер в отель",
 "home.svc.city": "Городской трансфер",
 "home.svc.tour": "Индивидуальные туры",
-// Fleet
 "home.fleet.cta": "Забронировать",
-
-
-// Step1 (рейс)
 "step1.flightNo": "Номер рейса",
 "step1.terminal": "Терминал",
-// Step4 (доп поля)
 "step4.baggage": "Количество багажа",
 "step4.note": "Примечание",
 "step4.acceptPolicy": "Я принимаю условия бронирования и отмены",
@@ -694,19 +653,15 @@ const dictionaries = {
   },
 } satisfies Record<Lang, Record<string, string>>;
 
-/* -------------------------- Context & Provider -------------------------- */
-
 const I18nContext = createContext<{
   lang: Lang;
   setLang: (l: Lang) => void;
   t: (key: string, vars?: Record<string, string | number>) => string;
 } | null>(null);
 
-/** URL ?lang=..., cookie ve localStorage üçlüsü ile dili yönetir. */
 export function I18nPublicProvider({ children }: { children: React.ReactNode }) {
   const [lang, setLang] = useState<Lang>("tr");
 
-  // İlk yüklemede dil algısı
   useEffect(() => {
     try {
       const url = new URL(window.location.href);
@@ -717,19 +672,14 @@ export function I18nPublicProvider({ children }: { children: React.ReactNode }) 
 
       const next = (q && LANGS.includes(q) ? q : saved) ?? "tr";
       setLang(next);
-    } catch {
-      // noop
-    }
+    } catch {}
   }, []);
 
-  // Persist et
   useEffect(() => {
     try {
       localStorage.setItem("lang_public", lang);
       document.cookie = `lang_public=${lang}; path=/; max-age=31536000`;
-    } catch {
-      // noop
-    }
+    } catch {}
   }, [lang]);
 
 const t = useMemo(() => {
@@ -746,7 +696,6 @@ const t = useMemo(() => {
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 }
 
-/** Hook */
 export function useI18nPublic() {
   const ctx = useContext(I18nContext);
   if (!ctx) throw new Error("useI18nPublic must be used inside I18nPublicProvider");

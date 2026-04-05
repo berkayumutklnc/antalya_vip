@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   eslint: { ignoreDuringBuilds: true },
-  typescript: { ignoreBuildErrors: true }, // TS hatası da durdurmasın (geçici)
+  typescript: { ignoreBuildErrors: true },
 };
 export default nextConfig;

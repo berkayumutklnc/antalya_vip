@@ -1,4 +1,3 @@
-// src/lib/vehicles.ts
 'use client';
 import {
   collection,
@@ -14,8 +13,8 @@ import { getClientDb } from "@/lib/firebase";
 import type { Vehicle, VehicleType } from "@/types";
 
 export type VehicleBlockSlot = {
-  startAt: number;   // UTC ms
-  endAt: number;     // UTC ms
+  startAt: number;
+  endAt: number;
   reason?: string | null;
   driverName?: string | null;
   driverPhone?: string | null;
@@ -57,7 +56,7 @@ export async function fetchVehicles(): Promise<Vehicle[]> {
 }
 
 export type UpsertVehicleInput = {
-  id: string;                // doc id (unique)
+  id: string;
   type?: VehicleType | null;
   plate?: string | null;
   driverName?: string | null;

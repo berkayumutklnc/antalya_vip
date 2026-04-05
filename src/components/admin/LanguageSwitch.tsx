@@ -1,5 +1,5 @@
 "use client";
-import { useI18n, type Lang } from "@/lib/i18n";
+import { useI18n, type Lang } from "@/lib/i18n-admin";
 
 const langs: Lang[] = ["tr","en","de","ru"];
 

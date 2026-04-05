@@ -43,7 +43,6 @@ export default function Header() {
         {safeT(t, "header.links.contact", "İletişim")}
       </a>
 
-      {/* Mobil WA butonu */}
       <a
         href={waHref}
         target="_blank"
@@ -65,7 +64,6 @@ export default function Header() {
           <Image src="/logo.svg" alt={SITE.name} width={160} height={32} priority className="h-8 w-auto" />
         </Link>
 
-        {/* Desktop */}
         <div className="hidden items-center gap-6 md:flex">
           <Nav />
           <Link
@@ -76,7 +74,6 @@ export default function Header() {
           </Link>
         </div>
 
-        {/* Mobile toggle */}
         <button
           className="inline-flex h-9 w-9 items-center justify-center rounded border border-white/15 md:hidden"
           onClick={() => setOpen((s) => !s)}
@@ -86,7 +83,6 @@ export default function Header() {
         </button>
       </div>
 
-      {/* Mobile drawer */}
       {open && (
         <div className="border-t border-white/10 bg-black px-4 pb-4 md:hidden">
           <div className="py-3">

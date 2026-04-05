@@ -6,7 +6,6 @@ export function isVehicleFree(
   endAt: number
 ): boolean {
   if (!blocked || blocked.length === 0) return true;
-  // overlap yoksa free
   return blocked.every((b) => endAt <= b.startAt || startAt >= b.endAt);
 }
 

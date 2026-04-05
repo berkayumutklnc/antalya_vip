@@ -164,8 +164,7 @@ export default function Step4({
                   } as any;
                   const ics = makeReservationIcs(res);
                   downloadIcs(`${code || "reservation"}.ics`, ics);
-                } catch (e) {
-                  console.error(e);
+                } catch {
                   alert("ICS dosyası oluşturulurken hata oluştu.");
                 }
               }}

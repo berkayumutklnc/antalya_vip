@@ -1,12 +1,14 @@
 "use client";
+import { SITE } from "@/config/site";
+
 export default function LocalBusinessJSONLD() {
   const data = {
     "@context": "https://schema.org",
     "@type": "TaxiService",
-    name: "Sonnenlicht VIP Transfer",
-    url: process.env.NEXT_PUBLIC_SITE_URL,
-    telephone: "+90 544 685 0705",
-    email: "ayseguleraslan147@gmail.com",
+    name: SITE.name,
+    url: SITE.url,
+    telephone: SITE.phone,
+    email: SITE.email,
     areaServed: ["Antalya","Antalya Airport","Lara","Kundu","Belek","Side","Alanya","Kemer"],
     address: {
       "@type": "PostalAddress",

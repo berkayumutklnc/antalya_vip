@@ -31,7 +31,3 @@ export function getClientAuth(): Auth {
 export function getClientDb(): Firestore {
   return getFirestore(getFirebaseApp());
 }
-
-// Eski kullanım kırılmasın diye:
-export const auth =
-  typeof window !== "undefined" ? getClientAuth() : (null as any);

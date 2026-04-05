@@ -1,6 +1,9 @@
-// src/lib/email.ts
-import emailjs from "@emailjs/browser";
 import type { ReservationRecord } from "@/types/reservation";
+
+async function getEmailJs() {
+  const mod = await import("@emailjs/browser");
+  return mod.default;
+}
 
 type AssignPayload = {
   code: string;
@@ -36,7 +39,7 @@ export async function sendAssignMail(payload: AssignPayload) {
     vehiclePlate: payload.vehiclePlate ?? "-",
   };
 
-  await emailjs.send(serviceId, templateId, params, {
+  await (await getEmailJs()).send(serviceId, templateId, params, {
     publicKey: process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY,
   });
 }
@@ -44,7 +47,7 @@ export async function sendAssignMail(payload: AssignPayload) {
 export async function sendReservationMail(record: ReservationRecord) {
   if (!process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID) return;
 
-  await emailjs.send(
+  await (await getEmailJs()).send(
     process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
     process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID!,
     {
@@ -96,7 +99,7 @@ export async function sendCancelRequestMail(payload: CancelPayload) {
     reason: payload.reason,
   };
 
-  await emailjs.send(serviceId, templateId, params, {
+  await (await getEmailJs()).send(serviceId, templateId, params, {
     publicKey: process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY,
   });
 }

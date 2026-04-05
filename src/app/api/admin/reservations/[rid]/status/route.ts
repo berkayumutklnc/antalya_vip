@@ -23,11 +23,10 @@ export async function PATCH(req: Request, { params }: { params: { rid: string } 
     if (!rSnap.exists) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
     const r = rSnap.data() as any;
-    const slot = `${r.date}T${r.time}`; // "YYYY-MM-DDTHH:mm"
+    const slot = `${r.date}T${r.time}`;
     const type = String(r.vehicleType || "").trim().toLowerCase();
 
     if (status === "confirmed") {
-      // 1) uygun aracı bul
       const all = await adminDb.collection("vehicles").get();
       const candidates = all.docs
         .map(d => ({ id: d.id, ...(d.data() as any) }))
@@ -76,7 +75,6 @@ export async function PATCH(req: Request, { params }: { params: { rid: string } 
       return NextResponse.json({ ok: true });
     }
 
-    // pending'e dönüş vb.
     await rRef.update({ status });
     return NextResponse.json({ ok: true });
   } catch (e: any) {

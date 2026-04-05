@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",                     // <— BUNU EKLE
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]                  // "./src/*" da olur ama genelde böyle kullanıyoruz
+      "@/*": ["src/*"]
     },
 
     "target": "ES2022",

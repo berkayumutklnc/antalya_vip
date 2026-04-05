@@ -1,11 +1,9 @@
 "use client";
+export const dynamic = "force-dynamic";
 
 import { useMemo, useState } from "react";
-import { doc, getDoc } from "firebase/firestore";
-import { getClientDb } from "@/lib/firebase";
 import { addMinutes } from "@/utils/time";
 import { makeReservationIcs, downloadIcs } from "@/utils/ics";
-import { requestCancel } from "@/lib/reservations";
 import { I18nPublicProvider, useI18nPublic } from "@/lib/i18n-public";
 import LanguageSwitchPublic from "@/components/public/LanguageSwitchPublic";
 
@@ -71,19 +69,17 @@ function PageInner() {
 
     setLoading(true);
     try {
-      const ref = doc(getClientDb(), "reservations", normCode);
-      const snap = await getDoc(ref);
-      if (!snap.exists()) {
+      const res = await fetch("/api/public/reservation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: normCode, email: normMail }),
+      });
+      if (!res.ok) {
         setErr(t("public.error.notfound"));
         return;
       }
-      const d = snap.data() as any;
-      const mail = String(d.email || "").toLowerCase();
-      if (mail !== normMail) {
-        setErr(t("public.error.notfound"));
-        return;
-      }
-      setRec({ id: snap.id, ...(d as any) });
+      const d = await res.json();
+      setRec(d as Resv);
     } catch (e: any) {
       setErr(e?.message ?? String(e));
     } finally {
@@ -112,7 +108,19 @@ function PageInner() {
 
     setCancelBusy(true);
     try {
-      await requestCancel(rec.id, cancelReason.trim());
+      const res = await fetch("/api/public/cancel", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code: rec.id,
+          email: rec.email,
+          reason: cancelReason.trim(),
+        }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error ?? "İptal talebi gönderilemedi.");
+      }
       setCancelMsg(t("public.cancel.sent"));
       setRec((prev) =>
         prev

@@ -1,4 +1,5 @@
 "use client";
+export const dynamic = "force-dynamic";
 
 import AdminGate from "@/components/AdminGate";
 import { useState } from "react";
@@ -33,7 +34,7 @@ function DangerZoneInner() {
     let deleted = 0;
 
     for (let i = 0; i < refs.length; i += chunk) {
-      const batch = writeBatch(db);
+      const batch = writeBatch(getClientDb());
       refs.slice(i, i + chunk).forEach((r) => batch.delete(r));
       await batch.commit();
       deleted += Math.min(chunk, refs.length - i);
@@ -66,7 +67,7 @@ function DangerZoneInner() {
       let updated = 0;
 
       for (let i = 0; i < refs.length; i += 400) {
-        const batch = writeBatch(db);
+        const batch = writeBatch(getClientDb());
         refs.slice(i, i + 400).forEach((r) =>
           batch.update(r, { blockedSlots: [], updatedAt: Date.now() })
         );

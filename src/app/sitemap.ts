@@ -4,7 +4,7 @@ import type { MetadataRoute } from "next";
 const routes = [
   "/", "/rezervasyon", "/rezervasyonumu-gor", "/about", "/faq",
   "/impressum", "/datenschutz", "/agb",
-  // landing’ler:
+
   "/antalya-havalimani-transfer", "/vip-transfer-antalya",
   "/belek-transfer", "/kemer-transfer", "/lara-transfer",
   "/side-transfer", "/alanya-transfer",

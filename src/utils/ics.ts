@@ -1,11 +1,9 @@
-// Lightweight .ics generator for a single reservation
 import type { Reservation } from "@/types";
 
 function pad(n: number): string {
   return n < 10 ? `0${n}` : String(n);
 }
 
-// Format UTC ms to ICS date-time in UTC: YYYYMMDDTHHMMSSZ
 export function toIcsUtc(dtMs: number): string {
   const d = new Date(dtMs);
   return [

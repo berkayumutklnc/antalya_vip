@@ -31,7 +31,6 @@ export default function HomePage() {
     <div className="flex min-h-screen flex-col bg-gray-950 text-white">
       <LocalBusinessJSONLD />
       <FAQJSONLD />
-      {/* HERO */}
       <section
         className="relative flex h-[70vh] items-center justify-center bg-cover bg-center"
         style={{ backgroundImage: "url('/images/hero.jpg')" }}

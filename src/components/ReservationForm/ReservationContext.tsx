@@ -1,4 +1,3 @@
-// src/components/ReservationForm/ReservationContext.tsx
 "use client";
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
@@ -22,7 +21,7 @@ const makeDefault = (lang: ReservationFormData["lang"]): ReservationFormData => 
   terminal: "",
   baggageCount: 0,
 
-  vehicleType: undefined, // henüz seçili değil
+  vehicleType: undefined,
   price: 0,
 
   note: "",

@@ -87,8 +87,7 @@ export default function Wizard() {
       setPnr(res.code ?? res.id);
       setSubmitted(true);
       window?.scrollTo?.({ top: 0, behavior: "smooth" });
-    } catch (e: any) {
-      console.error(e);
+    } catch {
       alert("Rezervasyon oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.");
     } finally {
       setSubmitting(false);

@@ -7,7 +7,7 @@ import {
   signOut,
   User,
 } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { getClientAuth } from "@/lib/firebase";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -37,7 +37,7 @@ export default function AdminLoginPage() {
   const nextUrl = sp.get("next") || "/admin";
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (user) => {
+    const unsub = onAuthStateChanged(getClientAuth(), async (user) => {
       if (await isAdmin(user)) {
         router.replace(nextUrl);
       }
@@ -49,10 +49,10 @@ export default function AdminLoginPage() {
     setErr(null);
     setLoading(true);
     try {
-      const cred = await signInWithEmailAndPassword(auth, email.trim(), pass);
+      const cred = await signInWithEmailAndPassword(getClientAuth(), email.trim(), pass);
       if (!(await isAdmin(cred.user))) {
         setErr("Bu kullanıcı için admin yetkisi yok.");
-        await signOut(auth);
+        await signOut(getClientAuth());
         return;
       }
       router.replace(nextUrl);
@@ -64,7 +64,7 @@ export default function AdminLoginPage() {
   }
 
   async function onLogout() {
-    await signOut(auth);
+    await signOut(getClientAuth());
   }
 
   return (
