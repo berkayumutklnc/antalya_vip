@@ -1,7 +1,7 @@
 "use client";
 
 export default function WhatsAppButton() {
-  const phone = process.env.NEXT_PUBLIC_WHATSAPP_PHONE || "905446850705";
+  const phone = process.env.NEXT_PUBLIC_WHATSAPP_PHONE || "905541790203";
   const message = encodeURIComponent(
     process.env.NEXT_PUBLIC_WHATSAPP_MESSAGE || "Merhaba, VIP Transfer için bilgi almak istiyorum."
   );

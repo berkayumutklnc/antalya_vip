@@ -4,7 +4,7 @@ export default function DatenschutzPage() {
       <h1 className="text-2xl font-semibold text-white">Datenschutzerklärung</h1>
 
       <h2 className="text-lg font-semibold text-white">1. Verantwortlicher</h2>
-      <p>Sonnenlicht VIP Transfer, Yeşilköy, Antalya Havaalanı Dış Hatlar Terminali 1, 07230 Muratpaşa/Antalya, Türkei. E-Mail: info@sonnenlichttransfer.com</p>
+      <p>Sonnenlicht VIP Transfer, Yeşilköy, Antalya Havaalanı Dış Hatlar Terminali 1, 07230 Muratpaşa/Antalya, Türkei. E-Mail: berkayumut98@gmail.com</p>
 
       <h2 className="text-lg font-semibold text-white">2. Erhobene Daten</h2>
       <p>Wir erheben und verarbeiten folgende personenbezogene Daten: Name, E-Mail-Adresse, Telefonnummer, Fluginformationen, Abhol- und Zielorte sowie Zahlungsinformationen.</p>
