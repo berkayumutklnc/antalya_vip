@@ -1,22 +1,39 @@
 
 import type { MetadataRoute } from "next";
+import { getAllTransferSlugs } from "@/content/transfers";
 
-const routes = [
+const staticRoutes = [
   "/", "/rezervasyon", "/rezervasyonumu-gor", "/about", "/faq",
   "/impressum", "/datenschutz", "/agb",
-
-  "/antalya-havalimani-transfer", "/vip-transfer-antalya",
-  "/belek-transfer", "/kemer-transfer", "/lara-transfer",
-  "/side-transfer", "/alanya-transfer",
+  "/policies/cancellation", "/policies/privacy",
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = process.env.NEXT_PUBLIC_SITE_URL || "https://sonnenlichttransfer.com";
+  const base = process.env.NEXT_PUBLIC_SITE_URL || "https://zenturotravel.com";
   const now = new Date();
-  return routes.map((p) => ({
-    url: `${base}${p}`,
-    lastModified: now,
-    changeFrequency: "weekly",
-    priority: p === "/" ? 1 : p.includes("transfer") ? 0.9 : 0.6,
-  }));
+  const langs = ["de", "en", "tr", "ru"] as const;
+
+  const transferSlugs = getAllTransferSlugs();
+  const transferRoutes = transferSlugs.map((s) => `/${s}`);
+
+  const allRoutes = [...staticRoutes, ...transferRoutes];
+
+  return allRoutes.map((p) => {
+    const isTransfer = p.includes("transfer");
+    const isHome = p === "/";
+    const priority = isHome ? 1 : isTransfer ? 0.9 : 0.6;
+
+    const alternates: Record<string, string> = {};
+    for (const lang of langs) {
+      alternates[lang] = `${base}${p}?lang=${lang}`;
+    }
+
+    return {
+      url: `${base}${p}`,
+      lastModified: now,
+      changeFrequency: "weekly" as const,
+      priority,
+      alternates: { languages: alternates },
+    };
+  });
 }

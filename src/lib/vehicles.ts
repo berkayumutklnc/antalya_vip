@@ -1,15 +1,5 @@
 'use client';
-import {
-  collection,
-  deleteDoc,
-  doc,
-  getDoc,
-  getDocs,
-  query,
-  setDoc,
-  updateDoc,
-} from "firebase/firestore";
-import { getClientDb } from "@/lib/firebase";
+import { getClientAuth } from "@/lib/firebase";
 import type { Vehicle, VehicleType } from "@/types";
 
 export type VehicleBlockSlot = {
@@ -23,40 +13,44 @@ export type VehicleBlockSlot = {
   updatedAt?: number;
 };
 
-function now() { return Date.now(); }
+async function authHeaders(): Promise<HeadersInit> {
+  const user = getClientAuth().currentUser;
+  if (!user) throw new Error("Not authenticated");
+  const token = await user.getIdToken();
+  return { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
+}
 
-function toVehicle(raw: any, id: string): Vehicle {
-  const v: any = {
-    id,
-    type: raw?.type ?? null,
-    plate: raw?.plate ?? null,
-    driverName: raw?.driverName ?? null,
-    driverPhone: raw?.driverPhone ?? null,
-    capacity: raw?.capacity ?? null,
-    blockedSlots: Array.isArray(raw?.blockedSlots) ? raw.blockedSlots : [],
-    createdAt:
-      typeof raw?.createdAt === "number"
-        ? raw.createdAt
-        : raw?.createdAt?.toMillis
-        ? raw.createdAt.toMillis()
-        : 0,
-    updatedAt:
-      typeof raw?.updatedAt === "number"
-        ? raw.updatedAt
-        : raw?.updatedAt?.toMillis
-        ? raw.updatedAt.toMillis()
-        : 0,
-  };
-  return v as Vehicle;
+async function apiJson<T = any>(url: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(url, init);
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body?.error || `Request failed (${res.status})`);
+  }
+  return res.json();
+}
+
+function toVehicle(raw: any): Vehicle {
+  return {
+    id: raw.id,
+    type: raw.type ?? null,
+    plate: raw.plate ?? null,
+    driverName: raw.driverName ?? null,
+    driverPhone: raw.driverPhone ?? null,
+    capacity: raw.capacity ?? null,
+    blockedSlots: Array.isArray(raw.blockedSlots) ? raw.blockedSlots : [],
+    createdAt: typeof raw.createdAt === "number" ? raw.createdAt : 0,
+    updatedAt: typeof raw.updatedAt === "number" ? raw.updatedAt : 0,
+  } as Vehicle;
 }
 
 export async function fetchVehicles(): Promise<Vehicle[]> {
-  const snap = await getDocs(query(collection(getClientDb(), "vehicles")));
-  return snap.docs.map(d => toVehicle(d.data(), d.id));
+  const headers = await authHeaders();
+  const data = await apiJson<{ items: any[] }>("/api/admin/vehicles", { headers });
+  return (data.items || []).map(toVehicle);
 }
 
 export type UpsertVehicleInput = {
-  id: string;
+  id?: string;
   type?: VehicleType | null;
   plate?: string | null;
   driverName?: string | null;
@@ -65,61 +59,55 @@ export type UpsertVehicleInput = {
 };
 
 export async function createVehicle(input: UpsertVehicleInput) {
-  const id = input.id.trim();
-  if (!id) throw new Error("Araç ID zorunludur.");
-  const ref = doc(getClientDb(), "vehicles", id);
-  await setDoc(ref, {
-    id,
-    type: input.type ?? null,
-    plate: input.plate ?? null,
-    driverName: input.driverName ?? null,
-    driverPhone: input.driverPhone ?? null,
-    capacity: input.capacity ?? null,
-    blockedSlots: [],
-    createdAt: now(),
-    updatedAt: now(),
-  }, { merge: true });
+  const headers = await authHeaders();
+  return apiJson("/api/admin/vehicles", {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      plate: input.plate ?? "",
+      type: input.type ?? "",
+      driverName: input.driverName ?? "",
+      driverPhone: input.driverPhone ?? "",
+    }),
+  });
 }
 
 export async function updateVehicle(input: UpsertVehicleInput) {
-  const id = input.id.trim();
-  if (!id) throw new Error("Araç ID zorunludur.");
-  const ref = doc(getClientDb(), "vehicles", id);
-  await updateDoc(ref, {
-    type: input.type ?? null,
-    plate: input.plate ?? null,
-    driverName: input.driverName ?? null,
-    driverPhone: input.driverPhone ?? null,
-    capacity: input.capacity ?? null,
-    updatedAt: now(),
-  } as any);
+  if (!input.id) throw new Error("Araç ID zorunludur.");
+  const headers = await authHeaders();
+  return apiJson(`/api/admin/vehicles/${input.id}`, {
+    method: "PATCH",
+    headers,
+    body: JSON.stringify({
+      plate: input.plate ?? "",
+      type: input.type ?? "",
+      driverName: input.driverName ?? "",
+      driverPhone: input.driverPhone ?? "",
+    }),
+  });
 }
 
 export async function deleteVehicle(id: string) {
-  const ref = doc(getClientDb(), "vehicles", id);
-  await deleteDoc(ref);
+  const headers = await authHeaders();
+  return apiJson(`/api/admin/vehicles/${id}`, { method: "DELETE", headers });
 }
 
 export async function addVehicleBlockSlot(vehicleId: string, slot: VehicleBlockSlot) {
   if (!slot.startAt || !slot.endAt || slot.endAt <= slot.startAt) {
     throw new Error("Geçersiz zaman aralığı.");
   }
-  const ref = doc(getClientDb(), "vehicles", vehicleId);
-  const snap = await getDoc(ref);
-  if (!snap.exists()) throw new Error("Araç bulunamadı.");
-  const v = snap.data() as any;
-  const list: VehicleBlockSlot[] = Array.isArray(v.blockedSlots) ? v.blockedSlots.slice() : [];
-  list.push({ ...slot, updatedAt: now() });
-  await updateDoc(ref, { blockedSlots: list, updatedAt: now() } as any);
+  const headers = await authHeaders();
+  return apiJson(`/api/admin/vehicles/${vehicleId}/slots`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ startAt: slot.startAt, endAt: slot.endAt, reason: slot.reason ?? "manual" }),
+  });
 }
 
 export async function removeVehicleBlockSlot(vehicleId: string, index: number) {
-  const ref = doc(getClientDb(), "vehicles", vehicleId);
-  const snap = await getDoc(ref);
-  if (!snap.exists()) throw new Error("Araç bulunamadı.");
-  const v = snap.data() as any;
-  const list: VehicleBlockSlot[] = Array.isArray(v.blockedSlots) ? v.blockedSlots.slice() : [];
-  if (index < 0 || index >= list.length) throw new Error("Geçersiz indeks.");
-  list.splice(index, 1);
-  await updateDoc(ref, { blockedSlots: list, updatedAt: now() } as any);
+  const headers = await authHeaders();
+  return apiJson(`/api/admin/vehicles/${vehicleId}/slots?index=${index}`, {
+    method: "DELETE",
+    headers,
+  });
 }

@@ -1,3 +1,4 @@
+import { SITE } from "@/config/site";
 import type { Reservation } from "@/types";
 
 function pad(n: number): string {
@@ -26,11 +27,11 @@ export function makeReservationIcs(res: Reservation, endAtMs?: number): string {
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//Antalya VIP Transfer//Reservation//TR",
+    `PRODID:-//${SITE.name}//Reservation//EN`,
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
     "BEGIN:VEVENT",
-    `UID:${uid}@antalya-vip-transfer`,
+    `UID:${uid}@zenturotravel`,
     `DTSTAMP:${toIcsUtc(Date.now())}`,
     `DTSTART:${toIcsUtc(startAtMs)}`,
     `DTEND:${toIcsUtc(endMs)}`,

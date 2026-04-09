@@ -1,14 +1,13 @@
-import TransferLanding, { buildMetadata } from "@/components/TransferLanding";
-export const metadata = buildMetadata({
-  citySlug: "belek",
-  h1: "Belek VIP Transfer",
-  title: "Belek Transfer | Antalya Havalimanı VIP Karşılama",
-  description: "Belek'e VIP transfer. AYT havalimanından özel karşılama, 7/24 hizmet, sabit fiyat.",
+import { TransferLandingFull } from "@/components/TransferLanding";
+import { buildTransferMetadata } from "@/lib/seo";
+import { getTransferBySlug } from "@/content/transfers";
+
+const route = getTransferBySlug("belek-transfer")!;
+export const metadata = buildTransferMetadata({
+  title: route.content.de.metaTitle,
+  description: route.content.de.metaDescription,
   canonical: "/belek-transfer",
-  distances: [
-    { to: "Antalya Havalimanı", minutes: "35–45 dk" },
-    { to: "Belek Otelleri", minutes: "5–10 dk" },
-    { to: "Kadriye", minutes: "10–15 dk" },
-  ],
 });
-export default function Page(){ return <TransferLanding {...(metadata as any)} />; }
+export default function Page() {
+  return <TransferLandingFull route={route} />;
+}

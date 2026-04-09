@@ -11,7 +11,7 @@ type Dict = Record<string, string>;
 const dictionaries = {
   tr: {
 
-"home.hero.title": "Antalya VIP Transfer",
+"home.hero.title": "Zenturo VIP Transfer",
 "home.hero.subtitle": "Havalimanından otele, şehiriçi ve turlarda dakik ve konforlu ulaşım.",
 "home.hero.cta": "Rezervasyon Yap",
 "home.badge.support": "7/24 Destek",
@@ -131,7 +131,7 @@ const dictionaries = {
     "feature.luggage": "Bagaj",
 
     "about.title":"Biz Kimiz?",
-"about.p1":"Sonnenlicht VIP Transfer, Antalya ve çevresinde özel şoförlü transfer hizmeti sunar.",
+"about.p1":"Zenturo Travel, Antalya ve çevresinde özel şoförlü transfer hizmeti sunar.",
 "about.p2":"Önceliğimiz; güvenlik, dakiklik ve konfordur. Uçuş takibi yapar, misafirlerimizi zamanında karşılarız.",
 "about.p3":"Kurumsal ve bireysel taleplerde, ihtiyaçlarınıza göre esnek çözümler sunarız.",
 "about.contact":"İletişim",
@@ -170,11 +170,35 @@ const dictionaries = {
 "nav.cancelPolicy": "İptal Politikası", 
 "nav.privacy": "KVKK / Gizlilik",
 
+"home.link.airport": "Antalya Havalimanı Transfer",
+"home.link.belek": "Belek Transfer",
+"home.link.lara": "Lara / Kundu Transfer",
+"home.link.kemer": "Kemer Transfer",
+"home.link.side": "Side / Manavgat Transfer",
+"home.link.alanya": "Alanya Transfer",
+"home.link.vip": "VIP Transfer Antalya",
+"public.row.code": "Kod",
+"public.row.status": "Durum",
+"public.row.date": "Tarih",
+"public.row.route": "Rota",
+"public.row.passenger": "Yolcu",
+"public.row.email": "E-posta",
+"public.row.vehicle": "Araç",
+"public.row.plate": "Plaka",
+"public.row.driver": "Şoför",
+"public.row.startAt": "Başlangıç",
+"public.alreadyCanceled": "Rezervasyon zaten iptal edilmiş.",
+"public.cancelError": "İptal talebi gönderilemedi.",
+"rezervasyon.title": "Rezervasyon",
+"consent.msg": "Bu web sitesi analiz amaçlı çerezler kullanmaktadır.",
+"whatsapp.ariaLabel": "WhatsApp ile yazın",
+"whatsapp.reserve": "WhatsApp'tan Rezervasyon",
+
   },
 
   en: {
 
-"home.hero.title"   : "Sonnenlicht VIP Transfer",
+"home.hero.title"   : "Zenturo VIP Transfer",
 "home.hero.subtitle": "From airport to hotel, city transfers and private tours with punctual and comfortable service.",
 "home.hero.cta": "Book Now",
 "home.badge.support": "24/7 Support",
@@ -289,7 +313,7 @@ const dictionaries = {
 
 
     "about.title":"About Us",
-"about.p1":"Sonnenlicht VIP Transfer provides chauffeur-driven transfers in Antalya and nearby regions.",
+"about.p1":"Zenturo Travel provides chauffeur-driven transfers in Antalya and nearby regions.",
 "about.p2":"Our priorities are safety, punctuality and comfort. We track flights and greet guests on time.",
 "about.p3":"For both corporate and individual needs, we offer flexible solutions tailored to you.",
 "about.contact":"Contact",
@@ -331,11 +355,34 @@ const dictionaries = {
 "nav.cancelPolicy":"Cancellation Policy",
 "nav.privacy":"Privacy Notice",
 
+"home.link.airport": "Antalya Airport Transfer",
+"home.link.belek": "Belek Transfer",
+"home.link.lara": "Lara / Kundu Transfer",
+"home.link.kemer": "Kemer Transfer",
+"home.link.side": "Side / Manavgat Transfer",
+"home.link.alanya": "Alanya Transfer",
+"home.link.vip": "VIP Transfer Antalya",
+"public.row.code": "Code",
+"public.row.status": "Status",
+"public.row.date": "Date",
+"public.row.route": "Route",
+"public.row.passenger": "Passenger",
+"public.row.email": "Email",
+"public.row.vehicle": "Vehicle",
+"public.row.plate": "Plate",
+"public.row.driver": "Driver",
+"public.row.startAt": "Start",
+"public.alreadyCanceled": "This reservation is already canceled.",
+"public.cancelError": "Could not send cancel request.",
+"rezervasyon.title": "Reservation",
+"whatsapp.ariaLabel": "Write on WhatsApp",
+"whatsapp.reserve": "Book via WhatsApp",
+
   },
 
   de: {
 
-"home.hero.title"   : "Sonnenlicht VIP Transfer",
+"home.hero.title"   : "Zenturo VIP Transfer",
 "home.hero.subtitle": "Vom Flughafen zum Hotel, Stadtransfers und private Touren mit pünktlichem und komfortablem Service.",
 "home.hero.cta": "Jetzt buchen",
 "home.badge.support": "24/7 Support",
@@ -449,7 +496,7 @@ const dictionaries = {
     "feature.luggage": "Gepäck",
 
     "about.title":"Über uns",
-"about.p1":"Sonnenlicht VIP Transfer bietet Chauffeur-Transfers in Antalya und Umgebung.",
+"about.p1":"Zenturo Travel bietet Chauffeur-Transfers in Antalya und Umgebung.",
 "about.p2":"Priorität: Sicherheit, Pünktlichkeit und Komfort. Wir verfolgen Flüge und empfangen Gäste rechtzeitig.",
 "about.p3":"Für Firmen und Privatkunden liefern wir flexible, bedarfsgerechte Lösungen.",
 "about.contact":"Kontakt",
@@ -490,11 +537,34 @@ const dictionaries = {
 "nav.faq":"FAQ",
 "nav.cancelPolicy":"Stornobedingungen",
 "nav.privacy":"Datenschutzhinweis",
+
+"home.link.airport": "Antalya Flughafen Transfer",
+"home.link.belek": "Belek Transfer",
+"home.link.lara": "Lara / Kundu Transfer",
+"home.link.kemer": "Kemer Transfer",
+"home.link.side": "Side / Manavgat Transfer",
+"home.link.alanya": "Alanya Transfer",
+"home.link.vip": "VIP Transfer Antalya",
+"public.row.code": "Code",
+"public.row.status": "Status",
+"public.row.date": "Datum",
+"public.row.route": "Route",
+"public.row.passenger": "Passagier",
+"public.row.email": "E-Mail",
+"public.row.vehicle": "Fahrzeug",
+"public.row.plate": "Kennzeichen",
+"public.row.driver": "Fahrer",
+"public.row.startAt": "Beginn",
+"public.alreadyCanceled": "Diese Buchung wurde bereits storniert.",
+"public.cancelError": "Stornoanfrage konnte nicht gesendet werden.",
+"rezervasyon.title": "Buchung",
+"whatsapp.ariaLabel": "Schreiben Sie uns auf WhatsApp",
+"whatsapp.reserve": "Per WhatsApp buchen",
   },
 
   ru: {
 
-"home.hero.title"   : "Сонненлихт VIP Трансфер",
+"home.hero.title"   : "Zenturo VIP Трансфер",
 "home.hero.subtitle": "Из аэропорта в отель, городские трансферы и частные туры с точным и комфортным обслуживанием.",
 "home.hero.cta": "Забронировать",
 "home.badge.support": "Поддержка 24/7",
@@ -608,7 +678,7 @@ const dictionaries = {
     "feature.luggage": "Багаж",
 
     "about.title":"О нас",
-"about.p1":"Sonnenlicht VIP Transfer — частные трансферы с водителем в Анталье и регионе.",
+"about.p1":"Zenturo Travel — частные трансферы с водителем в Анталье и регионе.",
 "about.p2":"Наши приоритеты: безопасность, пунктуальность и комфорт. Отслеживаем рейсы и встречаем вовремя.",
 "about.p3":"Для компаний и частных клиентов предлагаем гибкие решения под задачу.",
 "about.contact":"Контакты",
@@ -650,6 +720,29 @@ const dictionaries = {
 "nav.cancelPolicy":"Правила отмены",
 "nav.privacy":"Уведомление о конфиденциальности",
 
+"home.link.airport": "Трансфер из аэропорта Антальи",
+"home.link.belek": "Трансфер Белек",
+"home.link.lara": "Трансфер Лара / Кунду",
+"home.link.kemer": "Трансфер Кемер",
+"home.link.side": "Трансфер Сиде / Манавгат",
+"home.link.alanya": "Трансфер Аланья",
+"home.link.vip": "VIP Трансфер Анталья",
+"public.row.code": "Код",
+"public.row.status": "Статус",
+"public.row.date": "Дата",
+"public.row.route": "Маршрут",
+"public.row.passenger": "Пассажир",
+"public.row.email": "Почта",
+"public.row.vehicle": "Авто",
+"public.row.plate": "Номер",
+"public.row.driver": "Водитель",
+"public.row.startAt": "Начало",
+"public.alreadyCanceled": "Бронирование уже отменено.",
+"public.cancelError": "Не удалось отправить запрос на отмену.",
+"rezervasyon.title": "Бронирование",
+"whatsapp.ariaLabel": "Напишите нам в WhatsApp",
+"whatsapp.reserve": "Забронировать через WhatsApp",
+
   },
 } satisfies Record<Lang, Record<string, string>>;
 
@@ -660,7 +753,7 @@ const I18nContext = createContext<{
 } | null>(null);
 
 export function I18nPublicProvider({ children }: { children: React.ReactNode }) {
-  const [lang, setLang] = useState<Lang>("tr");
+  const [lang, setLang] = useState<Lang>("de");
 
   useEffect(() => {
     try {
@@ -670,7 +763,7 @@ export function I18nPublicProvider({ children }: { children: React.ReactNode }) 
         (localStorage.getItem("lang_public") ||
           document.cookie.match(/(?:^|; )lang_public=([^;]+)/)?.[1]) as Lang | null;
 
-      const next = (q && LANGS.includes(q) ? q : saved) ?? "tr";
+      const next = (q && LANGS.includes(q) ? q : saved) ?? "de";
       setLang(next);
     } catch {}
   }, []);
@@ -687,7 +780,7 @@ const t = useMemo(() => {
     vars ? msg.replace(/\{(\w+)\}/g, (_, k) => String(vars[k] ?? `{${k}}`)) : msg;
 
   return (key: string, vars?: Record<string, string | number>) => {
-    const d: Record<string, string> = dictionaries[lang] ?? dictionaries.tr;
+    const d: Record<string, string> = dictionaries[lang] ?? dictionaries.de;
     return format(d[key] ?? key, vars);
   };
 }, [lang]);

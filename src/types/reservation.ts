@@ -29,7 +29,7 @@ export interface ReservationFormData {
   acceptComms?: boolean | null;
 }
 
-export type ReservationStatus = "pending" | "confirmed" | "cancelled";
+export type ReservationStatus = "pending" | "confirmed" | "completed" | "no_show" | "canceled";
 
 export interface ReservationRecord extends ReservationFormData {
   id?: string;
@@ -80,11 +80,4 @@ export const VEHICLES: {
 export function genPNR() {
   const n = Math.floor(10000 + Math.random() * 90000);
   return `TRF-${n}`;
-}
-
-export function calcPrice(vehicle: VehicleType, adults: number, babySeat: number) {
-  const base = vehicle === "vip-6" ? 65 : 90;
-  const extraBaby = Math.max(0, babySeat - 1) * 5;
-  const paxAdj = Math.max(0, adults - 2) * 3;
-  return base + extraBaby + paxAdj;
 }

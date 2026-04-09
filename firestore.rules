@@ -3,61 +3,54 @@ service cloud.firestore {
   match /databases/{database}/documents {
     function isAuthed() { return request.auth != null; }
     function isAdmin() {
-      // Admin whitelist: create docs under admins/{uid}
       return isAuthed() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
     }
 
     // ----------------- RESERVATIONS (private, full data) -----------------
     match /reservations/{id} {
-      // Admin sees everything
       allow read: if isAdmin();
-
-      // Anyone can create a reservation, but only with safe fields
-      allow create: if
-        request.resource.id == request.resource.data.code &&
-        request.resource.data.status == "pending" &&
-        request.resource.data.acceptPolicy == true &&
-        request.resource.data.acceptKvkk == true &&
-        // Disallow admin-only/server-only fields from client
-        !("driverName" in request.resource.data) &&
-        !("driverPhone" in request.resource.data) &&
-        !("plate" in request.resource.data) &&
-        !("vehicleId" in request.resource.data) &&
-        !("cancel" in request.resource.data);
-
-      // Mutations only by admin
-      allow update, delete: if isAdmin();
+      // All writes via firebase-admin (server routes) — no client writes
+      allow create, update, delete: if false;
     }
 
-    // --------------- PUBLIC MIRROR (readable by everyone) ----------------
+    // --------------- PUBLIC MIRROR (lookup via server API) ----------------
     match /reservations_public/{id} {
-      allow read: if true;
-
-      // Allow client to create a public mirror at creation time; updates by admin only
-      allow create: if
-        request.resource.id == request.resource.data.code &&
-        request.resource.data.status == "pending";
-      allow update, delete: if isAdmin();
+      // Public lookup now goes through API route — lock down
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
     }
 
-    // -------- PNR mapping (code -> rid), read-only for public ----------
+    // -------- PNR mapping — server-only writes ---------
     match /pnr/{id} {
-      allow read: if true;
-      // Client can create mapping for its own code
-      allow create: if request.resource.id == request.resource.data.rid;
-      allow update, delete: if isAdmin();
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
     }
 
     // --------------------------- VEHICLES -------------------------------
     match /vehicles/{id} {
-      allow read: if true;          // needed for Step3 catalog
-      allow write: if isAdmin();    // only admin edits vehicles & blocks
+      // All reads now go through server API routes (firebase-admin)
+      allow read: if isAdmin();
+      // All writes via firebase-admin (server routes) — no client writes
+      allow write: if false;
     }
 
     // --------------------------- ADMINS ---------------------------------
-    // You maintain a document per admin uid under admins/{uid}.
     match /admins/{uid} {
       allow read, write: if isAdmin();
+    }
+
+    // ------------------- RESERVATION EVENTS (audit log) ------------------
+    match /reservation_events/{id} {
+      allow read: if isAdmin();
+      // All writes via firebase-admin (server routes) — append-only
+      allow create, update, delete: if false;
+    }
+
+    // --------------- NOTIFICATION LOGS (delivery attempts) ----------------
+    match /notification_logs/{id} {
+      allow read: if isAdmin();
+      // All writes via firebase-admin (server routes)
+      allow create, update, delete: if false;
     }
 
     // ------------------------- DEFAULT DENY -----------------------------

@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import { createReservation } from "@/lib/reservations";
 import { getPrice } from "@/lib/pricing";
 import type { VehicleType } from "@/types";
 import { makeReservationIcs, downloadIcs } from "@/utils/ics";
+import { istToUtcMs } from "@/utils/time";
 import { useI18nPublic } from "@/lib/i18n-public";
 
 type ReservationFormDataStep4 = {
@@ -88,37 +88,36 @@ export default function Step4({
       setLoading(true);
 
       if (!formData.date || !formData.time) throw new Error(t("step1.datetime.placeholder"));
-      const [y, m, d] = formData.date.split("-").map(Number);
-      const [H, M] = formData.time.split(":").map(Number);
-      const startAt = Date.UTC(y, m - 1, d, H, M);
 
-      await createReservation({
-        flightNo: formData.flightNo,
-        terminal: formData.terminal,
-        baggageCount: formData.baggageCount,
-        note: formData.note,
-        acceptPolicy: !!formData.acceptPolicy,
-        acceptKvkk: !!formData.acceptKvkk,
-        acceptComms: !!formData.acceptComms,
-        from: formData.from,
-        to: formData.to,
-        date: formData.date,
-        time: formData.time,
-        startAt,
-        fullName: `${formData.firstName} ${formData.lastName}`.trim(),
-        phone: formData.phone,
-        email: formData.email,
-        lang: formData.lang,
-        adults: Number.isFinite(Number(formData.adults)) ? Number(formData.adults) : 1,
-        babySeat: Number.isFinite(Number(formData.babySeat)) ? Number(formData.babySeat) : 0,
-        vehicleType: formData.vehicleType ?? undefined,
-        price:
-          formData.price === null || formData.price === undefined
-            ? autoPrice ?? undefined
-            : Number.isFinite(Number(formData.price))
-            ? Number(formData.price)
-            : undefined,
-      } as any);
+      const res = await fetch("/api/public/reservations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          from: formData.from,
+          to: formData.to,
+          date: formData.date,
+          time: formData.time,
+          fullName: `${formData.firstName} ${formData.lastName}`.trim(),
+          phone: formData.phone,
+          email: formData.email,
+          lang: formData.lang,
+          adults: Number.isFinite(Number(formData.adults)) ? Number(formData.adults) : 1,
+          babySeat: Number.isFinite(Number(formData.babySeat)) ? Number(formData.babySeat) : 0,
+          vehicleType: formData.vehicleType ?? undefined,
+          flightNo: formData.flightNo,
+          terminal: formData.terminal,
+          baggageCount: formData.baggageCount,
+          note: formData.note,
+          acceptPolicy: true,
+          acceptKvkk: true,
+          acceptComms: !!formData.acceptComms,
+        }),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData?.error || "Server error");
+      }
 
       setOk(true);
     } catch (e: any) {
@@ -142,9 +141,9 @@ export default function Step4({
               onClick={() => {
                 try {
                   const code = pnr || rid || "";
-                  const [y, m, d] = (formData.date || "").split("-").map(Number);
-                  const [H, M] = (formData.time || "00:00").split(":").map(Number);
-                  const startAt = Date.UTC(y, (m || 1) - 1, d || 1, H || 0, M || 0);
+                  const startAt = formData.date && formData.time
+                    ? istToUtcMs(formData.date, formData.time)
+                    : Date.now();
                   const res = {
                     id: rid || "",
                     code,

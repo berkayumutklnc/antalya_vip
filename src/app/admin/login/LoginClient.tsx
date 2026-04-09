@@ -69,6 +69,7 @@ export default function AdminLoginPage() {
 
   return (
     <main className="max-w-md mx-auto p-6 space-y-4">
+      <img src="/logo.png" alt="Zenturo Travel" className="h-10 w-auto" />
       <h1 className="text-2xl font-semibold">Admin Giriş</h1>
 
       {err && (

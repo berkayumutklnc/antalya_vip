@@ -1,9 +1,16 @@
 import { NextResponse } from "next/server";
 import { getAdminDbOrThrow } from "@/lib/firebaseAdmin";
+import { availabilityLimiter, getClientIp } from "@/lib/server/rateLimit";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
+  // Rate limiting
+  const ip = getClientIp(req);
+  if (!availabilityLimiter.check(ip)) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
+
   const adminDb = getAdminDbOrThrow();
   const { searchParams } = new URL(req.url);
   const date = searchParams.get("date") || "";

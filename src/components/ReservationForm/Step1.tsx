@@ -4,6 +4,7 @@ import React, { useMemo, useState } from "react";
 import PhoneInput from "react-phone-input-2";
 import DatePicker from "react-datepicker";
 import { useI18nPublic } from "@/lib/i18n-public";
+import { PLACE_LABELS } from "@/config/places";
 
 interface Step1Props {
   formData: {
@@ -21,24 +22,6 @@ interface Step1Props {
   nextStep: () => void;
 }
 
-
-const PLACES = [
-  "Antalya Airport (AYT)",
-  "Antalya City Center",
-  "Lara",
-  "Kundu",
-  "Belek",
-  "Side",
-  "Manavgat",
-  "Alanya",
-  "Kemer",
-  "Kaş",
-  "Kalkan",
-  "Göynük",
-  "Beldibi",
-  "Çıralı",
-  "Olimpos",
-];
 
 const pad2 = (n: number) => (n < 10 ? `0${n}` : `${n}`);
 function toDateStr(d: Date) {
@@ -92,12 +75,12 @@ const Step1: React.FC<Step1Props> = ({ formData, updateData, nextStep }) => {
 
   const filteredFrom = useMemo(() => {
     const q = (formData.from || "").toLowerCase();
-    return q ? PLACES.filter(p => p.toLowerCase().includes(q)) : PLACES;
+    return q ? PLACE_LABELS.filter(p => p.toLowerCase().includes(q)) : PLACE_LABELS;
   }, [formData.from]);
 
   const filteredTo = useMemo(() => {
     const q = (formData.to || "").toLowerCase();
-    return q ? PLACES.filter(p => p.toLowerCase().includes(q)) : PLACES;
+    return q ? PLACE_LABELS.filter(p => p.toLowerCase().includes(q)) : PLACE_LABELS;
   }, [formData.to]);
 
   return (

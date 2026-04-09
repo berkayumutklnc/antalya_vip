@@ -190,12 +190,10 @@ function VehicleForm({
   onSaved: () => Promise<void> | void;
 }) {
   const { t } = useI18n();
-  const [id, setId] = useState(initial?.id || "");
   const [type, setType] = useState<VehicleType | null>((initial?.type as any) ?? null);
   const [plate, setPlate] = useState(initial?.plate || "");
   const [driverName, setDriverName] = useState(initial?.driverName || "");
   const [driverPhone, setDriverPhone] = useState(initial?.driverPhone || "");
-  const [capacity, setCapacity] = useState<number | "">((initial as any)?.capacity ?? "");
 
   const [blkDate, setBlkDate] = useState<string>("");
   const [blkStart, setBlkStart] = useState<string>("09:00");
@@ -215,37 +213,42 @@ function VehicleForm({
       setErr(null);
       setBusy(true);
       if (mode === "new") {
-        await createVehicle({
-          id: id.trim(),
+        if (!plate.trim()) throw new Error("Plaka zorunludur.");
+        if (!type) throw new Error("Araç tipi zorunludur.");
+        const result = await createVehicle({
           type: type ?? null,
           plate: plate.trim() || null,
           driverName: driverName.trim() || null,
           driverPhone: driverPhone.trim() || null,
-          capacity: typeof capacity==="number" ? capacity : null,
         });
+
+        if (blkDate && result?.id) {
+          const start = toUtc(blkDate, blkStart);
+          const end = start + blkMinutes*60*1000;
+          await addVehicleBlockSlot(result.id, {
+            startAt: start,
+            endAt: end,
+            reason: "manual",
+          });
+        }
       } else {
         await updateVehicle({
-          id: id.trim(),
+          id: initial!.id,
           type: type ?? null,
           plate: plate.trim() || null,
           driverName: driverName.trim() || null,
           driverPhone: driverPhone.trim() || null,
-          capacity: typeof capacity==="number" ? capacity : null,
         });
-      }
 
-      if (blkDate) {
-        const start = toUtc(blkDate, blkStart);
-        const end = start + blkMinutes*60*1000;
-        await addVehicleBlockSlot(id.trim(), {
-          startAt: start,
-          endAt: end,
-          reason: "manual",
-          driverName: driverName || null,
-          driverPhone: driverPhone || null,
-          plate: plate || null,
-          type: (type as any) ?? null,
-        });
+        if (blkDate) {
+          const start = toUtc(blkDate, blkStart);
+          const end = start + blkMinutes*60*1000;
+          await addVehicleBlockSlot(initial!.id, {
+            startAt: start,
+            endAt: end,
+            reason: "manual",
+          });
+        }
       }
 
       await onSaved();
@@ -267,10 +270,12 @@ function VehicleForm({
         {err && <div className="rounded border border-red-600/40 bg-red-900/20 p-2 text-red-200 text-sm">{err}</div>}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {mode === "edit" && (
           <div>
             <label className="block text-xs text-white/60 mb-1">{t("vehicles.form.id")}</label>
-            <input value={id} onChange={(e)=>setId(e.target.value)} disabled={mode==="edit"} className="w-full px-3 py-2 rounded bg-neutral-800 border border-white/10" />
+            <input value={initial?.id || ""} disabled className="w-full px-3 py-2 rounded bg-neutral-800 border border-white/10 opacity-50" />
           </div>
+          )}
           <div>
             <label className="block text-xs text-white/60 mb-1">{t("vehicles.form.type")}</label>
             <select value={String(type||"")} onChange={(e)=>setType((e.target.value||null) as any)} className="w-full px-3 py-2 rounded bg-neutral-800 border border-white/10">
@@ -289,10 +294,6 @@ function VehicleForm({
           <div>
             <label className="block text-xs text-white/60 mb-1">{t("vehicles.form.driverPhone")}</label>
             <input value={driverPhone} onChange={(e)=>setDriverPhone(e.target.value)} className="w-full px-3 py-2 rounded bg-neutral-800 border border-white/10" />
-          </div>
-          <div>
-            <label className="block text-xs text-white/60 mb-1">{t("vehicles.form.capacity")}</label>
-            <input type="number" value={capacity} onChange={(e)=>setCapacity(e.target.value===""? "": Number(e.target.value))} className="w-full px-3 py-2 rounded bg-neutral-800 border border-white/10" />
           </div>
         </div>
 
@@ -313,7 +314,7 @@ function VehicleForm({
 
         <div className="flex items-center justify-end gap-2">
           <button onClick={onClose} className="px-3 py-2 rounded bg-neutral-800 hover:bg-neutral-700">{t("common.cancel")}</button>
-          <button onClick={save} disabled={!id || busy} className={`px-3 py-2 rounded ${!id || busy ? "bg-neutral-700 cursor-not-allowed" : "bg-green-700 hover:bg-green-800"}`}>
+          <button onClick={save} disabled={!plate.trim() || busy} className={`px-3 py-2 rounded ${!plate.trim() || busy ? "bg-neutral-700 cursor-not-allowed" : "bg-green-700 hover:bg-green-800"}`}>
             {busy ? t("common.loading") : (mode==="new" ? t("common.add") : t("common.update"))}
           </button>
         </div>

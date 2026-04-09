@@ -1,9 +1,19 @@
 "use client";
 import React from "react";
+import { trackWhatsAppClick } from "@/lib/analytics";
+import { useI18nPublic } from "@/lib/i18n-public";
+
+const MSGS: Record<string, string> = {
+  tr: "Merhaba, rezervasyon yapmak istiyorum",
+  en: "Hello, I would like to make a reservation",
+  de: "Hallo, ich möchte eine Buchung vornehmen",
+  ru: "Здравствуйте, я хочу забронировать",
+};
 
 export default function WhatsAppReserveButton({ city }: { city: string }) {
-  const phone = process.env.NEXT_PUBLIC_WHATSAPP_PHONE || "905541790203";
-  const msg = encodeURIComponent(process.env.NEXT_PUBLIC_WHATSAPP_MESSAGE || "Merhaba, rezervasyon yapmak istiyorum");
+  const { lang, t } = useI18nPublic();
+  const phone = process.env.NEXT_PUBLIC_WHATSAPP_PHONE || process.env.NEXT_PUBLIC_WHATSAPP || "905541790203";
+  const msg = encodeURIComponent(MSGS[lang] || MSGS.de);
   const href = `https://wa.me/${phone}?text=${msg}`;
 
   return (
@@ -12,9 +22,9 @@ export default function WhatsAppReserveButton({ city }: { city: string }) {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      onClick={() => (window as any).gtag?.("event", "whatsapp_click", { location: city })}
+      onClick={() => trackWhatsAppClick(city)}
     >
-      WhatsApp’tan Rezervasyon
+      {t("whatsapp.reserve")}
     </a>
   );
 }

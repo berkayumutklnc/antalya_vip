@@ -67,39 +67,25 @@ export default function HomePage() {
         </section>
         <section id="hizmetler" className="mt-16">
           <h2 className="mb-6 text-2xl font-bold">{t("home.services.title")}</h2>
-          <div className="grid gap-6 md:grid-cols-4">
-            <Link href="/antalya-havalimani-transfer">
-              <div className="overflow-hidden rounded-2xl border border-white/10 bg-black">
-                <Image src="/images/airport.jpg" alt="Antalya Havalimanı VIP Transfer" width={400} height={160} className="h-40 w-full object-cover" />
-                <div className="p-4">
-                  <div className="text-lg font-semibold">Antalya Havalimanı Transferi</div>
+          <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
+            {[
+              { href: "/antalya-havalimani-transfer", labelKey: "home.link.airport", img: "/images/airport.jpg" },
+              { href: "/belek-transfer", labelKey: "home.link.belek", img: "/images/tour.jpg" },
+              { href: "/lara-transfer", labelKey: "home.link.lara", img: "/images/city.jpg" },
+              { href: "/kemer-transfer", labelKey: "home.link.kemer", img: "/images/hotel.jpg" },
+              { href: "/side-transfer", labelKey: "home.link.side", img: "/images/hero.jpg" },
+              { href: "/alanya-transfer", labelKey: "home.link.alanya", img: "/images/airport.jpg" },
+              { href: "/vip-transfer-antalya", labelKey: "home.link.vip", img: "/images/hotel.jpg" },
+            ].map((s) => (
+              <Link key={s.href} href={s.href}>
+                <div className="overflow-hidden rounded-2xl border border-white/10 bg-black hover:border-white/20 transition-colors">
+                  <Image src={s.img} alt={t(s.labelKey)} width={400} height={160} className="h-32 w-full object-cover" />
+                  <div className="p-3">
+                    <div className="text-sm font-semibold md:text-base">{t(s.labelKey)}</div>
+                  </div>
                 </div>
-              </div>
-            </Link>
-            <Link href="/vip-transfer-antalya">
-              <div className="overflow-hidden rounded-2xl border border-white/10 bg-black">
-                <Image src="/images/hotel.jpg" alt="VIP Transfer Antalya" width={400} height={160} className="h-40 w-full object-cover" />
-                <div className="p-4">
-                  <div className="text-lg font-semibold">VIP Transfer Antalya</div>
-                </div>
-              </div>
-            </Link>
-            <Link href="/lara-transfer">
-              <div className="overflow-hidden rounded-2xl border border-white/10 bg-black">
-                <Image src="/images/city.jpg" alt="Lara/Kundu Transfer" width={400} height={160} className="h-40 w-full object-cover" />
-                <div className="p-4">
-                  <div className="text-lg font-semibold">Lara/Kundu Transfer</div>
-                </div>
-              </div>
-            </Link>
-            <Link href="/belek-transfer">
-              <div className="overflow-hidden rounded-2xl border border-white/10 bg-black">
-                <Image src="/images/tour.jpg" alt="Belek Transfer" width={400} height={160} className="h-40 w-full object-cover" />
-                <div className="p-4">
-                  <div className="text-lg font-semibold">Belek Transfer</div>
-                </div>
-              </div>
-            </Link>
+              </Link>
+            ))}
           </div>
         </section>
         <section id="filo" className="mt-16">

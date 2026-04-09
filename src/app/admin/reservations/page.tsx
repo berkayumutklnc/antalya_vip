@@ -2,22 +2,37 @@
 export const dynamic = 'force-dynamic';
 import AdminGate from "@/components/AdminGate";
 import { useEffect, useMemo, useState } from "react";
-import { listReservations, assignVehicle, approveCancel, rejectCancel } from "@/lib/reservations";
 import { fetchVehicles } from "@/lib/vehicles";
+import { getClientAuth } from "@/lib/firebase";
 import type { Reservation, Vehicle } from "@/types";
 import { waLink } from "@/utils/links";
+import { getWhatsAppMessage } from "@/lib/server/notificationTemplates";
 import StatusBadge from "@/components/admin/StatusBadge";
 import AssignVehicleModal from "@/components/admin/AssignVehicleModal";
 import CancelRequestModal from "@/components/admin/CancelRequestModal";
-type Tab = "all" | "pending" | "confirmed" | "canceled";
+import Link from "next/link";
+type Tab = "all" | "pending" | "confirmed" | "completed" | "no_show" | "canceled";
 
+function toTemplateData(r: Reservation) {
+  return {
+    code: r.code || r.id,
+    fullName: r.fullName ?? "",
+    from: r.from ?? "",
+    to: r.to ?? "",
+    date: r.date ?? "",
+    time: r.time ?? "",
+    email: r.email ?? "",
+    phone: r.phone ?? "",
+    driverName: r.driverName,
+    driverPhone: r.driverPhone,
+    plate: r.plate,
+  };
+}
 function msgForCustomer(r: Reservation) {
-  const code = r.code || r.id;
-  return `Sayın ${r.fullName}, ${r.date} ${r.time} ${r.from} → ${r.to} transferiniz ONAYLANDI. Şoför: ${r.driverName || "-"} ${r.driverPhone || ""}. Kod: ${code}.`;
+  return getWhatsAppMessage("send_pickup_reminder", toTemplateData(r));
 }
 function msgForDriver(r: Reservation) {
-  const code = r.code || r.id;
-  return `Merhaba ${r.driverName || ""}, ${r.date} ${r.time} ${r.from} → ${r.to} transfer atandı. Misafir: ${r.fullName} (${r.phone}). Kod: ${code}.`;
+  return getWhatsAppMessage("contact_driver_about_assignment", toTemplateData(r));
 }
 
 export default function AdminReservationsPage() {
@@ -31,9 +46,49 @@ export default function AdminReservationsPage() {
   const [cancelFor, setCancelFor] = useState<Reservation | null>(null);
   const [busy, setBusy] = useState(false);
 
+  async function getAuthHeaders(): Promise<HeadersInit> {
+    const user = getClientAuth().currentUser;
+    if (!user) throw new Error("Not authenticated");
+    const token = await user.getIdToken();
+    return { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
+  }
+
   async function refresh() {
-    const [rs, vs] = await Promise.all([listReservations(), fetchVehicles()]);
-    setReservations(rs);
+    const headers = await getAuthHeaders();
+    const [resData, vs] = await Promise.all([
+      fetch("/api/admin/reservations", { headers }).then(async (r) => {
+        if (!r.ok) throw new Error("Failed to load reservations");
+        return r.json();
+      }),
+      fetchVehicles(),
+    ]);
+    setReservations(
+      (resData.items || []).map((d: any) => ({
+        id: d.rid || d.id || d.code,
+        code: d.code ?? d.rid ?? d.id,
+        from: d.from ?? "",
+        to: d.to ?? "",
+        date: d.date ?? "",
+        time: d.time ?? "",
+        startAt: d.startAt ?? 0,
+        fullName: d.fullName ?? "",
+        phone: d.phone ?? "",
+        email: d.email ?? "",
+        status: d.status ?? "pending",
+        adults: Number(d.adults ?? 1),
+        babySeat: Number(d.babySeat ?? 0),
+        vehicleType: d.vehicleType ?? null,
+        vehicleId: d.vehicleId ?? null,
+        plate: d.plate ?? null,
+        driverName: d.driverName ?? null,
+        driverPhone: d.driverPhone ?? null,
+        price: d.price ?? null,
+        createdAt: d.createdAt ?? 0,
+        updatedAt: d.updatedAt ?? 0,
+        lang: d.lang ?? "tr",
+        cancel: d.cancel ?? null,
+      })),
+    );
     setVehicles(vs);
   }
 
@@ -142,8 +197,8 @@ export default function AdminReservationsPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          {([["all","Tümü"],["pending","Bekleyen"],["confirmed","Onaylı"],["canceled","İptal"]] as [Tab,string][])
+        <div className="flex items-center gap-2 flex-wrap">
+          {([["all","Tümü"],["pending","Bekleyen"],["confirmed","Onaylı"],["completed","Tamamlanan"],["no_show","No-Show"],["canceled","İptal"]] as [Tab,string][])
             .map(([key,label]) => (
             <button
               key={key}
@@ -207,7 +262,13 @@ export default function AdminReservationsPage() {
                         )}
                       </td>
                       <td className="p-2 text-right">
-                        <div className="flex gap-2 justify-end">
+                        <div className="flex gap-2 justify-end flex-wrap">
+                          <Link
+                            href={`/admin/reservations/${r.id}`}
+                            className="px-3 py-1 rounded bg-neutral-700 hover:bg-neutral-600 text-sm"
+                          >
+                            Detay
+                          </Link>
                           {r.status === "pending" && !r.cancel?.requested && (
                             <button
                               className="px-3 py-1 rounded bg-green-700 hover:bg-green-800"
@@ -219,7 +280,7 @@ export default function AdminReservationsPage() {
                           {r.status === "pending" && (
                             <a
                               className="px-3 py-1 rounded bg-emerald-700 hover:bg-emerald-800"
-                              href={waLink(r.phone, `Sayın ${r.fullName}, ${r.date} ${r.time} ${r.from} → ${r.to} rezervasyonunuzla ilgili bilgi için yazıyoruz.`)}
+                              href={waLink(r.phone, getWhatsAppMessage("contact_customer_about_reservation", toTemplateData(r)))}
                               target="_blank"
                               rel="noopener noreferrer"
                             >
@@ -229,6 +290,60 @@ export default function AdminReservationsPage() {
 
                           {r.status === "confirmed" && (
                             <>
+                              <button
+                                className="px-3 py-1 rounded bg-sky-700 hover:bg-sky-800 text-sm"
+                                disabled={busy}
+                                onClick={async () => {
+                                  if (!confirm("Bu transfer TAMAMLANDI olarak işaretlensin mi?")) return;
+                                  try {
+                                    setBusy(true);
+                                    const headers = await getAuthHeaders();
+                                    const res = await fetch(`/api/admin/reservations/${r.id}/status`, {
+                                      method: "PATCH",
+                                      headers,
+                                      body: JSON.stringify({ status: "completed" }),
+                                    });
+                                    if (!res.ok) {
+                                      const err = await res.json().catch(() => ({}));
+                                      throw new Error(err?.error || "Failed");
+                                    }
+                                    await refresh();
+                                  } catch (e: any) {
+                                    alert(e?.message ?? String(e));
+                                  } finally {
+                                    setBusy(false);
+                                  }
+                                }}
+                              >
+                                Tamamlandı
+                              </button>
+                              <button
+                                className="px-3 py-1 rounded bg-orange-700 hover:bg-orange-800 text-sm"
+                                disabled={busy}
+                                onClick={async () => {
+                                  if (!confirm("Bu transfer NO-SHOW olarak işaretlensin mi?")) return;
+                                  try {
+                                    setBusy(true);
+                                    const headers = await getAuthHeaders();
+                                    const res = await fetch(`/api/admin/reservations/${r.id}/status`, {
+                                      method: "PATCH",
+                                      headers,
+                                      body: JSON.stringify({ status: "no_show" }),
+                                    });
+                                    if (!res.ok) {
+                                      const err = await res.json().catch(() => ({}));
+                                      throw new Error(err?.error || "Failed");
+                                    }
+                                    await refresh();
+                                  } catch (e: any) {
+                                    alert(e?.message ?? String(e));
+                                  } finally {
+                                    setBusy(false);
+                                  }
+                                }}
+                              >
+                                No-Show
+                              </button>
                               <a
                                 className={`px-3 py-1 rounded ${hasCustWA ? "bg-emerald-700 hover:bg-emerald-800" : "bg-neutral-700 text-white/60 cursor-not-allowed"}`}
                                 href={hasCustWA ? waLink(r.phone!, msgForCustomer(r)) : undefined}
@@ -277,7 +392,16 @@ export default function AdminReservationsPage() {
             reservation={assignFor as any}
             vehicles={vehicles}
             onAssign={async (v) => {
-              await assignVehicle(assignFor.id, v);
+              const headers = await getAuthHeaders();
+              const res = await fetch(`/api/admin/reservations/${assignFor.id}/assign`, {
+                method: "POST",
+                headers,
+                body: JSON.stringify({ vehicleId: v.id }),
+              });
+              if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err?.error || "Assign failed");
+              }
               await refresh();
             }}
           />
@@ -292,7 +416,15 @@ export default function AdminReservationsPage() {
             onReject={async () => {
               try {
                 setBusy(true);
-                await rejectCancel(cancelFor.id);
+                const headers = await getAuthHeaders();
+                const res = await fetch(`/api/admin/reservations/${cancelFor.id}/cancel/reject`, {
+                  method: "POST",
+                  headers,
+                });
+                if (!res.ok) {
+                  const err = await res.json().catch(() => ({}));
+                  throw new Error(err?.error || "Reject failed");
+                }
                 setCancelFor(null);
                 await refresh();
               } finally {
@@ -302,7 +434,15 @@ export default function AdminReservationsPage() {
             onApprove={async () => {
               try {
                 setBusy(true);
-                await approveCancel(cancelFor.id);
+                const headers = await getAuthHeaders();
+                const res = await fetch(`/api/admin/reservations/${cancelFor.id}/cancel/approve`, {
+                  method: "POST",
+                  headers,
+                });
+                if (!res.ok) {
+                  const err = await res.json().catch(() => ({}));
+                  throw new Error(err?.error || "Approve failed");
+                }
                 setCancelFor(null);
                 await refresh();
               } finally {

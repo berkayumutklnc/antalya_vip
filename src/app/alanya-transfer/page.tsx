@@ -1,14 +1,13 @@
-import TransferLanding, { buildMetadata } from "@/components/TransferLanding";
-export const metadata = buildMetadata({
-  citySlug: "alanya",
-  h1: "Alanya VIP Transfer",
-  title: "Alanya Transfer | Antalya Havalimanı VIP Karşılama",
-  description: "Alanya'ya VIP transfer. AYT havalimanından özel karşılama, 7/24 hizmet, sabit fiyat.",
+import { TransferLandingFull } from "@/components/TransferLanding";
+import { buildTransferMetadata } from "@/lib/seo";
+import { getTransferBySlug } from "@/content/transfers";
+
+const route = getTransferBySlug("alanya-transfer")!;
+export const metadata = buildTransferMetadata({
+  title: route.content.de.metaTitle,
+  description: route.content.de.metaDescription,
   canonical: "/alanya-transfer",
-  distances: [
-    { to: "Antalya Havalimanı", minutes: "120–140 dk" },
-    { to: "Alanya Merkez", minutes: "5–10 dk" },
-    { to: "Mahmutlar", minutes: "15–20 dk" },
-  ],
 });
-export default function Page(){ return <TransferLanding {...(metadata as any)} />; }
+export default function Page() {
+  return <TransferLandingFull route={route} />;
+}

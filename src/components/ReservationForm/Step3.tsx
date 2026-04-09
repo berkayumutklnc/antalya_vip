@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { fetchVehicles } from "@/lib/vehicles";
-import type { Vehicle, VehicleType } from "@/types";
+import type { VehicleType } from "@/types";
 import { istToUtcMs, addMinutes } from "@/utils/time";
 import { useI18nPublic } from "@/lib/i18n-public";
 import Image from "next/image";
@@ -41,17 +40,6 @@ const SLOT_MIN = 60;
 const clamp = (n: number, min: number, max: number) =>
   Math.max(min, Math.min(max, n));
 
-function isVehicleFreeLocal(v: Vehicle, startAt: number, endAt: number): boolean {
-  const slots = Array.isArray((v as any).blockedSlots) ? (v as any).blockedSlots : [];
-  return !slots.some((s: any) => {
-    const a = Number(s?.startAt ?? 0);
-    const b = Number(s?.endAt ?? 0);
-    const A = a > 0 && a < 1e12 ? a * 1000 : a; 
-    const B = b > 0 && b < 1e12 ? b * 1000 : b;
-    return A < endAt && startAt < B; 
-  });
-}
-
 export default function Step3({
   formData,
   updateData,
@@ -60,7 +48,9 @@ export default function Step3({
   nextStep,
 }: Props) {
   const { t } = useI18nPublic();
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [availabilityByType, setAvailabilityByType] = useState<Record<VehicleType, boolean>>(
+    { "vip-6": true, "vip-10": true, "vip-16": true } as any
+  );
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const [selected, setSelected] = useState<VehicleType | null>(formData.vehicleType ?? null);
@@ -76,38 +66,36 @@ export default function Step3({
   const babySeatWarning = Number(formData.babySeat) > 1;
 
   const dateTimeReady = Boolean(formData.date && formData.time);
-  const startAt = useMemo(
-    () => (dateTimeReady ? istToUtcMs(formData.date!, formData.time!) : 0),
-    [dateTimeReady, formData.date, formData.time]
-  );
-  const endAt = useMemo(() => (startAt ? addMinutes(startAt, SLOT_MIN) : 0), [startAt]);
 
   useEffect(() => {
+    if (!dateTimeReady) return;
+    let cancelled = false;
     (async () => {
       setLoading(true);
       setErr(null);
       try {
-        const list = await fetchVehicles();
-        setVehicles(list);
+        const params = new URLSearchParams({
+          date: formData.date!,
+          time: formData.time!,
+          slotMinutes: String(SLOT_MIN),
+        });
+        const res = await fetch(`/api/public/vehicles/availability?${params}`);
+        if (!res.ok) throw new Error("Availability check failed");
+        const data = await res.json();
+        if (cancelled) return;
+        const map: Record<VehicleType, boolean> = { "vip-6": true, "vip-10": true, "vip-16": true } as any;
+        for (const entry of data.types || []) {
+          map[entry.type as VehicleType] = entry.available;
+        }
+        setAvailabilityByType(map);
       } catch (e: any) {
-        setErr(e?.message ?? String(e));
+        if (!cancelled) setErr(e?.message ?? String(e));
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     })();
-  }, []);
-
-  const availabilityByType: Record<VehicleType, boolean> = useMemo(() => {
-    const map: Record<VehicleType, boolean> = { "vip-6": true, "vip-10": true, "vip-16": true } as any;
-    if (!startAt || !endAt) return map;
-    for (const v of vehicles) {
-      const free = isVehicleFreeLocal(v, startAt, endAt);
-      const tp = v.type as VehicleType;
-      if (map[tp] == null) map[tp] = free;
-      else map[tp] = map[tp] || free; 
-    }
-    return map;
-  }, [vehicles, startAt, endAt]);
+    return () => { cancelled = true; };
+  }, [dateTimeReady, formData.date, formData.time]);
 
   function choose(tkey: VehicleType) {
     setSelected(tkey);

@@ -6,7 +6,7 @@ import Step2 from "./Step2";
 import Step3 from "./Step3";
 import Step4 from "./Step4";
 import { useI18nPublic } from "@/lib/i18n-public";
-import { createReservation } from "@/lib/reservations";
+import { trackReservationSubmit, trackWizardStep } from "@/lib/analytics";
 import type { VehicleType } from "@/types";
 
 type FormShape = {
@@ -57,35 +57,48 @@ export default function Wizard() {
   const setFormData = (patch: Partial<FormShape>) =>
     setFormDataState((prev) => ({ ...prev, ...patch }));
 
-  const nextStep = () => setStep((s) => Math.min(4, s + 1));
+  const nextStep = () => setStep((s) => { const next = Math.min(4, s + 1); trackWizardStep(next); return next; });
   const prevStep = () => setStep((s) => Math.max(1, s - 1));
 
   const submit = async () => {
     if (submitting) return;
     setSubmitting(true);
     try {
+      const res = await fetch("/api/public/reservations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          from: formData.from,
+          to: formData.to,
+          date: formData.date,
+          time: formData.time,
+          fullName: `${formData.firstName} ${formData.lastName}`.trim(),
+          phone: formData.phone,
+          email: formData.email,
+          lang: formData.lang,
+          adults: formData.adults,
+          babySeat: formData.babySeat,
+          vehicleType: formData.vehicleType,
+          acceptPolicy: true,
+          acceptKvkk: true,
+        }),
+      });
 
-      const [y, m, d] = formData.date.split("-").map(Number);
-      const [H, M] = formData.time.split(":").map(Number);
-      const startAt = Date.UTC(y, m - 1, d, H, M);
-      const res = await createReservation({
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err?.error || "Server error");
+      }
+
+      const data = await res.json();
+      setRid(data.id);
+      setPnr(data.code ?? data.id);
+      setSubmitted(true);
+      trackReservationSubmit({
         from: formData.from,
         to: formData.to,
-        date: formData.date,
-        time: formData.time,
-        startAt,
-        fullName: `${formData.firstName} ${formData.lastName}`.trim(),
-        phone: formData.phone,
-        email: formData.email,
-        lang: formData.lang,
-        adults: formData.adults,
-        babySeat: formData.babySeat,
-        vehicleType: formData.vehicleType,
-        price: formData.price ?? null,
+        vehicleType: formData.vehicleType || "unknown",
+        price: formData.price,
       });
-      setRid(res.id);
-      setPnr(res.code ?? res.id);
-      setSubmitted(true);
       window?.scrollTo?.({ top: 0, behavior: "smooth" });
     } catch {
       alert("Rezervasyon oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.");

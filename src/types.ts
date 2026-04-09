@@ -24,7 +24,7 @@ export interface Vehicle {
   updatedAt: number;
 }
 
-export type ReservationStatus = "pending" | "confirmed" | "canceled";
+export type ReservationStatus = "pending" | "confirmed" | "completed" | "no_show" | "canceled";
 
 export interface Reservation {
   id: string;
@@ -36,6 +36,8 @@ export interface Reservation {
 
   from: string;
   to: string;
+  fromKey?: string | null;
+  toKey?: string | null;
   date: string;
   time: string;
   startAt: number;

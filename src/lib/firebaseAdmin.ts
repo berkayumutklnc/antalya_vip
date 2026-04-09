@@ -1,5 +1,6 @@
 import { getApps, initializeApp, getApp, cert } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
+import { getAuth } from "firebase-admin/auth";
 
 function ensureAppOrNull() {
   if (getApps().length) return getApp();
@@ -15,4 +16,12 @@ export function getAdminDbOrThrow() {
     throw new Error("Service account missing: set FIREBASE_SERVICE_ACCOUNT_BASE64.");
   }
   return getFirestore(app);
+}
+
+export function getAdminAuth() {
+  const app = ensureAppOrNull();
+  if (!app) {
+    throw new Error("Service account missing: set FIREBASE_SERVICE_ACCOUNT_BASE64.");
+  }
+  return getAuth(app);
 }

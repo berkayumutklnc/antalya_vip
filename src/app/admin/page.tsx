@@ -3,33 +3,58 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { listReservations } from "@/lib/reservations";
+import { getClientAuth } from "@/lib/firebase";
 import { fetchVehicles } from "@/lib/vehicles";
-import type { Reservation, Vehicle } from "@/types";
+import type { Vehicle } from "@/types";
 import { useI18n } from "@/lib/i18n-admin";
+
+interface Metrics {
+  pending: number;
+  confirmed: number;
+  cancelRequests: number;
+  todayTrips: number;
+  completedTotal: number;
+  vehicles: number;
+}
 
 export default function AdminHomePage() {
   const { t } = useI18n();
-  const [pending, setPending] = useState<number>(0);
-  const [vehicles, setVehicles] = useState<number>(0);
+  const [m, setM] = useState<Metrics>({ pending: 0, confirmed: 0, cancelRequests: 0, todayTrips: 0, completedTotal: 0, vehicles: 0 });
 
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
-        const [rs, vs] = await Promise.all([listReservations(), fetchVehicles()]);
+        const user = getClientAuth().currentUser;
+        const token = user ? await user.getIdToken() : "";
+        const headers = { Authorization: `Bearer ${token}` };
+        const [resData, vs] = await Promise.all([
+          fetch("/api/admin/reservations", { headers }).then(r => r.json()),
+          fetchVehicles(),
+        ]);
         if (!mounted) return;
-        setPending(rs.filter(r => r.status === "pending").length);
-        setVehicles(vs.length);
+        const rs: any[] = resData.items || [];
+        const todayStr = new Date().toISOString().slice(0, 10);
+        setM({
+          pending: rs.filter(r => r.status === "pending").length,
+          confirmed: rs.filter(r => r.status === "confirmed").length,
+          cancelRequests: rs.filter(r => r.cancel?.requested && r.status !== "canceled").length,
+          todayTrips: rs.filter(r => r.date === todayStr && (r.status === "confirmed" || r.status === "completed")).length,
+          completedTotal: rs.filter(r => r.status === "completed").length,
+          vehicles: vs.length,
+        });
       } catch {}
     })();
     return () => { mounted = false; };
   }, []);
 
   const cards = [
-    { href: "/admin/reservations", title: t("nav.reservations"), kpi: `${pending}`, subtitle: t("dashboard.openReservations") },
-    { href: "/admin/vehicles", title: t("nav.vehicles"), kpi: `${vehicles}`, subtitle: t("dashboard.vehicles") },
-    { href: "/admin/calendar", title: t("nav.calendar"), kpi: "D", subtitle: "Day view" },
+    { href: "/admin/reservations", title: t("nav.reservations"), kpi: `${m.pending}`, subtitle: t("dashboard.openReservations"), accent: m.pending > 0 ? "border-yellow-500/30" : "" },
+    { href: "/admin/reservations", title: "İptal Talepleri", kpi: `${m.cancelRequests}`, subtitle: "Onay bekleyen talepler", accent: m.cancelRequests > 0 ? "border-red-500/30" : "" },
+    { href: "/admin/reservations", title: "Bugünkü Transferler", kpi: `${m.todayTrips}`, subtitle: "Onaylı & tamamlanan", accent: "" },
+    { href: "/admin/reservations", title: "Onaylı Rezervasyonlar", kpi: `${m.confirmed}`, subtitle: "Atanmış transferler", accent: "" },
+    { href: "/admin/vehicles", title: t("nav.vehicles"), kpi: `${m.vehicles}`, subtitle: t("dashboard.vehicles"), accent: "" },
+    { href: "/admin/calendar", title: t("nav.calendar"), kpi: "D", subtitle: "Günlük görünüm", accent: "" },
   ];
 
   return (
@@ -40,11 +65,11 @@ export default function AdminHomePage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {cards.map((c) => (
+        {cards.map((c, i) => (
           <Link
-            key={c.href}
+            key={i}
             href={c.href}
-            className="rounded-2xl border border-white/10 bg-neutral-900 hover:bg-neutral-800 transition p-4 block"
+            className={`rounded-2xl border border-white/10 ${c.accent} bg-neutral-900 hover:bg-neutral-800 transition p-4 block`}
           >
             <div className="text-lg font-semibold">{c.title}</div>
             <div className="text-4xl font-bold mt-2">{c.kpi}</div>

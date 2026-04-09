@@ -1,3 +1,7 @@
+/**
+ * Convert a Turkey-local date+time (UTC+3) to UTC milliseconds.
+ * The user always enters Istanbul time; this subtracts 3 h to store as UTC.
+ */
 export function istToUtcMs(dateStr: string, timeStr: string): number {
   const [y, m, d] = dateStr.split("-").map(Number);
   const [hh, mm] = timeStr.split(":").map(Number);

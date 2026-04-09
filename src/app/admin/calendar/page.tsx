@@ -4,8 +4,8 @@ export const dynamic = "force-dynamic";
 import { useEffect, useMemo, useState } from "react";
 import AdminGate from "@/components/AdminGate";
 import type { Reservation, Vehicle } from "@/types";
-import { listReservations } from "@/lib/reservations";
 import { fetchVehicles, addVehicleBlockSlot, removeVehicleBlockSlot } from "@/lib/vehicles";
+import { getClientAuth } from "@/lib/firebase";
 import { addMinutes } from "@/utils/time";
 import { useI18n } from "@/lib/i18n-admin";
 
@@ -36,7 +36,39 @@ export default function AdminCalendarPage() {
   const [blkMinutes, setBlkMinutes] = useState(60);
 
   async function refresh() {
-    const [rs, vs] = await Promise.all([listReservations(), fetchVehicles()]);
+    const user = getClientAuth().currentUser;
+    const token = user ? await user.getIdToken() : "";
+    const [resData, vs] = await Promise.all([
+      fetch("/api/admin/reservations", {
+        headers: { Authorization: `Bearer ${token}` },
+      }).then(r => r.json()),
+      fetchVehicles(),
+    ]);
+    const rs = (resData.items || []).map((d: any) => ({
+      id: d.rid || d.id || d.code,
+      code: d.code ?? d.rid ?? d.id,
+      from: d.from ?? "",
+      to: d.to ?? "",
+      date: d.date ?? "",
+      time: d.time ?? "",
+      startAt: d.startAt ?? 0,
+      fullName: d.fullName ?? "",
+      phone: d.phone ?? "",
+      email: d.email ?? "",
+      status: d.status ?? "pending",
+      adults: Number(d.adults ?? 1),
+      babySeat: Number(d.babySeat ?? 0),
+      vehicleType: d.vehicleType ?? null,
+      vehicleId: d.vehicleId ?? null,
+      plate: d.plate ?? null,
+      driverName: d.driverName ?? null,
+      driverPhone: d.driverPhone ?? null,
+      price: d.price ?? null,
+      createdAt: d.createdAt ?? 0,
+      updatedAt: d.updatedAt ?? 0,
+      lang: d.lang ?? "tr",
+      cancel: d.cancel ?? null,
+    }));
     setReservations(rs);
     setVehicles(vs);
   }

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import AdminGate from "@/components/AdminGate";
 import LanguageSwitch from "@/components/admin/LanguageSwitch";
@@ -21,7 +22,7 @@ function Shell({ children }: { children: React.ReactNode }) {
     <AdminGate>
       <div className="min-h-screen grid grid-cols-[240px_1fr] bg-neutral-950 text-white">
         <aside className="border-r border-white/10 p-4 space-y-4">
-          <div className="text-xl font-bold">Admin</div>
+          <Image src="/logo.png" alt="Zenturo Travel" width={140} height={36} className="h-9 w-auto" />
           <nav className="space-y-1">
             {NAV.map((n) => {
               const active = pathname === n.href || pathname?.startsWith(n.href + "/");

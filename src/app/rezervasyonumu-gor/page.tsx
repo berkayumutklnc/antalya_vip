@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { addMinutes } from "@/utils/time";
 import { makeReservationIcs, downloadIcs } from "@/utils/ics";
 import { I18nPublicProvider, useI18nPublic } from "@/lib/i18n-public";
+import { trackReservationLookup, trackCancelRequest } from "@/lib/analytics";
 import LanguageSwitchPublic from "@/components/public/LanguageSwitchPublic";
 
 function resolveStartAtMs(rec: { startAt?: any; date: string; time: string }) {
@@ -80,6 +81,7 @@ function PageInner() {
       }
       const d = await res.json();
       setRec(d as Resv);
+      trackReservationLookup();
     } catch (e: any) {
       setErr(e?.message ?? String(e));
     } finally {
@@ -119,9 +121,10 @@ function PageInner() {
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw new Error(body.error ?? "İptal talebi gönderilemedi.");
+        throw new Error(body.error ?? t("public.cancelError"));
       }
       setCancelMsg(t("public.cancel.sent"));
+      trackCancelRequest(rec.id);
       setRec((prev) =>
         prev
           ? {
@@ -199,15 +202,19 @@ function PageInner() {
 
       {rec && (
         <div className="rounded-lg border border-white/10 p-4 space-y-3">
-          <Row k="Kod" v={/^TRF-/.test(rec.id) ? rec.id : rec.code ?? rec.id} />
-          <Row k="Durum" v={rec.status} />
-          <Row k="Tarih" v={`${rec.date} ${rec.time}`} />
-          <Row k="Rota" v={`${rec.from} → ${rec.to}`} />
-          <Row k="Yolcu" v={`${rec.fullName} (${rec.phone})`} />
-          <Row k="E-posta" v={rec.email} />
-          <Row k="Araç" v={rec.vehicleType ?? "—"} />
-          <Row k="Plaka" v={rec.plate ?? "—"} />
-          <Row k="Şoför" v={`${rec.driverName ?? "—"} (${rec.driverPhone ?? "—"})`} />
+          <Row k={t("public.row.code")} v={/^TRF-/.test(rec.id) ? rec.id : rec.code ?? rec.id} />
+          <Row k={t("public.row.status")} v={rec.status} />
+          <Row k={t("public.row.date")} v={`${rec.date} ${rec.time}`} />
+          <Row k={t("public.row.route")} v={`${rec.from} → ${rec.to}`} />
+          <Row k={t("public.row.passenger")} v={`${rec.fullName} (${rec.phone})`} />
+          <Row k={t("public.row.email")} v={rec.email} />
+          <Row k={t("public.row.vehicle")} v={rec.vehicleType ?? "—"} />
+          {rec.status === "confirmed" && (
+            <>
+              <Row k={t("public.row.plate")} v={rec.plate ?? "—"} />
+              <Row k={t("public.row.driver")} v={`${rec.driverName ?? "—"} (${rec.driverPhone ?? "—"})`} />
+            </>
+          )}
 
           {startAt > 0 && endAt > 0 && (
             <div className="pt-2 flex items-center gap-2">
@@ -219,7 +226,7 @@ function PageInner() {
                 {t("public.addToCalendar")}
               </button>
               <div className="text-xs text-white/40">
-                Başlangıç: {new Date(startAt).toLocaleString()}
+                {t("public.row.startAt")}: {new Date(startAt).toLocaleString()}
               </div>
             </div>
           )}
@@ -235,7 +242,7 @@ function PageInner() {
                 {t("public.cancel.tooLate")}
               </div>
             ) : rec.status === "canceled" ? (
-              <div className="text-white/60 text-sm">Rezervasyon zaten iptal edilmiş.</div>
+              <div className="text-white/60 text-sm">{t("public.alreadyCanceled")}</div>
             ) : (
               <>
                 <textarea

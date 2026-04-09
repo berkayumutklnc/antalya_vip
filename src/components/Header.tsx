@@ -61,7 +61,7 @@ export default function Header() {
     <header className="sticky top-0 z-40 w-full border-b border-white/10 bg-black/70 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
         <Link href="/" className="flex items-center gap-3">
-          <Image src="/logo.svg" alt={SITE.name} width={160} height={32} priority className="h-8 w-auto" />
+          <Image src="/logo.png" alt={SITE.name} width={160} height={40} priority className="h-10 w-auto" />
         </Link>
 
         <div className="hidden items-center gap-6 md:flex">
