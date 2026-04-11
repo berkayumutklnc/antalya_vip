@@ -7,7 +7,7 @@ import {
   signOut,
   User,
 } from "firebase/auth";
-import { getClientAuth } from "@/lib/firebase";
+import { getClientAuth, isFirebaseConfigured } from "@/lib/firebase";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -36,16 +36,23 @@ export default function AdminLoginPage() {
   const sp = useSearchParams();
   const nextUrl = sp.get("next") || "/admin";
 
+  const configured = isFirebaseConfigured();
+
   useEffect(() => {
+    if (!configured) return;
     const unsub = onAuthStateChanged(getClientAuth(), async (user) => {
       if (await isAdmin(user)) {
         router.replace(nextUrl);
       }
     });
     return () => unsub();
-  }, [router, nextUrl]);
+  }, [router, nextUrl, configured]);
 
   async function onLogin() {
+    if (!configured) {
+      setErr("Firebase yapılandırması eksik. Vercel'de NEXT_PUBLIC_FIREBASE_* ortam değişkenlerini ayarlayın.");
+      return;
+    }
     setErr(null);
     setLoading(true);
     try {
@@ -64,6 +71,7 @@ export default function AdminLoginPage() {
   }
 
   async function onLogout() {
+    if (!configured) return;
     await signOut(getClientAuth());
   }
 
