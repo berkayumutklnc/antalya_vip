@@ -7,9 +7,9 @@ export const SITE = {
   legalName: "Zenturo Travel",
 
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://zenturotravel.com",
-  phone: process.env.NEXT_PUBLIC_PHONE ?? "+905541790203",
-  whatsapp: process.env.NEXT_PUBLIC_WHATSAPP ?? "+905541790203",
-  email: process.env.NEXT_PUBLIC_EMAIL ?? "info@zenturotravel.com",
+  phone: process.env.NEXT_PUBLIC_PHONE ?? "+905461909056",
+  whatsapp: process.env.NEXT_PUBLIC_WHATSAPP ?? "+905461909056",
+  email: process.env.NEXT_PUBLIC_EMAIL ?? "semirgultopluyan7@gmail.com",
   address:
     "Yeşilköy, Antalya Havaalanı Dış Hatlar Terminali 1, 07230 Muratpaşa/Antalya",
 

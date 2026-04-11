@@ -12,7 +12,7 @@ const MSGS: Record<string, string> = {
 
 export default function WhatsAppReserveButton({ city }: { city: string }) {
   const { lang, t } = useI18nPublic();
-  const phone = process.env.NEXT_PUBLIC_WHATSAPP_PHONE || process.env.NEXT_PUBLIC_WHATSAPP || "905541790203";
+  const phone = process.env.NEXT_PUBLIC_WHATSAPP_PHONE || process.env.NEXT_PUBLIC_WHATSAPP || "905461909056";
   const msg = encodeURIComponent(MSGS[lang] || MSGS.de);
   const href = `https://wa.me/${phone}?text=${msg}`;
 

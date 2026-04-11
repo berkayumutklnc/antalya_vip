@@ -7,10 +7,10 @@ import { useI18nPublic } from "@/lib/i18n-public";
 const phone = process.env.NEXT_PUBLIC_WHATSAPP_PHONE || "";
 
 const DEFAULT_MSGS: Record<string, string> = {
-  tr: "Merhabalar! Size nasıl yardımcı olabiliriz?",
-  en: "Hello! How can we help you?",
-  de: "Hallo! Wie können wir Ihnen helfen?",
-  ru: "Здравствуйте! Чем можем помочь?",
+  tr: "Zenturo Travel ile iletişime geçtiğiniz için teşekkür ederiz. Size nasıl yardımcı olabiliriz?",
+  en: "Thank you for contacting Zenturo Travel. How can we help you?",
+  de: "Vielen Dank, dass Sie Zenturo Travel kontaktiert haben. Wie können wir Ihnen helfen?",
+  ru: "Спасибо, что обратились в Zenturo Travel. Чем мы можем вам помочь?",
 };
 
 export default function WhatsAppFab() {

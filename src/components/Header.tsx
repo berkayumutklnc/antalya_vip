@@ -15,12 +15,17 @@ function safeT(t: (k: string) => string, key: string, fallback: string) {
 
 export default function Header() {
   const [open, setOpen] = useState(false);
-  const { t } = useI18nPublic();
+  const { t, lang } = useI18nPublic();
 
-  const telHref = SITE.phone?.startsWith("+")
-    ? `tel:${SITE.phone}`
-    : `tel:+${(SITE.phone || "").replace(/\D/g, "")}`;
-  const waHref = `https://wa.me/${(SITE.whatsapp || "").replace(/\D/g, "")}`;
+  const waPhone = (SITE.whatsapp || "").replace(/\D/g, "");
+  const WA_MSGS: Record<string, string> = {
+    tr: "Zenturo Travel ile iletişime geçtiğiniz için teşekkür ederiz. Size nasıl yardımcı olabiliriz?",
+    en: "Thank you for contacting Zenturo Travel. How can we help you?",
+    de: "Vielen Dank, dass Sie Zenturo Travel kontaktiert haben. Wie können wir Ihnen helfen?",
+    ru: "Спасибо, что обратились в Zenturo Travel. Чем мы можем вам помочь?",
+  };
+  const waMsg = WA_MSGS[lang] || WA_MSGS.de;
+  const waHref = `https://wa.me/${waPhone}?text=${encodeURIComponent(waMsg)}`;
 
   const Nav = ({ onClick }: { onClick?: () => void }) => (
     <nav className="flex flex-col gap-4 md:flex-row md:items-center md:gap-6">
@@ -39,7 +44,7 @@ export default function Header() {
       <Link href="/rezervasyonumu-gor" onClick={onClick} className="text-white/70 hover:text-blue-400 transition-colors duration-200">
         {safeT(t, "header.links.myReservation", "Rezervasyonumu Gör")}
       </Link>
-      <a href={telHref} onClick={onClick} className="text-white/70 hover:text-blue-400 transition-colors duration-200">
+      <a href={waHref} target="_blank" rel="noopener noreferrer" onClick={onClick} className="text-white/70 hover:text-blue-400 transition-colors duration-200">
         {safeT(t, "header.links.contact", "İletişim")}
       </a>
 
