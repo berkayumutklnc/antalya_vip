@@ -14,9 +14,10 @@ const DEFAULT_MSGS: Record<string, string> = {
 };
 
 export default function WhatsAppFab() {
+  const { lang, t } = useI18nPublic();
+
   if (!phone) return null;
 
-  const { lang, t } = useI18nPublic();
   const msg = DEFAULT_MSGS[lang] || DEFAULT_MSGS.de;
   const p = phone.replace(/[^\d+]/g, "");
   const href = `https://wa.me/${p}?text=${encodeURIComponent(msg)}`;

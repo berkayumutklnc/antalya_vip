@@ -81,10 +81,8 @@ export function validateServerEnv(): void {
   }
 
   if (missing.length) {
-    const msg = `[env] FATAL — required env vars missing: ${missing.join(", ")}`;
+    const msg = `[env] CRITICAL — required env vars missing: ${missing.join(", ")}. API routes needing these will fail.`;
     console.error(msg);
-    if (process.env.NODE_ENV === "production") {
-      throw new Error(msg);
-    }
+    // Don't throw — let the app start in degraded mode so public pages still render.
   }
 }
