@@ -11,14 +11,14 @@ export default function FAQPage() {
   ];
   return (
     <main className="mx-auto max-w-4xl px-4 py-12">
-      <h1 className="text-2xl font-semibold text-white mb-6">{t("faq.title")}</h1>
+      <h1 className="text-3xl font-bold text-white mb-8">{t("faq.title")}</h1>
       <div className="divide-y divide-white/10 rounded-xl border border-white/10">
         {items.map((it, i) => (
-          <details key={i} className="group p-5 open:bg-white/[0.02]">
+          <details key={i} className="group p-5 open:bg-white/[0.02] hover:bg-white/[0.01] transition-colors">
             <summary className="cursor-pointer list-none text-white/90 font-medium group-open:text-white">
               {it.q}
             </summary>
-            <p className="mt-2 text-white/70">{it.a}</p>
+            <p className="mt-2 text-white/80">{it.a}</p>
           </details>
         ))}
       </div>

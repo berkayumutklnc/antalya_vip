@@ -154,14 +154,14 @@ export default function AdminReservationsPage() {
   return (
     <AdminGate>
       <div className="p-4 space-y-4">
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <h1 className="text-2xl font-bold">Rezervasyonlar</h1>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="Ara: kod, isim, telefon..."
-              className="px-3 py-2 rounded bg-neutral-800 border border-white/10"
+              className="w-full sm:w-auto px-3 py-2 rounded bg-neutral-800 border border-white/10"
             />
             <button
               className="px-3 py-2 rounded bg-gray-200 text-black hover:bg-gray-300"
@@ -215,7 +215,9 @@ export default function AdminReservationsPage() {
         {loading ? (
           <div className="text-white/60">Yükleniyor...</div>
         ) : (
-          <div className="rounded border border-white/10 overflow-auto">
+          <>
+          {/* Desktop tablo görünümü */}
+          <div className="hidden md:block rounded border border-white/10 overflow-auto">
             <table className="w-full text-sm">
               <thead className="bg-neutral-800/60">
                 <tr>
@@ -384,6 +386,171 @@ export default function AdminReservationsPage() {
               </tbody>
             </table>
           </div>
+
+          {/* Mobile kart görünümü */}
+          <div className="md:hidden space-y-3">
+            {filtered.map((r) => {
+              const dPhone = (r as any).driverPhone as string | undefined;
+              const hasCustWA = Boolean(r.phone);
+              const hasDrWA = Boolean(dPhone);
+
+              return (
+                <div key={r.id} className="rounded-lg border border-white/10 bg-neutral-900/50 p-4 space-y-3">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <div className="font-semibold text-white">{r.code || r.id}</div>
+                      <div className="text-xs text-white/50">{new Date(r.createdAt).toLocaleString()}</div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <StatusBadge status={r.status} />
+                      {r.cancel?.requested && (
+                        <span className="px-2 py-0.5 rounded border text-xs font-medium bg-yellow-900/30 text-yellow-300 border-yellow-700/40">
+                          İptal
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                      <div className="text-xs text-white/50">Tarih/Saat</div>
+                      <div className="text-white">{r.date} {r.time}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-white/50">Rota</div>
+                      <div className="text-white">{r.from} → {r.to}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-white/50">Müşteri</div>
+                      <div className="text-white font-medium">{r.fullName || "—"}</div>
+                      <div className="text-xs text-white/50">{r.phone}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-white/50">Araç</div>
+                      <div className="text-white">{r.vehicleType || "—"} {r.plate ? `• ${r.plate}` : ""}</div>
+                      <div className="text-xs text-white/50">{(r as any).driverName || ""}</div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    <Link
+                      href={`/admin/reservations/${r.id}`}
+                      className="px-3 py-2 rounded bg-neutral-700 hover:bg-neutral-600 text-sm"
+                    >
+                      Detay
+                    </Link>
+                    {r.status === "pending" && !r.cancel?.requested && (
+                      <button
+                        className="px-3 py-2 rounded bg-green-700 hover:bg-green-800 text-sm"
+                        onClick={() => setAssignFor(r)}
+                      >
+                        Araç Ata
+                      </button>
+                    )}
+                    {r.status === "pending" && (
+                      <a
+                        className="px-3 py-2 rounded bg-emerald-700 hover:bg-emerald-800 text-sm"
+                        href={waLink(r.phone, getWhatsAppMessage("contact_customer_about_reservation", toTemplateData(r)))}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        WA Müşteri
+                      </a>
+                    )}
+                    {r.status === "confirmed" && (
+                      <>
+                        <button
+                          className="px-3 py-2 rounded bg-sky-700 hover:bg-sky-800 text-sm"
+                          disabled={busy}
+                          onClick={async () => {
+                            if (!confirm("Bu transfer TAMAMLANDI olarak işaretlensin mi?")) return;
+                            try {
+                              setBusy(true);
+                              const headers = await getAuthHeaders();
+                              const res = await fetch(`/api/admin/reservations/${r.id}/status`, {
+                                method: "PATCH",
+                                headers,
+                                body: JSON.stringify({ status: "completed" }),
+                              });
+                              if (!res.ok) {
+                                const err = await res.json().catch(() => ({}));
+                                throw new Error(err?.error || "Failed");
+                              }
+                              await refresh();
+                            } catch (e: any) {
+                              alert(e?.message ?? String(e));
+                            } finally {
+                              setBusy(false);
+                            }
+                          }}
+                        >
+                          Tamamlandı
+                        </button>
+                        <button
+                          className="px-3 py-2 rounded bg-orange-700 hover:bg-orange-800 text-sm"
+                          disabled={busy}
+                          onClick={async () => {
+                            if (!confirm("Bu transfer NO-SHOW olarak işaretlensin mi?")) return;
+                            try {
+                              setBusy(true);
+                              const headers = await getAuthHeaders();
+                              const res = await fetch(`/api/admin/reservations/${r.id}/status`, {
+                                method: "PATCH",
+                                headers,
+                                body: JSON.stringify({ status: "no_show" }),
+                              });
+                              if (!res.ok) {
+                                const err = await res.json().catch(() => ({}));
+                                throw new Error(err?.error || "Failed");
+                              }
+                              await refresh();
+                            } catch (e: any) {
+                              alert(e?.message ?? String(e));
+                            } finally {
+                              setBusy(false);
+                            }
+                          }}
+                        >
+                          No-Show
+                        </button>
+                        <a
+                          className={`px-3 py-2 rounded text-sm ${hasCustWA ? "bg-emerald-700 hover:bg-emerald-800" : "bg-neutral-700 text-white/60 cursor-not-allowed"}`}
+                          href={hasCustWA ? waLink(r.phone!, msgForCustomer(r)) : undefined}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => { if (!hasCustWA) e.preventDefault(); }}
+                        >
+                          WA Müşteri
+                        </a>
+                        <a
+                          className={`px-3 py-2 rounded text-sm ${hasDrWA ? "bg-teal-700 hover:bg-teal-800" : "bg-neutral-700 text-white/60 cursor-not-allowed"}`}
+                          href={hasDrWA ? waLink(dPhone!, msgForDriver(r)) : undefined}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => { if (!hasDrWA) e.preventDefault(); }}
+                        >
+                          WA Şoför
+                        </a>
+                      </>
+                    )}
+                    {r.cancel?.requested && (
+                      <button
+                        className="px-3 py-2 rounded bg-neutral-800 border border-white/10 text-sm"
+                        onClick={() => setCancelFor(r)}
+                      >
+                        Sebebi Gör
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+
+            {filtered.length === 0 && (
+              <div className="p-4 text-center text-white/60">Kayıt bulunamadı.</div>
+            )}
+          </div>
+          </>
         )}
         {assignFor && (
           <AssignVehicleModal

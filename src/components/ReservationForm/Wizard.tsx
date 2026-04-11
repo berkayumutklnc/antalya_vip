@@ -110,19 +110,36 @@ export default function Wizard() {
   return (
     <div className="mx-auto max-w-3xl">
       {step <= 4 && !submitted && (
-        <div className="mb-6 flex items-center gap-2 text-sm text-neutral-300">
-          {[1, 2, 3, 4].map((n) => (
-            <span
-              key={n}
-              className={`px-3 py-1 rounded-full border ${
-                step === n ? "bg-blue-600 border-blue-600 text-white" : "border-white/15"
-              }`}
-            >
-              {n}
-            </span>
+        <div className="mb-8 flex items-center justify-center">
+          {[1, 2, 3, 4].map((n, i) => (
+            <div key={n} className="flex items-center">
+              <div
+                className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold transition-all duration-300 ${
+                  step > n
+                    ? "bg-blue-600 text-white"
+                    : step === n
+                    ? "bg-blue-600 text-white ring-4 ring-blue-600/20"
+                    : "border border-white/20 text-white/40"
+                }`}
+              >
+                {step > n ? (
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                ) : (
+                  n
+                )}
+              </div>
+              {i < 3 && (
+                <div className={`mx-2 h-0.5 w-8 sm:w-12 rounded transition-colors duration-300 ${
+                  step > n ? "bg-blue-600" : "bg-white/15"
+                }`} />
+              )}
+            </div>
           ))}
         </div>
       )}
+      <div key={step} className="animate-fadeIn">
       {step === 1 ? (
         <Step1 formData={formData} updateData={setFormData} nextStep={nextStep} />
       ) : step === 2 ? (
@@ -150,6 +167,7 @@ export default function Wizard() {
           updateData={setFormData}
         />
       )}
+      </div>
     </div>
   );
 }

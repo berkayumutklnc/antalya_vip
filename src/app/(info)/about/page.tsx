@@ -10,11 +10,11 @@ export default function AboutPage() {
       <p>{t("about.p1")}</p>
       <p>{t("about.p2")}</p>
       <p>{t("about.p3")}</p>
-      <div className="not-prose mt-8 rounded-xl bg-white/[0.03] ring-1 ring-white/10 p-4">
-        <div className="text-sm text-white/70">{t("about.contact")}:</div>
-        <div className="mt-1 text-sm">
-          <a className="underline" href={`tel:${SITE.phone}`}>{SITE.phone}</a> ·{" "}
-          <a className="underline" href={`mailto:${SITE.email}`}>{SITE.email}</a>
+      <div className="not-prose mt-8 rounded-xl bg-blue-950/30 border border-blue-500/30 ring-1 ring-white/10 p-5">
+        <div className="text-sm font-semibold text-white/90">{t("about.contact")}:</div>
+        <div className="mt-2 text-sm">
+          <a className="underline hover:text-blue-400 transition-colors" href={`tel:${SITE.phone}`}>{SITE.phone}</a> ·{" "}
+          <a className="underline hover:text-blue-400 transition-colors" href={`mailto:${SITE.email}`}>{SITE.email}</a>
         </div>
       </div>
     </main>

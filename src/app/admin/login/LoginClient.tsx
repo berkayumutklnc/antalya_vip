@@ -68,9 +68,11 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <main className="max-w-md mx-auto p-6 space-y-4">
-      <img src="/logo.png" alt="Zenturo Travel" className="h-10 w-auto" />
-      <h1 className="text-2xl font-semibold">Admin Giriş</h1>
+<main className="max-w-md mx-auto p-6 space-y-6">
+        <div className="flex flex-col items-center gap-3">
+          <img src="/logo.png" alt="Zenturo Travel" className="h-16 w-auto" />
+          <h1 className="text-2xl font-bold">Admin Giriş</h1>
+        </div>
 
       {err && (
         <div className="rounded border border-red-600/40 bg-red-900/20 p-3 text-red-200">
@@ -78,20 +80,20 @@ export default function AdminLoginPage() {
         </div>
       )}
 
-      <div className="space-y-2">
+      <div className="space-y-3">
         <input
           type="email"
           placeholder="E-posta"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full rounded bg-neutral-900 border border-white/10 p-2"
+          className="w-full rounded-lg bg-neutral-900 border border-white/15 p-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-colors"
         />
         <input
           type="password"
           placeholder="Şifre"
           value={pass}
           onChange={(e) => setPass(e.target.value)}
-          className="w-full rounded bg-neutral-900 border border-white/10 p-2"
+          className="w-full rounded-lg bg-neutral-900 border border-white/15 p-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-colors"
         />
       </div>
 
@@ -99,8 +101,8 @@ export default function AdminLoginPage() {
         <button
           onClick={onLogin}
           disabled={loading}
-          className={`rounded px-4 py-2 ${
-            loading ? "bg-neutral-700" : "bg-blue-600 hover:bg-blue-700"
+          className={`rounded-lg px-5 py-2.5 font-semibold transition-all duration-200 ${
+            loading ? "bg-neutral-700 cursor-not-allowed opacity-60" : "bg-blue-600 hover:bg-blue-700 active:scale-95 shadow-lg shadow-blue-600/20"
           }`}
         >
           {loading ? "Giriş yapılıyor..." : "Giriş yap"}

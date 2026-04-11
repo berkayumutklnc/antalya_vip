@@ -31,6 +31,54 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* ── Global Focus Ring (Accessibility) ── */
+*:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* ── Animations ── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInFast {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+@keyframes slideDown {
+  from { opacity: 0; max-height: 0; }
+  to   { opacity: 1; max-height: 500px; }
+}
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.animate-fadeIn { animation: fadeIn 0.4s ease-out both; }
+.animate-fadeInFast { animation: fadeInFast 0.25s ease-out both; }
+.animate-shake { animation: shake 0.4s ease-in-out; }
+.animate-slideDown { animation: slideDown 0.3s ease-out both; }
+.animate-pulse-soft { animation: pulse-soft 2s ease-in-out infinite; }
+
+/* ── FAQ details animation ── */
+details summary { transition: color 0.2s; }
+details summary::marker { display: none; }
+details summary::-webkit-details-marker { display: none; }
+details[open] > summary ~ * { animation: fadeIn 0.3s ease-out; }
+
+/* ── Smooth scrollbar ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
 .react-tel-input .form-control {
   background-color: #1f2937 !important; 
   color: white !important;

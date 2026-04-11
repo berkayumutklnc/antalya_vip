@@ -49,10 +49,10 @@ export default function AdminHomePage() {
   }, []);
 
   const cards = [
-    { href: "/admin/reservations", title: t("nav.reservations"), kpi: `${m.pending}`, subtitle: t("dashboard.openReservations"), accent: m.pending > 0 ? "border-yellow-500/30" : "" },
-    { href: "/admin/reservations", title: "İptal Talepleri", kpi: `${m.cancelRequests}`, subtitle: "Onay bekleyen talepler", accent: m.cancelRequests > 0 ? "border-red-500/30" : "" },
-    { href: "/admin/reservations", title: "Bugünkü Transferler", kpi: `${m.todayTrips}`, subtitle: "Onaylı & tamamlanan", accent: "" },
-    { href: "/admin/reservations", title: "Onaylı Rezervasyonlar", kpi: `${m.confirmed}`, subtitle: "Atanmış transferler", accent: "" },
+    { href: "/admin/reservations", title: t("nav.reservations"), kpi: `${m.pending}`, subtitle: t("dashboard.openReservations"), accent: m.pending > 0 ? "border-yellow-500/40 bg-yellow-500/5" : "" },
+    { href: "/admin/reservations", title: "İptal Talepleri", kpi: `${m.cancelRequests}`, subtitle: "Onay bekleyen talepler", accent: m.cancelRequests > 0 ? "border-red-500/40 bg-red-500/5" : "" },
+    { href: "/admin/reservations", title: "Bugünkü Transferler", kpi: `${m.todayTrips}`, subtitle: "Onaylı & tamamlanan", accent: m.todayTrips > 0 ? "border-blue-500/30 bg-blue-500/5" : "" },
+    { href: "/admin/reservations", title: "Onaylı Rezervasyonlar", kpi: `${m.confirmed}`, subtitle: "Atanmış transferler", accent: m.confirmed > 0 ? "border-green-500/30 bg-green-500/5" : "" },
     { href: "/admin/vehicles", title: t("nav.vehicles"), kpi: `${m.vehicles}`, subtitle: t("dashboard.vehicles"), accent: "" },
     { href: "/admin/calendar", title: t("nav.calendar"), kpi: "D", subtitle: "Günlük görünüm", accent: "" },
   ];
@@ -69,7 +69,7 @@ export default function AdminHomePage() {
           <Link
             key={i}
             href={c.href}
-            className={`rounded-2xl border border-white/10 ${c.accent} bg-neutral-900 hover:bg-neutral-800 transition p-4 block`}
+            className={`rounded-2xl border border-white/10 ${c.accent} bg-neutral-900 hover:bg-neutral-800 hover:scale-[1.02] transition-all duration-200 p-5 block`}
           >
             <div className="text-lg font-semibold">{c.title}</div>
             <div className="text-4xl font-bold mt-2">{c.kpi}</div>

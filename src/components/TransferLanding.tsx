@@ -53,7 +53,7 @@ export function TransferLandingFull({ route, lang: langProp }: TransferLandingFu
       <main className="mx-auto w-full max-w-4xl px-4 py-10 space-y-12">
         {/* Breadcrumb navigation */}
         <nav className="text-sm text-white/50" aria-label="Breadcrumb">
-          <Link href="/" className="hover:text-white">Zenturo</Link>
+            <Link href="/" className="hover:text-blue-400 transition-colors duration-200">Zenturo</Link>
           <span className="mx-2">›</span>
           <span className="text-white/80">{c.h1}</span>
         </nav>
@@ -65,7 +65,7 @@ export function TransferLandingFull({ route, lang: langProp }: TransferLandingFu
           <div className="mt-4">
             <Link
               href="/#rezervasyon"
-              className="inline-block rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700"
+className="inline-block rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white shadow-lg shadow-blue-600/20 hover:bg-blue-700 active:scale-95 transition-all duration-200"
             >
               {validLang === "de" ? "Jetzt buchen" : validLang === "en" ? "Book Now" : validLang === "ru" ? "Забронировать" : "Şimdi Rezervasyon"}
             </Link>
@@ -123,7 +123,7 @@ export function TransferLandingFull({ route, lang: langProp }: TransferLandingFu
                 <summary className="cursor-pointer list-none font-medium text-white/90 group-open:text-white">
                   {faq.q}
                 </summary>
-                <p className="mt-2 text-white/60">{faq.a}</p>
+                <p className="mt-2 text-white/70">{faq.a}</p>
               </details>
             ))}
           </div>
@@ -149,13 +149,13 @@ export function TransferLandingFull({ route, lang: langProp }: TransferLandingFu
           <h2 className="text-xl font-bold">
             {validLang === "de" ? "Jetzt Ihren Transfer buchen" : validLang === "en" ? "Book your transfer now" : validLang === "ru" ? "Забронируйте трансфер сейчас" : "Hemen transferinizi rezerve edin"}
           </h2>
-          <p className="mt-2 text-white/60">
+          <p className="mt-2 text-white/70">
             {validLang === "de" ? "Transparente Festpreise • Kostenlose Stornierung bis 24h vorher" : validLang === "en" ? "Transparent fixed pricing • Free cancellation up to 24h before" : validLang === "ru" ? "Прозрачные фиксированные цены • Бесплатная отмена до 24ч" : "Şeffaf sabit fiyat • 24 saat öncesine kadar ücretsiz iptal"}
           </p>
           <div className="mt-4 flex flex-wrap justify-center gap-3">
             <Link
               href="/#rezervasyon"
-              className="inline-block rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700"
+              className="inline-block rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white shadow-lg shadow-blue-600/20 hover:bg-blue-700 active:scale-95 transition-all duration-200"
             >
               {validLang === "de" ? "Jetzt buchen" : validLang === "en" ? "Book Now" : validLang === "ru" ? "Забронировать" : "Şimdi Rezervasyon"}
             </Link>
