@@ -1,5 +1,4 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import AdminGate from "@/components/AdminGate";
 import { useState } from "react";

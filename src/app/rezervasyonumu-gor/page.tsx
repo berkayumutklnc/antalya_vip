@@ -1,5 +1,4 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import { useMemo, useState } from "react";
 import { addMinutes } from "@/utils/time";
