@@ -6,7 +6,7 @@ import AdminGate from "@/components/AdminGate";
 import StatusBadge from "@/components/admin/StatusBadge";
 import NotificationLogPanel from "@/components/admin/NotificationLogPanel";
 import Link from "next/link";
-import { getClientAuth } from "@/lib/firebase";
+import { getSupabaseClient } from "@/lib/supabase";
 
 interface ResDetail {
   id: string;
@@ -58,10 +58,10 @@ export default function ReservationDetailPage() {
   const [error, setError] = useState<string | null>(null);
 
   async function getAuthHeaders(): Promise<HeadersInit> {
-    const user = getClientAuth().currentUser;
-    if (!user) throw new Error("Not authenticated");
-    const token = await user.getIdToken();
-    return { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
+    const supabase = getSupabaseClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) throw new Error("Not authenticated");
+    return { Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" };
   }
 
   useEffect(() => {

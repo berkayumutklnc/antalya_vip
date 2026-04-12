@@ -1,17 +1,11 @@
 /**
  * Reservation event logging.
  *
- * Writes structured audit events to a top-level `reservation_events`
- * collection.  A top-level collection (rather than a subcollection) was
- * chosen because:
- *  - it allows cross-reservation queries (e.g. "all events by admin X")
- *  - Firestore subcollection group queries work but add complexity
- *  - a flat collection is simpler to export, index, and paginate
- *
- * Each event document is auto-ID'd and immutable (append-only log).
+ * Writes structured audit events to the `reservation_events` table.
+ * Each row is immutable (append-only log).
  */
 
-import type { Firestore } from "firebase-admin/firestore";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 // ---------------------------------------------------------------------------
 // Event types
@@ -44,17 +38,17 @@ export interface ReservationEvent {
 // Writer
 // ---------------------------------------------------------------------------
 
-/**
- * Append a reservation event.  Fire-and-forget safe — callers should
- * `.catch()` to avoid unhandled rejections in non-critical paths.
- */
 export async function logReservationEvent(
-  db: Firestore,
+  db: SupabaseClient,
   event: ReservationEvent,
 ): Promise<void> {
-  await db.collection("reservation_events").add({
-    ...event,
-    timestamp: event.timestamp || Date.now(),
+  await db.from("reservation_events").insert({
+    reservation_id: event.reservationId,
+    reservation_code: event.reservationCode,
+    type: event.type,
+    actor_type: event.actorType,
+    actor_id: event.actorId,
+    meta: event.meta,
   });
 }
 
@@ -63,7 +57,7 @@ export async function logReservationEvent(
 // ---------------------------------------------------------------------------
 
 interface BaseOpts {
-  db: Firestore;
+  db: SupabaseClient;
   reservationId: string;
   reservationCode: string;
   actorType: ActorType;

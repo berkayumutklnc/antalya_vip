@@ -1,18 +1,10 @@
 import { NextResponse } from "next/server";
-import { getAdminDbOrThrow } from "@/lib/firebaseAdmin";
+import { getAdminClient } from "@/lib/supabaseAdmin";
 import { availabilityLimiter, getClientIp } from "@/lib/server/rateLimit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-/**
- * GET /api/public/vehicles/availability
- *
- * Returns availability per vehicle type for a given date/time slot.
- * No sensitive vehicle data is exposed — only type + available boolean.
- *
- * Query params: date (YYYY-MM-DD), time (HH:mm), slotMinutes (optional, default 60)
- */
 export async function GET(req: Request) {
   const ip = getClientIp(req);
   if (!availabilityLimiter.check(ip)) {
@@ -28,7 +20,6 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "date and time are required" }, { status: 400 });
   }
 
-  // Parse date/time to UTC ms (Turkey local = UTC+3)
   const [y, m, d] = date.split("-").map(Number);
   const [hh, mm] = time.split(":").map(Number);
   if (!y || !m || !d || isNaN(hh) || isNaN(mm)) {
@@ -37,28 +28,28 @@ export async function GET(req: Request) {
   const startAt = Date.UTC(y, m - 1, d, hh - 3, mm, 0, 0);
   const endAt = startAt + slotMinutes * 60 * 1000;
 
-  const db = getAdminDbOrThrow();
-  const snap = await db.collection("vehicles").get();
+  const db = getAdminClient();
 
-  // Group vehicles by type, check availability
+  // Get all vehicles with their blocked slots
+  const { data: vehicles } = await db.from("vehicles").select("id, type");
+  const { data: slots } = await db.from("blocked_slots").select("vehicle_id, start_at, end_at");
+
   const byType: Record<string, { total: number; available: number }> = {};
 
-  for (const doc of snap.docs) {
-    const v = doc.data();
+  for (const v of vehicles ?? []) {
     const vType = String(v.type || "").trim();
     if (!vType) continue;
 
     if (!byType[vType]) byType[vType] = { total: 0, available: 0 };
     byType[vType].total++;
 
-    const slots: any[] = Array.isArray(v.blockedSlots) ? v.blockedSlots : [];
-    const busy = slots.some(
-      (s: any) => Number(s.startAt) < endAt && startAt < Number(s.endAt),
+    const vehicleSlots = (slots ?? []).filter((s: any) => s.vehicle_id === v.id);
+    const busy = vehicleSlots.some(
+      (s: any) => Number(s.start_at) < endAt && startAt < Number(s.end_at),
     );
     if (!busy) byType[vType].available++;
   }
 
-  // Return only type + availability (no plates, drivers, IDs)
   const types = Object.entries(byType).map(([type, counts]) => ({
     type,
     available: counts.available > 0,

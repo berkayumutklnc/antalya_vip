@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAdminDbOrThrow } from "@/lib/firebaseAdmin";
+import { getAdminClient } from "@/lib/supabaseAdmin";
 import { verifyAdminToken, AuthError } from "@/lib/server/adminAuth";
 import { canAssignVehicle, assertTransition } from "@/lib/domain/reservationStatus";
 import { logVehicleAssigned, logStatusChanged } from "@/lib/server/reservationEvents";
@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 export async function POST(req: Request, { params }: { params: Promise<{ rid: string }> }) {
   try {
     const adminUid = await verifyAdminToken(req);
-    const adminDb = getAdminDbOrThrow();
+    const db = getAdminClient();
     const { rid } = await params;
     const { vehicleId, slotMinutes = 60 } = await req.json();
 
@@ -20,100 +20,72 @@ export async function POST(req: Request, { params }: { params: Promise<{ rid: st
       return NextResponse.json({ error: "vehicleId is required" }, { status: 400 });
     }
 
-    const rRef = adminDb.collection("reservations").doc(rid);
-    const vRef = adminDb.collection("vehicles").doc(vehicleId);
+    const [{ data: r }, { data: v }] = await Promise.all([
+      db.from("reservations").select("*").eq("code", rid).maybeSingle(),
+      db.from("vehicles").select("*").eq("id", vehicleId).maybeSingle(),
+    ]);
 
-    const [rSnap, vSnap] = await Promise.all([rRef.get(), vRef.get()]);
-    if (!rSnap.exists) return NextResponse.json({ error: "Reservation not found" }, { status: 404 });
-    if (!vSnap.exists) return NextResponse.json({ error: "Vehicle not found" }, { status: 404 });
+    if (!r) return NextResponse.json({ error: "Reservation not found" }, { status: 404 });
+    if (!v) return NextResponse.json({ error: "Vehicle not found" }, { status: 404 });
 
-    const r = rSnap.data()!;
-    const v = vSnap.data()!;
-
-    // Domain guard
-    const guard = canAssignVehicle({ status: r.status, cancel: r.cancel });
+    const guard = canAssignVehicle({
+      status: r.status,
+      cancel: r.cancel_requested ? { requested: r.cancel_requested } : undefined,
+    });
     if (!guard.ok) {
       return NextResponse.json({ error: guard.reason }, { status: 400 });
     }
     assertTransition(r.status, "confirmed");
 
-    const startAt = r.startAt || istToUtcMs(r.date, r.time);
+    const startAt = r.start_at || istToUtcMs(r.date, r.time);
     if (!startAt) return NextResponse.json({ error: "Missing reservation time" }, { status: 400 });
     const endAt = addMinutes(startAt, slotMinutes);
 
-    const slots: any[] = Array.isArray(v.blockedSlots) ? v.blockedSlots : [];
-    const clash = slots.some((s: any) =>
-      Number(s.startAt) < endAt && startAt < Number(s.endAt),
+    // Check for overlap
+    const { data: existingSlots } = await db
+      .from("blocked_slots")
+      .select("start_at, end_at")
+      .eq("vehicle_id", vehicleId);
+
+    const clash = (existingSlots ?? []).some(
+      (s: any) => Number(s.start_at) < endAt && startAt < Number(s.end_at),
     );
     if (clash) {
       return NextResponse.json({ error: "Vehicle busy for this time slot" }, { status: 409 });
     }
 
-    const now = Date.now();
-    const newSlot = {
-      startAt,
-      endAt,
+    const now = new Date().toISOString();
+
+    // Insert blocked slot
+    await db.from("blocked_slots").insert({
+      vehicle_id: vehicleId,
+      start_at: startAt,
+      end_at: endAt,
       reason: "admin-assign",
-      reservationId: rid,
-      driverName: v.driverName ?? null,
-      driverPhone: v.driverPhone ?? null,
-      plate: v.plate ?? null,
-      type: v.type ?? null,
-      updatedAt: now,
-    };
+      reservation_id: rid,
+    });
 
-    const batch = adminDb.batch();
-
-    batch.update(rRef, {
+    // Update reservation
+    await db.from("reservations").update({
       status: "confirmed",
-      vehicleId: vehicleId,
-      vehicleType: v.type ?? r.vehicleType ?? null,
+      vehicle_id: vehicleId,
+      vehicle_type: v.type ?? r.vehicle_type ?? null,
       plate: v.plate ?? null,
-      driverName: v.driverName ?? null,
-      driverPhone: v.driverPhone ?? null,
-      updatedAt: now,
-    });
-
-    batch.update(vRef, {
-      blockedSlots: [...slots, newSlot],
-      updatedAt: now,
-    });
-
-    const pubRef = adminDb.collection("reservations_public").doc(rid);
-    batch.set(
-      pubRef,
-      {
-        code: r.code ?? r.id ?? rid,
-        email: r.email,
-        status: "confirmed",
-        from: r.from,
-        to: r.to,
-        date: r.date,
-        time: r.time,
-        startAt,
-        vehicleType: v.type ?? r.vehicleType ?? null,
-        driver: {
-          name: v.driverName ?? null,
-          phone: v.driverPhone ?? null,
-          plate: v.plate ?? null,
-        },
-        updatedAt: now,
-      },
-      { merge: true },
-    );
-
-    await batch.commit();
+      driver_name: v.driver_name ?? null,
+      driver_phone: v.driver_phone ?? null,
+      updated_at: now,
+    }).eq("code", rid);
 
     // Audit events (non-blocking)
     const code = String(r.code ?? rid);
     Promise.all([
       logStatusChanged({
-        db: adminDb, reservationId: rid, reservationCode: code,
+        db, reservationId: rid, reservationCode: code,
         actorType: "admin", actorId: adminUid,
         fromStatus: "pending", toStatus: "confirmed",
       }),
       logVehicleAssigned({
-        db: adminDb, reservationId: rid, reservationCode: code,
+        db, reservationId: rid, reservationCode: code,
         actorType: "admin", actorId: adminUid,
         vehicleId, plate: v.plate,
       }),
@@ -121,19 +93,19 @@ export async function POST(req: Request, { params }: { params: Promise<{ rid: st
 
     // Notification (non-blocking)
     notify({
-      db: adminDb,
+      db,
       type: "vehicle_assigned_customer",
       data: {
         code: r.code ?? rid,
         email: r.email,
-        fullName: r.fullName ?? "",
+        fullName: r.full_name ?? "",
         from: r.from,
         to: r.to,
         date: r.date,
         time: r.time,
         phone: r.phone ?? "",
-        driverName: v.driverName,
-        driverPhone: v.driverPhone,
+        driverName: v.driver_name,
+        driverPhone: v.driver_phone,
         plate: v.plate,
       },
       triggeredBy: "admin",

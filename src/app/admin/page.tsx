@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { getClientAuth } from "@/lib/firebase";
+import { getSupabaseClient } from "@/lib/supabase";
 import { fetchVehicles } from "@/lib/vehicles";
 import type { Vehicle } from "@/types";
 import { useI18n } from "@/lib/i18n-admin";
@@ -24,9 +24,9 @@ export default function AdminHomePage() {
     let mounted = true;
     (async () => {
       try {
-        const user = getClientAuth().currentUser;
-        const token = user ? await user.getIdToken() : "";
-        const headers = { Authorization: `Bearer ${token}` };
+        const supabase = getSupabaseClient();
+        const { data: { session } } = await supabase.auth.getSession();
+        const headers = { Authorization: `Bearer ${session?.access_token ?? ""}` };
         const [resData, vs] = await Promise.all([
           fetch("/api/admin/reservations", { headers }).then(r => r.json()),
           fetchVehicles(),

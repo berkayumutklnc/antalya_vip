@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAdminDbOrThrow } from "@/lib/firebaseAdmin";
+import { getAdminClient } from "@/lib/supabaseAdmin";
 import { verifyAdminToken, AuthError } from "@/lib/server/adminAuth";
 
 export const runtime = "nodejs";
@@ -9,11 +9,31 @@ export const dynamic = "force-dynamic";
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     await verifyAdminToken(req);
-    const db = getAdminDbOrThrow();
+    const db = getAdminClient();
     const { id } = await params;
-    const snap = await db.collection("vehicles").doc(id).get();
-    if (!snap.exists) return NextResponse.json({ error: "Not found" }, { status: 404 });
-    return NextResponse.json({ id: snap.id, ...snap.data() });
+
+    const { data: v } = await db.from("vehicles").select("*").eq("id", id).maybeSingle();
+    if (!v) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+    const { data: slots } = await db.from("blocked_slots").select("*").eq("vehicle_id", id);
+
+    return NextResponse.json({
+      id: v.id,
+      type: v.type,
+      plate: v.plate,
+      driverName: v.driver_name,
+      driverPhone: v.driver_phone,
+      capacity: v.capacity,
+      blockedSlots: (slots ?? []).map((s: any) => ({
+        startAt: s.start_at,
+        endAt: s.end_at,
+        reason: s.reason,
+        reservationId: s.reservation_id,
+        updatedAt: new Date(s.created_at).getTime(),
+      })),
+      createdAt: new Date(v.created_at).getTime(),
+      updatedAt: new Date(v.updated_at).getTime(),
+    });
   } catch (e: any) {
     if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status });
     return NextResponse.json({ error: e?.message || "Internal error" }, { status: 500 });
@@ -24,23 +44,27 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     await verifyAdminToken(req);
-    const db = getAdminDbOrThrow();
+    const db = getAdminClient();
     const { id } = await params;
     const body = await req.json();
 
-    const ref = db.collection("vehicles").doc(id);
-    const snap = await ref.get();
-    if (!snap.exists) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    const { data: existing } = await db.from("vehicles").select("id").eq("id", id).maybeSingle();
+    if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-    const allowed = ["plate", "type", "driverName", "driverPhone"] as const;
-    const patch: Record<string, unknown> = { updatedAt: Date.now() };
-    for (const key of allowed) {
-      if (key in body && typeof body[key] === "string") {
-        patch[key] = body[key].trim();
+    const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
+    const fieldMap: Record<string, string> = {
+      plate: "plate",
+      type: "type",
+      driverName: "driver_name",
+      driverPhone: "driver_phone",
+    };
+    for (const [clientKey, dbKey] of Object.entries(fieldMap)) {
+      if (clientKey in body && typeof body[clientKey] === "string") {
+        patch[dbKey] = body[clientKey].trim();
       }
     }
 
-    await ref.update(patch);
+    await db.from("vehicles").update(patch).eq("id", id);
     return NextResponse.json({ ok: true });
   } catch (e: any) {
     if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status });
@@ -52,14 +76,13 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     await verifyAdminToken(req);
-    const db = getAdminDbOrThrow();
+    const db = getAdminClient();
     const { id } = await params;
 
-    const ref = db.collection("vehicles").doc(id);
-    const snap = await ref.get();
-    if (!snap.exists) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    const { data: existing } = await db.from("vehicles").select("id").eq("id", id).maybeSingle();
+    if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-    await ref.delete();
+    await db.from("vehicles").delete().eq("id", id);
     return NextResponse.json({ ok: true });
   } catch (e: any) {
     if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status });

@@ -1,5 +1,5 @@
 'use client';
-import { getClientAuth } from "@/lib/firebase";
+import { getSupabaseClient } from "@/lib/supabase";
 import type { Vehicle, VehicleType } from "@/types";
 
 export type VehicleBlockSlot = {
@@ -14,10 +14,10 @@ export type VehicleBlockSlot = {
 };
 
 async function authHeaders(): Promise<HeadersInit> {
-  const user = getClientAuth().currentUser;
-  if (!user) throw new Error("Not authenticated");
-  const token = await user.getIdToken();
-  return { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
+  const supabase = getSupabaseClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.access_token) throw new Error("Not authenticated");
+  return { Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" };
 }
 
 async function apiJson<T = any>(url: string, init?: RequestInit): Promise<T> {

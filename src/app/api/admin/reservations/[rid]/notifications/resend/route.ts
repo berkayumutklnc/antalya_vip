@@ -1,59 +1,55 @@
 import { NextResponse } from "next/server";
-import { getAdminDbOrThrow } from "@/lib/firebaseAdmin";
+import { getAdminClient } from "@/lib/supabaseAdmin";
 import { verifyAdminToken, AuthError } from "@/lib/server/adminAuth";
 import { notify } from "@/lib/server/notifications";
-import { isValidNotificationType } from "@/lib/server/notificationTemplates";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-/**
- * POST /api/admin/reservations/[rid]/notifications/resend
- *
- * Body: { type: NotificationType }
- *
- * Resends a notification for the given reservation.
- * Skips dedup so the admin can force-resend.
- */
+/** POST /api/admin/reservations/[rid]/notifications/resend — resend notification */
 export async function POST(req: Request, { params }: { params: Promise<{ rid: string }> }) {
   try {
     const adminUid = await verifyAdminToken(req);
-    const adminDb = getAdminDbOrThrow();
+    const db = getAdminClient();
     const { rid } = await params;
 
-    const { type } = await req.json();
-    if (!type || !isValidNotificationType(type)) {
-      return NextResponse.json({ error: "Invalid notification type" }, { status: 400 });
+    const body = await req.json().catch(() => ({}));
+    const type = body.type; // e.g. "reservation_confirmed", "reservation_assigned"
+
+    if (!type) {
+      return NextResponse.json({ error: "type is required" }, { status: 400 });
     }
 
-    // Fetch reservation
-    const rSnap = await adminDb.collection("reservations").doc(rid).get();
-    if (!rSnap.exists) {
+    // Fetch reservation by code (consistent with other admin routes)
+    const { data: reservation, error: fetchErr } = await db
+      .from("reservations")
+      .select("*")
+      .eq("code", rid)
+      .maybeSingle();
+
+    if (fetchErr || !reservation) {
       return NextResponse.json({ error: "Reservation not found" }, { status: 404 });
     }
 
-    const r = rSnap.data()!;
-
     const result = await notify({
-      db: adminDb,
+      db,
       type,
       data: {
-        code: String(r.code ?? rid),
-        email: r.email ?? "",
-        fullName: r.fullName ?? "-",
-        from: r.from ?? "",
-        to: r.to ?? "",
-        date: r.date ?? "",
-        time: r.time ?? "",
-        phone: r.phone ?? "",
-        adults: r.adults,
-        babySeat: r.babySeat,
-        vehicleType: r.vehicleType,
-        price: r.price,
-        lang: r.lang,
-        driverName: r.driverName,
-        driverPhone: r.driverPhone,
-        plate: r.plate,
+        code: reservation.code,
+        fullName: reservation.full_name,
+        email: reservation.email,
+        phone: reservation.phone,
+        from: reservation.from ?? "",
+        to: reservation.to ?? "",
+        date: reservation.date,
+        time: reservation.time,
+        adults: reservation.adults ?? undefined,
+        babySeat: reservation.baby_seat ?? undefined,
+        vehicleType: reservation.vehicle_type,
+        price: reservation.price ?? undefined,
+        plate: reservation.plate ?? "",
+        driverName: reservation.driver_name ?? "",
+        driverPhone: reservation.driver_phone ?? "",
       },
       triggeredBy: "admin",
       triggeredById: adminUid,
@@ -61,12 +57,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ rid: st
     });
 
     return NextResponse.json({ ok: result.sent, result });
-  } catch (e: unknown) {
-    if (e instanceof AuthError) {
-      return NextResponse.json({ error: (e as AuthError).message }, { status: (e as AuthError).status });
-    }
-    const msg = e instanceof Error ? e.message : String(e);
-    console.error("[admin resend notification]", msg);
-    return NextResponse.json({ error: msg }, { status: 500 });
+  } catch (e: any) {
+    if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status });
+    return NextResponse.json({ error: e?.message || "Internal error" }, { status: 500 });
   }
 }

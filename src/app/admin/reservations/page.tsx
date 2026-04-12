@@ -3,7 +3,7 @@
 import AdminGate from "@/components/AdminGate";
 import { useEffect, useMemo, useState } from "react";
 import { fetchVehicles } from "@/lib/vehicles";
-import { getClientAuth } from "@/lib/firebase";
+import { getSupabaseClient } from "@/lib/supabase";
 import type { Reservation, Vehicle } from "@/types";
 import { waLink } from "@/utils/links";
 import { getWhatsAppMessage } from "@/lib/server/notificationTemplates";
@@ -47,10 +47,10 @@ export default function AdminReservationsPage() {
   const [busy, setBusy] = useState(false);
 
   async function getAuthHeaders(): Promise<HeadersInit> {
-    const user = getClientAuth().currentUser;
-    if (!user) throw new Error("Not authenticated");
-    const token = await user.getIdToken();
-    return { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
+    const supabase = getSupabaseClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) throw new Error("Not authenticated");
+    return { Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" };
   }
 
   async function refresh() {

@@ -1,7 +1,7 @@
-import { getAdminAuth, getAdminDbOrThrow } from "@/lib/firebaseAdmin";
+import { getAdminClient } from "@/lib/supabaseAdmin";
 
 /**
- * Verify Firebase ID token from Authorization header and check admin status.
+ * Verify Supabase JWT from Authorization header and check admin status.
  * Returns the decoded UID on success, throws on failure.
  */
 export async function verifyAdminToken(req: Request): Promise<string> {
@@ -11,21 +11,22 @@ export async function verifyAdminToken(req: Request): Promise<string> {
     throw new AuthError("Missing or malformed Authorization header", 401);
   }
 
-  const idToken = match[1];
-  const auth = getAdminAuth();
-  const decoded = await auth.verifyIdToken(idToken);
-  const uid = decoded.uid;
+  const token = match[1];
+  const supabase = getAdminClient();
+  const { data, error } = await supabase.auth.getUser(token);
 
-  // Check admin custom claim first
-  if (decoded.admin === true) return uid;
+  if (error || !data.user) {
+    throw new AuthError("Invalid or expired token", 401);
+  }
 
-  // Fall back to admins collection
-  const adminDoc = await getAdminDbOrThrow().collection("admins").doc(uid).get();
-  if (!adminDoc.exists) {
+  const user = data.user;
+  const role = user.app_metadata?.role;
+
+  if (role !== "admin") {
     throw new AuthError("Not an admin", 403);
   }
 
-  return uid;
+  return user.id;
 }
 
 export class AuthError extends Error {

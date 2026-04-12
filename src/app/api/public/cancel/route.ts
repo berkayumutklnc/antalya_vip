@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAdminDbOrThrow } from "@/lib/firebaseAdmin";
+import { getAdminClient } from "@/lib/supabaseAdmin";
 import { PublicCancelSchema } from "@/lib/validation/publicLookup";
 import { canRequestCancel } from "@/lib/domain/reservationStatus";
 import { logCancelRequested } from "@/lib/server/reservationEvents";
@@ -11,7 +11,6 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    // Rate limiting
     const ip = getClientIp(req);
     if (!publicCancelLimiter.check(ip)) {
       return NextResponse.json({ error: "Too many requests" }, { status: 429 });
@@ -24,24 +23,26 @@ export async function POST(req: Request) {
     }
 
     const { code: normCode, email: normMail, reason } = parsed.data;
-    const adminDb = getAdminDbOrThrow();
+    const db = getAdminClient();
 
-    const ref = adminDb.collection("reservations").doc(normCode);
-    const snap = await ref.get();
-    if (!snap.exists) {
+    const { data: d } = await db
+      .from("reservations")
+      .select("*")
+      .eq("code", normCode)
+      .maybeSingle();
+
+    if (!d) {
       return NextResponse.json({ error: "not_found" }, { status: 404 });
     }
 
-    const d = snap.data()!;
     if (String(d.email || "").toLowerCase() !== normMail) {
       return NextResponse.json({ error: "not_found" }, { status: 404 });
     }
 
-    // Domain guard
     const check = canRequestCancel({
       status: d.status,
-      cancel: d.cancel,
-      startAt: d.startAt,
+      cancel: d.cancel_requested ? { requested: d.cancel_requested } : undefined,
+      startAt: d.start_at,
     });
     if (!check.ok) {
       return NextResponse.json({ error: check.reason }, { status: 400 });
@@ -50,33 +51,31 @@ export async function POST(req: Request) {
     const now = Date.now();
     const trimmedReason = reason.trim() || null;
 
-    await ref.update({
-      cancel: {
-        requested: true,
-        reason: trimmedReason,
-        requestedAt: now,
-        canceledAt: null,
-      },
-      updatedAt: now,
-    });
+    await db
+      .from("reservations")
+      .update({
+        cancel_requested: true,
+        cancel_reason: trimmedReason,
+        cancel_requested_at: now,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("code", normCode);
 
-    // Audit event (non-blocking)
     logCancelRequested({
-      db: adminDb,
+      db,
       reservationId: normCode,
       reservationCode: d.code ?? normCode,
       actorType: "public",
       reason: trimmedReason,
     }).catch((e) => console.error("[audit] cancel_requested failed:", e));
 
-    // Notification to admin (non-blocking)
     notify({
-      db: adminDb,
+      db,
       type: "cancel_requested_admin",
       data: {
         code: d.code ?? normCode,
         email: d.email ?? normMail,
-        fullName: d.fullName ?? "-",
+        fullName: d.full_name ?? "-",
         from: d.from ?? "",
         to: d.to ?? "",
         date: d.date ?? "",

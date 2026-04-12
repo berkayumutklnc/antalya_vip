@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAdminDbOrThrow } from "@/lib/firebaseAdmin";
+import { getAdminClient } from "@/lib/supabaseAdmin";
 import { verifyAdminToken, AuthError } from "@/lib/server/adminAuth";
 import { canRejectCancel } from "@/lib/domain/reservationStatus";
 import { logCancelRejected } from "@/lib/server/reservationEvents";
@@ -11,48 +11,40 @@ export const dynamic = "force-dynamic";
 export async function POST(req: Request, { params }: { params: Promise<{ rid: string }> }) {
   try {
     const adminUid = await verifyAdminToken(req);
-    const adminDb = getAdminDbOrThrow();
+    const db = getAdminClient();
     const { rid } = await params;
 
-    const rRef = adminDb.collection("reservations").doc(rid);
-    const rSnap = await rRef.get();
-    if (!rSnap.exists) return NextResponse.json({ error: "Reservation not found" }, { status: 404 });
+    const { data: r } = await db.from("reservations").select("*").eq("code", rid).maybeSingle();
+    if (!r) return NextResponse.json({ error: "Reservation not found" }, { status: 404 });
 
-    const r = rSnap.data()!;
-
-    // Domain guard
-    const guard = canRejectCancel({ status: r.status, cancel: r.cancel });
+    const guard = canRejectCancel({
+      status: r.status,
+      cancel: r.cancel_requested ? { requested: r.cancel_requested } : undefined,
+    });
     if (!guard.ok) {
       return NextResponse.json({ error: guard.reason }, { status: 400 });
     }
 
-    await rRef.update({
-      cancel: {
-        requested: false,
-        reason: r.cancel?.reason ?? null,
-        requestedAt: r.cancel?.requestedAt ?? null,
-        canceledAt: null,
-      },
-      updatedAt: Date.now(),
-    });
+    await db.from("reservations").update({
+      cancel_requested: false,
+      updated_at: new Date().toISOString(),
+    }).eq("code", rid);
 
-    // Audit event (non-blocking)
     logCancelRejected({
-      db: adminDb,
+      db,
       reservationId: rid,
       reservationCode: String(r.code ?? rid),
       actorType: "admin",
       actorId: adminUid,
     }).catch((e) => console.error("[audit] cancel_rejected failed:", e));
 
-    // Notification to customer (non-blocking)
     notify({
-      db: adminDb,
+      db,
       type: "cancel_rejected_customer",
       data: {
         code: String(r.code ?? rid),
         email: r.email ?? "",
-        fullName: r.fullName ?? "-",
+        fullName: r.full_name ?? "-",
         from: r.from ?? "",
         to: r.to ?? "",
         date: r.date ?? "",

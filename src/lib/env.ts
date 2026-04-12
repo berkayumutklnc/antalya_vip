@@ -5,12 +5,6 @@
  * Fails fast with a clear message when required vars are missing.
  */
 
-function required(name: string): string {
-  const val = process.env[name];
-  if (!val) throw new Error(`[env] Missing required env var: ${name}`);
-  return val;
-}
-
 function optional(name: string, fallback = ""): string {
   return process.env[name] ?? fallback;
 }
@@ -23,9 +17,9 @@ export const env = {
   /** True when running in the Node server (API routes, SSR) */
   isServer: typeof window === "undefined",
 
-  // ── Firebase Admin ──────────────────────────────────────────────────────
-  get FIREBASE_SERVICE_ACCOUNT_BASE64() {
-    return required("FIREBASE_SERVICE_ACCOUNT_BASE64");
+  // ── Supabase ────────────────────────────────────────────────────────────
+  get SUPABASE_SERVICE_ROLE_KEY() {
+    return process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
   },
 
   // ── EmailJS (server) ───────────────────────────────────────────────────
@@ -39,8 +33,6 @@ export const env = {
   // ── Public vars (safe to read anywhere) ────────────────────────────────
   NEXT_PUBLIC_SITE_URL: optional("NEXT_PUBLIC_SITE_URL", "https://zenturotravel.com"),
   NEXT_PUBLIC_GA_ID: optional("NEXT_PUBLIC_GA_ID"),
-  NEXT_PUBLIC_FIREBASE_PROJECT_ID: optional("NEXT_PUBLIC_FIREBASE_PROJECT_ID"),
-  NEXT_PUBLIC_ADMIN_UID: optional("NEXT_PUBLIC_ADMIN_UID"),
 
   NODE_ENV: optional("NODE_ENV", "development"),
 } as const;
@@ -55,7 +47,7 @@ export function validateServerEnv(): void {
   const warn: string[] = [];
 
   // required
-  for (const name of ["FIREBASE_SERVICE_ACCOUNT_BASE64"]) {
+  for (const name of ["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY"]) {
     if (!process.env[name]) missing.push(name);
   }
 
@@ -65,13 +57,6 @@ export function validateServerEnv(): void {
     "EMAILJS_PUBLIC_KEY",
     "EMAILJS_PRIVATE_KEY",
     "NEXT_PUBLIC_GA_ID",
-    "NEXT_PUBLIC_ADMIN_UID",
-    "NEXT_PUBLIC_FIREBASE_API_KEY",
-    "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN",
-    "NEXT_PUBLIC_FIREBASE_PROJECT_ID",
-    "NEXT_PUBLIC_FIREBASE_STORAGE",
-    "NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID",
-    "NEXT_PUBLIC_FIREBASE_APP_ID",
   ]) {
     if (!process.env[name]) warn.push(name);
   }

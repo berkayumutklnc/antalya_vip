@@ -14,7 +14,7 @@
  * - Failures are logged, never thrown back to the caller
  */
 
-import type { Firestore } from "firebase-admin/firestore";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   type NotificationType,
   type TemplateData,
@@ -93,7 +93,7 @@ async function sendViaEmailJs(
 // ---------------------------------------------------------------------------
 
 export interface NotifyOptions {
-  db: Firestore;
+  db: SupabaseClient;
   type: NotificationType;
   data: TemplateData;
   triggeredBy: TriggeredBy;
@@ -235,7 +235,7 @@ export async function notify(opts: NotifyOptions): Promise<NotifyResult> {
 // ---------------------------------------------------------------------------
 
 export async function logWhatsAppAction(
-  db: Firestore,
+  db: SupabaseClient,
   opts: {
     reservationId: string;
     reservationCode: string;
@@ -251,7 +251,7 @@ export async function logWhatsAppAction(
     channel: "whatsapp_link",
     notificationType: opts.intent,
     recipient: opts.recipientPhone,
-    status: "sent", // deep link generated, not guaranteed delivery
+    status: "generated", // deep link generated, not guaranteed delivery
     errorMessage: null,
     providerMeta: { note: "wa.me deep link generated, delivery not guaranteed" },
     triggeredBy: opts.triggeredBy,

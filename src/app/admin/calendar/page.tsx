@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import AdminGate from "@/components/AdminGate";
 import type { Reservation, Vehicle } from "@/types";
 import { fetchVehicles, addVehicleBlockSlot, removeVehicleBlockSlot } from "@/lib/vehicles";
-import { getClientAuth } from "@/lib/firebase";
+import { getSupabaseClient } from "@/lib/supabase";
 import { addMinutes } from "@/utils/time";
 import { useI18n } from "@/lib/i18n-admin";
 
@@ -35,8 +35,9 @@ export default function AdminCalendarPage() {
   const [blkMinutes, setBlkMinutes] = useState(60);
 
   async function refresh() {
-    const user = getClientAuth().currentUser;
-    const token = user ? await user.getIdToken() : "";
+    const supabase = getSupabaseClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token ?? "";
     const [resData, vs] = await Promise.all([
       fetch("/api/admin/reservations", {
         headers: { Authorization: `Bearer ${token}` },

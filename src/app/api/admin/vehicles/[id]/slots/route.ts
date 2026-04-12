@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAdminDbOrThrow } from "@/lib/firebaseAdmin";
+import { getAdminClient } from "@/lib/supabaseAdmin";
 import { verifyAdminToken, AuthError } from "@/lib/server/adminAuth";
 
 export const runtime = "nodejs";
@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     await verifyAdminToken(req);
-    const db = getAdminDbOrThrow();
+    const db = getAdminClient();
     const { id } = await params;
     const body = await req.json();
 
@@ -21,26 +21,28 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       return NextResponse.json({ error: "Invalid startAt/endAt" }, { status: 400 });
     }
 
-    const ref = db.collection("vehicles").doc(id);
-    const snap = await ref.get();
-    if (!snap.exists) return NextResponse.json({ error: "Not found" }, { status: 404 });
-
-    const data = snap.data()!;
-    const slots: any[] = Array.isArray(data.blockedSlots) ? data.blockedSlots : [];
+    const { data: vehicle } = await db.from("vehicles").select("id").eq("id", id).maybeSingle();
+    if (!vehicle) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
     // Check for overlap
-    const clash = slots.some(
-      (s: any) => Number(s.startAt) < endAt && startAt < Number(s.endAt),
+    const { data: existingSlots } = await db
+      .from("blocked_slots")
+      .select("start_at, end_at")
+      .eq("vehicle_id", id);
+
+    const clash = (existingSlots ?? []).some(
+      (s: any) => Number(s.start_at) < endAt && startAt < Number(s.end_at),
     );
     if (clash) {
       return NextResponse.json({ error: "Overlaps with existing slot" }, { status: 409 });
     }
 
-    const newSlot = { startAt, endAt, reason, updatedAt: Date.now() };
-    await ref.update({
-      blockedSlots: [...slots, newSlot],
-      updatedAt: Date.now(),
-    });
+    const { data: newSlot } = await db.from("blocked_slots").insert({
+      vehicle_id: id,
+      start_at: startAt,
+      end_at: endAt,
+      reason,
+    }).select().single();
 
     return NextResponse.json({ ok: true, slot: newSlot }, { status: 201 });
   } catch (e: any) {
@@ -53,7 +55,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     await verifyAdminToken(req);
-    const db = getAdminDbOrThrow();
+    const db = getAdminClient();
     const { id } = await params;
 
     const url = new URL(req.url);
@@ -62,18 +64,17 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
       return NextResponse.json({ error: "index query param required" }, { status: 400 });
     }
 
-    const ref = db.collection("vehicles").doc(id);
-    const snap = await ref.get();
-    if (!snap.exists) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    const { data: slots } = await db
+      .from("blocked_slots")
+      .select("id")
+      .eq("vehicle_id", id)
+      .order("created_at", { ascending: true });
 
-    const data = snap.data()!;
-    const slots: any[] = Array.isArray(data.blockedSlots) ? [...data.blockedSlots] : [];
-    if (idx >= slots.length) {
+    if (!slots || idx >= slots.length) {
       return NextResponse.json({ error: "Index out of range" }, { status: 400 });
     }
 
-    slots.splice(idx, 1);
-    await ref.update({ blockedSlots: slots, updatedAt: Date.now() });
+    await db.from("blocked_slots").delete().eq("id", slots[idx].id);
 
     return NextResponse.json({ ok: true });
   } catch (e: any) {

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAdminDbOrThrow } from "@/lib/firebaseAdmin";
+import { getAdminClient } from "@/lib/supabaseAdmin";
 import { CreateReservationSchema } from "@/lib/validation/reservation";
 import { getPrice } from "@/lib/pricing";
 import { istToUtcMs } from "@/utils/time";
@@ -16,7 +16,6 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    // Rate limiting
     const ip = getClientIp(req);
     if (!reservationCreateLimiter.check(ip)) {
       return NextResponse.json({ error: "Too many requests" }, { status: 429 });
@@ -33,79 +32,54 @@ export async function POST(req: Request) {
     }
 
     const input = parsed.data;
-    const adminDb = getAdminDbOrThrow();
+    const db = getAdminClient();
 
-    // Server-authoritative price computation
     const price = input.vehicleType
       ? getPrice(input.from, input.to, input.vehicleType as VehicleType)
       : null;
 
-    // Server-authoritative startAt computation
     const startAt = istToUtcMs(input.date, input.time);
-
-    // Collision-resistant PNR
-    const code = await generateUniquePNR(adminDb);
-    const createdAt = Date.now();
-
-    // Normalized place keys alongside labels
+    const code = await generateUniquePNR(db);
+    const now = new Date().toISOString();
     const place = normalizePlaceFields(input.from, input.to);
 
     const payload = {
-      id: code,
       code,
       from: input.from,
       to: input.to,
-      fromKey: place.fromKey,
-      toKey: place.toKey,
+      from_key: place.fromKey,
+      to_key: place.toKey,
       date: input.date,
       time: input.time,
-      startAt,
-      fullName: input.fullName,
+      start_at: startAt,
+      full_name: input.fullName,
       phone: input.phone,
       email: input.email.toLowerCase(),
       status: "pending" as const,
       adults: input.adults,
-      babySeat: input.babySeat,
-      vehicleType: input.vehicleType ?? null,
+      baby_seat: input.babySeat,
+      vehicle_type: input.vehicleType ?? null,
       price,
-      createdAt,
-      updatedAt: createdAt,
       lang: input.lang,
-      cancel: { requested: false, reason: null, requestedAt: null, canceledAt: null },
-      flightNo: input.flightNo ?? null,
+      cancel_requested: false,
+      cancel_reason: null,
+      cancel_requested_at: null,
+      cancel_canceled_at: null,
+      flight_no: input.flightNo ?? null,
       terminal: input.terminal ?? null,
-      baggageCount: input.baggageCount ?? null,
+      baggage_count: input.baggageCount ?? null,
       note: input.note ?? null,
-      acceptPolicy: input.acceptPolicy,
-      acceptKvkk: input.acceptKvkk,
-      acceptComms: input.acceptComms,
+      accept_policy: input.acceptPolicy,
+      accept_kvkk: input.acceptKvkk,
+      accept_comms: input.acceptComms,
     };
 
-    // Atomic write to all 3 collections
-    const batch = adminDb.batch();
-    batch.set(adminDb.collection("reservations").doc(code), payload);
-    batch.set(adminDb.collection("pnr").doc(code), { rid: code, createdAt });
-    batch.set(adminDb.collection("reservations_public").doc(code), {
-      code,
-      email: payload.email,
-      status: payload.status,
-      from: payload.from,
-      to: payload.to,
-      fromKey: place.fromKey,
-      toKey: place.toKey,
-      date: payload.date,
-      time: payload.time,
-      startAt,
-      vehicleType: payload.vehicleType,
-      driver: null,
-      createdAt,
-      updatedAt: createdAt,
-    });
-    await batch.commit();
+    const { error } = await db.from("reservations").insert(payload);
+    if (error) throw new Error(error.message);
 
     // Audit event (non-blocking)
     logCreated({
-      db: adminDb,
+      db,
       reservationId: code,
       reservationCode: code,
       actorType: "public",
@@ -115,24 +89,22 @@ export async function POST(req: Request) {
     // Notifications (non-blocking)
     const tplData = {
       code,
-      fullName: payload.fullName,
-      from: payload.from,
-      to: payload.to,
-      date: payload.date,
-      time: payload.time,
-      adults: payload.adults,
-      babySeat: payload.babySeat,
-      vehicleType: payload.vehicleType,
+      fullName: input.fullName,
+      from: input.from,
+      to: input.to,
+      date: input.date,
+      time: input.time,
+      adults: input.adults,
+      babySeat: input.babySeat,
+      vehicleType: input.vehicleType,
       price,
-      email: payload.email,
-      phone: payload.phone,
-      lang: payload.lang,
+      email: input.email.toLowerCase(),
+      phone: input.phone,
+      lang: input.lang,
     };
-    // Customer confirmation
-    notify({ db: adminDb, type: "reservation_created_customer", data: tplData, triggeredBy: "public" })
+    notify({ db, type: "reservation_created_customer", data: tplData, triggeredBy: "public" })
       .catch((e) => console.error("[notify] reservation_created_customer failed:", e));
-    // Admin alert
-    notify({ db: adminDb, type: "reservation_created_admin", data: tplData, triggeredBy: "public", recipientOverride: SITE.email })
+    notify({ db, type: "reservation_created_admin", data: tplData, triggeredBy: "public", recipientOverride: SITE.email })
       .catch((e) => console.error("[notify] reservation_created_admin failed:", e));
 
     return NextResponse.json({ id: code, code }, { status: 201 });

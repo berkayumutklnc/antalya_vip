@@ -12,7 +12,7 @@ export const CreateReservationSchema = z.object({
   fullName: z.string().min(2).max(120),
   phone: z.string().min(5).max(30),
   email: z.string().email().max(120),
-  lang: z.enum(langs).optional().default("tr"),
+  lang: z.enum(langs).optional().default("de"),
   adults: z.number().int().min(1).max(50).optional().default(1),
   babySeat: z.number().int().min(0).max(10).optional().default(0),
   vehicleType: z.enum(vehicleTypes).optional(),

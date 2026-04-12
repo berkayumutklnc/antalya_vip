@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAdminDbOrThrow } from "@/lib/firebaseAdmin";
+import { getAdminClient } from "@/lib/supabaseAdmin";
 import { verifyAdminToken, AuthError } from "@/lib/server/adminAuth";
 
 export const runtime = "nodejs";
@@ -9,9 +9,29 @@ export const dynamic = "force-dynamic";
 export async function GET(req: Request) {
   try {
     await verifyAdminToken(req);
-    const db = getAdminDbOrThrow();
-    const snap = await db.collection("vehicles").get();
-    const items = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    const db = getAdminClient();
+    const { data: vehicles } = await db.from("vehicles").select("*");
+    const { data: slots } = await db.from("blocked_slots").select("*");
+
+    const items = (vehicles ?? []).map((v: any) => ({
+      id: v.id,
+      type: v.type,
+      plate: v.plate,
+      driverName: v.driver_name,
+      driverPhone: v.driver_phone,
+      capacity: v.capacity,
+      blockedSlots: (slots ?? [])
+        .filter((s: any) => s.vehicle_id === v.id)
+        .map((s: any) => ({
+          startAt: s.start_at,
+          endAt: s.end_at,
+          reason: s.reason,
+          reservationId: s.reservation_id,
+          updatedAt: new Date(s.created_at).getTime(),
+        })),
+      createdAt: new Date(v.created_at).getTime(),
+      updatedAt: new Date(v.updated_at).getTime(),
+    }));
     return NextResponse.json({ items });
   } catch (e: any) {
     if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status });
@@ -23,7 +43,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     await verifyAdminToken(req);
-    const db = getAdminDbOrThrow();
+    const db = getAdminClient();
     const body = await req.json();
 
     const { plate, type, driverName, driverPhone } = body ?? {};
@@ -34,19 +54,26 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "type is required" }, { status: 400 });
     }
 
-    const now = Date.now();
     const data = {
       plate: plate.trim(),
       type: type.trim(),
-      driverName: typeof driverName === "string" ? driverName.trim() : "",
-      driverPhone: typeof driverPhone === "string" ? driverPhone.trim() : "",
-      blockedSlots: [],
-      createdAt: now,
-      updatedAt: now,
+      driver_name: typeof driverName === "string" ? driverName.trim() : "",
+      driver_phone: typeof driverPhone === "string" ? driverPhone.trim() : "",
     };
 
-    const ref = await db.collection("vehicles").add(data);
-    return NextResponse.json({ id: ref.id, ...data }, { status: 201 });
+    const { data: created, error } = await db.from("vehicles").insert(data).select().single();
+    if (error) throw new Error(error.message);
+
+    return NextResponse.json({
+      id: created.id,
+      plate: created.plate,
+      type: created.type,
+      driverName: created.driver_name,
+      driverPhone: created.driver_phone,
+      blockedSlots: [],
+      createdAt: new Date(created.created_at).getTime(),
+      updatedAt: new Date(created.updated_at).getTime(),
+    }, { status: 201 });
   } catch (e: any) {
     if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status });
     return NextResponse.json({ error: e?.message || "Internal error" }, { status: 500 });

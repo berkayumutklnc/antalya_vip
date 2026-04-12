@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAdminDbOrThrow } from "@/lib/firebaseAdmin";
+import { getAdminClient } from "@/lib/supabaseAdmin";
 import { verifyAdminToken, AuthError } from "@/lib/server/adminAuth";
 import { canApproveCancel } from "@/lib/domain/reservationStatus";
 import { logCancelApproved, logStatusChanged } from "@/lib/server/reservationEvents";
@@ -11,17 +11,16 @@ export const dynamic = "force-dynamic";
 export async function POST(req: Request, { params }: { params: Promise<{ rid: string }> }) {
   try {
     const adminUid = await verifyAdminToken(req);
-    const adminDb = getAdminDbOrThrow();
+    const db = getAdminClient();
     const { rid } = await params;
 
-    const rRef = adminDb.collection("reservations").doc(rid);
-    const rSnap = await rRef.get();
-    if (!rSnap.exists) return NextResponse.json({ error: "Reservation not found" }, { status: 404 });
+    const { data: r } = await db.from("reservations").select("*").eq("code", rid).maybeSingle();
+    if (!r) return NextResponse.json({ error: "Reservation not found" }, { status: 404 });
 
-    const r = rSnap.data()!;
-
-    // Domain guard
-    const guard = canApproveCancel({ status: r.status, cancel: r.cancel });
+    const guard = canApproveCancel({
+      status: r.status,
+      cancel: r.cancel_requested ? { requested: r.cancel_requested } : undefined,
+    });
     if (!guard.ok) {
       return NextResponse.json({ error: guard.reason }, { status: 400 });
     }
@@ -29,48 +28,30 @@ export async function POST(req: Request, { params }: { params: Promise<{ rid: st
     const now = Date.now();
     const prevStatus = String(r.status);
 
-    // Use transaction to atomically release vehicle slot + update reservation
-    await adminDb.runTransaction(async (tx) => {
-      // Release vehicle slot if assigned
-      if (r.vehicleId) {
-        const vRef = adminDb.collection("vehicles").doc(r.vehicleId);
-        const vSnap = await tx.get(vRef);
-        if (vSnap.exists) {
-          const v = vSnap.data()!;
-          const slots: any[] = Array.isArray(v.blockedSlots) ? v.blockedSlots : [];
-          const filtered = slots.filter((s: any) => s.reservationId !== rid);
-          tx.update(vRef, { blockedSlots: filtered, updatedAt: now });
-        }
-      }
+    // Release vehicle slot if assigned
+    if (r.vehicle_id) {
+      await db.from("blocked_slots").delete()
+        .eq("vehicle_id", r.vehicle_id)
+        .eq("reservation_id", rid);
+    }
 
-      tx.update(rRef, {
-        status: "canceled",
-        cancel: {
-          requested: false,
-          reason: r.cancel?.reason ?? null,
-          requestedAt: r.cancel?.requestedAt ?? null,
-          canceledAt: now,
-        },
-        updatedAt: now,
-      });
-
-      const pubRef = adminDb.collection("reservations_public").doc(rid);
-      tx.update(pubRef, {
-        status: "canceled",
-        driver: null,
-        updatedAt: now,
-      });
-    });
+    // Update reservation
+    await db.from("reservations").update({
+      status: "canceled",
+      cancel_requested: false,
+      cancel_canceled_at: now,
+      updated_at: new Date().toISOString(),
+    }).eq("code", rid);
 
     // Audit events (non-blocking)
     const code = String(r.code ?? rid);
     Promise.all([
       logCancelApproved({
-        db: adminDb, reservationId: rid, reservationCode: code,
+        db, reservationId: rid, reservationCode: code,
         actorType: "admin", actorId: adminUid,
       }),
       logStatusChanged({
-        db: adminDb, reservationId: rid, reservationCode: code,
+        db, reservationId: rid, reservationCode: code,
         actorType: "admin", actorId: adminUid,
         fromStatus: prevStatus, toStatus: "canceled",
       }),
@@ -78,12 +59,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ rid: st
 
     // Notification to customer (non-blocking)
     notify({
-      db: adminDb,
+      db,
       type: "cancel_approved_customer",
       data: {
         code,
         email: r.email ?? "",
-        fullName: r.fullName ?? "-",
+        fullName: r.full_name ?? "-",
         from: r.from ?? "",
         to: r.to ?? "",
         date: r.date ?? "",

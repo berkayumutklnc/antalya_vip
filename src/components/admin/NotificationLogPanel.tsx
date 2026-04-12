@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { getClientAuth } from "@/lib/firebase";
+import { getSupabaseClient } from "@/lib/supabase";
 
 interface NLog {
   id: string;
@@ -24,6 +24,7 @@ const STATUS_COLORS: Record<string, string> = {
   sent: "text-green-400",
   failed: "text-red-400",
   skipped: "text-yellow-400",
+  generated: "text-blue-400",
 };
 
 const TYPE_LABELS: Record<string, string> = {
@@ -54,10 +55,10 @@ export default function NotificationLogPanel({ rid }: { rid: string }) {
   const [feedback, setFeedback] = useState<{ ok: boolean; msg: string } | null>(null);
 
   async function getAuthHeaders(): Promise<HeadersInit> {
-    const user = getClientAuth().currentUser;
-    if (!user) throw new Error("Not authenticated");
-    const token = await user.getIdToken();
-    return { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
+    const supabase = getSupabaseClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) throw new Error("Not authenticated");
+    return { Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" };
   }
 
   const fetchLogs = useCallback(async () => {
@@ -152,7 +153,7 @@ export default function NotificationLogPanel({ rid }: { rid: string }) {
                   </span>
                 </div>
                 <span className={`text-xs font-medium ${STATUS_COLORS[log.status] || "text-white/50"}`}>
-                  {log.status === "sent" ? "✓ Gönderildi" : log.status === "failed" ? "✗ Başarısız" : "⊘ Atlandı"}
+                  {log.status === "sent" ? "✓ Gönderildi" : log.status === "failed" ? "✗ Başarısız" : log.status === "generated" ? "↗ Link Oluşturuldu" : "⊘ Atlandı"}
                 </span>
               </div>
               <div className="text-xs text-white/40 mt-1">

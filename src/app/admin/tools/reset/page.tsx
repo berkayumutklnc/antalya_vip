@@ -2,16 +2,7 @@
 
 import AdminGate from "@/components/AdminGate";
 import { useState } from "react";
-import {
-  collection,
-  getDocs,
-  writeBatch,
-  deleteDoc,
-  doc,
-  setDoc,
-} from "firebase/firestore";
-import { getClientDb } from "@/lib/firebase";
-import type { Vehicle } from "@/types";
+import { getSupabaseClient } from "@/lib/supabase";
 
 export default function ResetToolsPage() {
   return (
@@ -21,36 +12,32 @@ export default function ResetToolsPage() {
   );
 }
 
+async function getAuthHeaders(): Promise<HeadersInit> {
+  const supabase = getSupabaseClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.access_token) throw new Error("Not authenticated");
+  return { Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" };
+}
+
 function DangerZoneInner() {
   const [log, setLog] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
 
   const push = (m: string) => setLog((xs) => [m, ...xs]);
 
-  async function deleteCollectionBatched(colName: string, chunk = 400) {
-    const snap = await getDocs(collection(getClientDb(), colName));
-    const refs = snap.docs.map((d) => d.ref);
-    let deleted = 0;
-
-    for (let i = 0; i < refs.length; i += chunk) {
-      const batch = writeBatch(getClientDb());
-      refs.slice(i, i + chunk).forEach((r) => batch.delete(r));
-      await batch.commit();
-      deleted += Math.min(chunk, refs.length - i);
-    }
-    return deleted;
-  }
-
   async function purgeReservationsAndPNR() {
     setBusy(true);
     try {
       push("reservations siliniyor…");
-      const delRes = await deleteCollectionBatched("reservations");
-      push(`reservations: ${delRes} doküman silindi.`);
-
-      push("pnr siliniyor…");
-      const delPnr = await deleteCollectionBatched("pnr");
-      push(`pnr: ${delPnr} doküman silindi.`);
+      const headers = await getAuthHeaders();
+      const res = await fetch("/api/admin/tools/reset", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ action: "purge_reservations" }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      push(`reservations: ${data.deleted ?? 0} kayıt silindi.`);
     } catch (e: any) {
       push("Hata (purge): " + (e?.message ?? String(e)));
     } finally {
@@ -61,19 +48,16 @@ function DangerZoneInner() {
   async function resetVehicleBlocks() {
     setBusy(true);
     try {
-      const vsnap = await getDocs(collection(getClientDb(), "vehicles"));
-      const refs = vsnap.docs.map((d) => d.ref);
-      let updated = 0;
-
-      for (let i = 0; i < refs.length; i += 400) {
-        const batch = writeBatch(getClientDb());
-        refs.slice(i, i + 400).forEach((r) =>
-          batch.update(r, { blockedSlots: [], updatedAt: Date.now() })
-        );
-        await batch.commit();
-        updated += Math.min(400, refs.length - i);
-      }
-      push(`vehicles: ${updated} dokümanda blockedSlots sıfırlandı.`);
+      push("vehicle blokları sıfırlanıyor…");
+      const headers = await getAuthHeaders();
+      const res = await fetch("/api/admin/tools/reset", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ action: "reset_vehicle_blocks" }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      push(`blocked_slots: ${data.deleted ?? 0} kayıt silindi.`);
     } catch (e: any) {
       push("Hata (vehicles): " + (e?.message ?? String(e)));
     } finally {
@@ -84,54 +68,16 @@ function DangerZoneInner() {
   async function seedVehicles() {
     setBusy(true);
     try {
-      const now = Date.now();
-      const seed: Vehicle[] = [
-        {
-          id: "VIP6-01",
-          type: "vip-6",
-          plate: "07 VIP 001",
-          driverName: "Ali Genç",
-          driverPhone: "+905550000001",
-          blockedSlots: [],
-          createdAt: now,
-          updatedAt: now,
-        },
-        {
-          id: "VIP6-02",
-          type: "vip-6",
-          plate: "34 TL 5416",
-          driverName: "Berkay Umut KILINÇ",
-          driverPhone: "+905550000002",
-          blockedSlots: [],
-          createdAt: now,
-          updatedAt: now,
-        },
-        {
-          id: "VIP10-01",
-          type: "vip-10",
-          plate: "07 ABC 101",
-          driverName: "Mehmet Kaya",
-          driverPhone: "+905550000003",
-          blockedSlots: [],
-          createdAt: now,
-          updatedAt: now,
-        },
-        {
-          id: "VIP-16-01",
-          type: "vip-16",
-          plate: "07 ABC 101",
-          driverName: "Mehmet Kaya",
-          driverPhone: "+905550000003",
-          blockedSlots: [],
-          createdAt: now,
-          updatedAt: now,
-        },
-      ];
-
-      for (const v of seed) {
-        await setDoc(doc(getClientDb(), "vehicles", v.id), v, { merge: true });
-      }
-      push(`seed: ${seed.length} araç yazıldı/merge edildi.`);
+      push("demo araçlar oluşturuluyor…");
+      const headers = await getAuthHeaders();
+      const res = await fetch("/api/admin/tools/reset", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ action: "seed_vehicles" }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      push(`seed: ${data.created ?? 0} araç oluşturuldu.`);
     } catch (e: any) {
       push("Hata (seed): " + (e?.message ?? String(e)));
     } finally {

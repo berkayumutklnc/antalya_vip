@@ -1,5 +1,5 @@
 import { randomInt } from "node:crypto";
-import type { Firestore } from "firebase-admin/firestore";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 const CHARSET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no 0/O/1/I
 const CODE_LEN = 7;
@@ -15,14 +15,18 @@ function randomCode(): string {
 
 /**
  * Generate a collision-resistant PNR code.
- * Checks the `pnr` collection for uniqueness.
+ * Checks the `reservations` table for uniqueness.
  */
-export async function generateUniquePNR(db: Firestore): Promise<string> {
+export async function generateUniquePNR(db: SupabaseClient): Promise<string> {
   for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
     const code = randomCode();
-    const ref = db.collection("pnr").doc(code);
-    const snap = await ref.get();
-    if (!snap.exists) return code;
+    const { data } = await db
+      .from("reservations")
+      .select("code")
+      .eq("code", code)
+      .limit(1)
+      .maybeSingle();
+    if (!data) return code;
   }
   throw new Error("Failed to generate unique PNR after max attempts");
 }

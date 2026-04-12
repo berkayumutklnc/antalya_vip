@@ -1,30 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  signInWithEmailAndPassword,
-  onAuthStateChanged,
-  signOut,
-  User,
-} from "firebase/auth";
-import { getClientAuth, isFirebaseConfigured } from "@/lib/firebase";
+import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-
-const raw = (process.env.NEXT_PUBLIC_ADMIN_UID || "").replace(/["']/g, "");
-const ADMIN_UIDS = raw
-  .split(/[,\s]+/)
-  .map((s) => s.trim())
-  .filter(Boolean);
-
-async function isAdmin(user: User | null): Promise<boolean> {
-  if (!user) return false;
-  try {
-    const token = await user.getIdTokenResult(true);
-    if (token.claims?.admin === true) return true;
-  } catch {}
-  return ADMIN_UIDS.includes(user.uid);
-}
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState("");
@@ -36,30 +15,38 @@ export default function AdminLoginPage() {
   const sp = useSearchParams();
   const nextUrl = sp.get("next") || "/admin";
 
-  const configured = isFirebaseConfigured();
+  const configured = isSupabaseConfigured();
 
   useEffect(() => {
     if (!configured) return;
-    const unsub = onAuthStateChanged(getClientAuth(), async (user) => {
-      if (await isAdmin(user)) {
+    const supabase = getSupabaseClient();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session && session.user.app_metadata?.role === "admin") {
         router.replace(nextUrl);
       }
     });
-    return () => unsub();
   }, [router, nextUrl, configured]);
 
   async function onLogin() {
     if (!configured) {
-      setErr("Firebase yapılandırması eksik. Vercel'de NEXT_PUBLIC_FIREBASE_* ortam değişkenlerini ayarlayın.");
+      setErr("Supabase yapılandırması eksik. Vercel'de NEXT_PUBLIC_SUPABASE_URL ve NEXT_PUBLIC_SUPABASE_ANON_KEY ortam değişkenlerini ayarlayın.");
       return;
     }
     setErr(null);
     setLoading(true);
     try {
-      const cred = await signInWithEmailAndPassword(getClientAuth(), email.trim(), pass);
-      if (!(await isAdmin(cred.user))) {
+      const supabase = getSupabaseClient();
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: pass,
+      });
+      if (error) {
+        setErr(error.message);
+        return;
+      }
+      if (data.user?.app_metadata?.role !== "admin") {
         setErr("Bu kullanıcı için admin yetkisi yok.");
-        await signOut(getClientAuth());
+        await supabase.auth.signOut();
         return;
       }
       router.replace(nextUrl);
@@ -72,15 +59,15 @@ export default function AdminLoginPage() {
 
   async function onLogout() {
     if (!configured) return;
-    await signOut(getClientAuth());
+    await getSupabaseClient().auth.signOut();
   }
 
   return (
-<main className="max-w-md mx-auto p-6 space-y-6">
-        <div className="flex flex-col items-center gap-3">
-          <img src="/logo.png" alt="Zenturo Travel" className="h-16 w-auto" />
-          <h1 className="text-2xl font-bold">Admin Giriş</h1>
-        </div>
+    <main className="max-w-md mx-auto p-6 space-y-6">
+      <div className="flex flex-col items-center gap-3">
+        <img src="/logo.png" alt="Zenturo Travel" className="h-16 w-auto" />
+        <h1 className="text-2xl font-bold">Admin Giriş</h1>
+      </div>
 
       {err && (
         <div className="rounded border border-red-600/40 bg-red-900/20 p-3 text-red-200">
@@ -125,13 +112,9 @@ export default function AdminLoginPage() {
           href="/admin"
           className="rounded bg-neutral-800 hover:bg-neutral-700 px-4 py-2"
         >
-          Admin’e dön
+          Admin'e dön
         </Link>
       </div>
-
-      <p className="text-white/40 text-xs">
-        UID izinli liste: <code>{ADMIN_UIDS.join(", ") || "(boş)"}</code>
-      </p>
     </main>
   );
 }
