@@ -101,27 +101,27 @@ export default function Footer() {
     </Link>
   </li>
   <li>
-    <Link href="/impressum" className="hover:text-blue-400 transition-colors duration-200 py-1 inline-block">Impressum</Link>
+    <Link href="/impressum" className="hover:text-blue-400 transition-colors duration-200 py-1 inline-block">{safeT(t, "footer.legal.impressum", "Impressum")}</Link>
   </li>
   <li>
-    <Link href="/agb" className="hover:text-blue-400 transition-colors duration-200 py-1 inline-block">AGB</Link>
+    <Link href="/agb" className="hover:text-blue-400 transition-colors duration-200 py-1 inline-block">{safeT(t, "footer.legal.agb", "AGB")}</Link>
   </li>
   <li>
-    <Link href="/datenschutz" className="hover:text-blue-400 transition-colors duration-200 py-1 inline-block">Datenschutz</Link>
+    <Link href="/datenschutz" className="hover:text-blue-400 transition-colors duration-200 py-1 inline-block">{safeT(t, "footer.legal.datenschutz", "Datenschutz")}</Link>
   </li>
 </ul>
 
           </div>
           <div className="rounded-2xl bg-white/[0.02] ring-1 ring-white/10 p-5">
-            <div className="mb-3 text-white font-bold">Transfer</div>
+            <div className="mb-3 text-white font-bold">{safeT(t, "footer.transfer.title", "Transfers")}</div>
             <ul className="space-y-2 text-sm text-white/70">
-              <li><Link href="/antalya-havalimani-transfer" className="hover:text-blue-400 transition-colors duration-200 py-1 inline-block">Antalya Airport</Link></li>
-              <li><Link href="/belek-transfer" className="hover:text-blue-400 transition-colors duration-200 py-1 inline-block">Belek</Link></li>
-              <li><Link href="/lara-transfer" className="hover:text-blue-400 transition-colors duration-200 py-1 inline-block">Lara / Kundu</Link></li>
-              <li><Link href="/kemer-transfer" className="hover:text-blue-400 transition-colors duration-200 py-1 inline-block">Kemer</Link></li>
-              <li><Link href="/side-transfer" className="hover:text-blue-400 transition-colors duration-200 py-1 inline-block">Side / Manavgat</Link></li>
-              <li><Link href="/alanya-transfer" className="hover:text-blue-400 transition-colors duration-200 py-1 inline-block">Alanya</Link></li>
-              <li><Link href="/vip-transfer-antalya" className="hover:text-blue-400 transition-colors duration-200 py-1 inline-block">Antalya City</Link></li>
+              <li><Link href="/antalya-havalimani-transfer" className="hover:text-blue-400 transition-colors duration-200 py-1 inline-block">{safeT(t, "home.link.airport", "Antalya Airport Transfer")}</Link></li>
+              <li><Link href="/belek-transfer" className="hover:text-blue-400 transition-colors duration-200 py-1 inline-block">{safeT(t, "home.link.belek", "Belek Transfer")}</Link></li>
+              <li><Link href="/lara-transfer" className="hover:text-blue-400 transition-colors duration-200 py-1 inline-block">{safeT(t, "home.link.lara", "Lara / Kundu Transfer")}</Link></li>
+              <li><Link href="/kemer-transfer" className="hover:text-blue-400 transition-colors duration-200 py-1 inline-block">{safeT(t, "home.link.kemer", "Kemer Transfer")}</Link></li>
+              <li><Link href="/side-transfer" className="hover:text-blue-400 transition-colors duration-200 py-1 inline-block">{safeT(t, "home.link.side", "Side / Manavgat Transfer")}</Link></li>
+              <li><Link href="/alanya-transfer" className="hover:text-blue-400 transition-colors duration-200 py-1 inline-block">{safeT(t, "home.link.alanya", "Alanya Transfer")}</Link></li>
+              <li><Link href="/vip-transfer-antalya" className="hover:text-blue-400 transition-colors duration-200 py-1 inline-block">{safeT(t, "home.link.vip", "VIP Transfer Antalya")}</Link></li>
             </ul>
           </div>
         </div>

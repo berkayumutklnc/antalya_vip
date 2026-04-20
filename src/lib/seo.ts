@@ -7,6 +7,7 @@
 
 import type { Metadata } from "next";
 import { SITE } from "@/config/site";
+import type { TransferRoute } from "@/content/transfers";
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://zenturotravel.com";
 
@@ -59,6 +60,27 @@ export function buildTransferMetadata(input: TransferMetaInput): Metadata {
 // Generic page metadata builder (for info/legal pages)
 // ---------------------------------------------------------------------------
 
+/**
+ * Lang-aware metadata generator for transfer pages.
+ * Reads ?lang= from searchParams and picks the matching content.
+ */
+export function generateTransferMeta(
+  route: TransferRoute,
+  searchParams: { lang?: string },
+): Metadata {
+  const lang = (SITE.supportedLangs as readonly string[]).includes(searchParams.lang ?? "")
+    ? (searchParams.lang as "de" | "en" | "tr" | "ru")
+    : "de";
+  const c = route.content[lang];
+  return buildTransferMetadata({
+    title: c.metaTitle,
+    description: c.metaDescription,
+    canonical: `/${route.slug}`,
+  });
+}
+
+// ---------------------------------------------------------------------------
+
 export function buildPageMetadata(opts: {
   title: string;
   description: string;
@@ -76,6 +98,43 @@ export function buildPageMetadata(opts: {
       siteName: SITE.name,
       title: opts.title,
       description: opts.description,
+    },
+  };
+}
+
+export function buildLocalizedPageMetadata(opts: {
+  canonical: string;
+  lang: "de" | "en" | "tr" | "ru";
+  localized: Record<"de" | "en" | "tr" | "ru", { title: string; description: string }>;
+  noindex?: boolean;
+}): Metadata {
+  const current = opts.localized[opts.lang] ?? opts.localized.de;
+  const canonicalUrl = `${BASE_URL}${opts.canonical}`;
+
+  return {
+    title: current.title,
+    description: current.description,
+    alternates: {
+      canonical: opts.canonical,
+      languages: {
+        de: `${canonicalUrl}?lang=de`,
+        en: `${canonicalUrl}?lang=en`,
+        tr: `${canonicalUrl}?lang=tr`,
+        ru: `${canonicalUrl}?lang=ru`,
+      },
+    },
+    ...(opts.noindex ? { robots: { index: false, follow: true } } : {}),
+    openGraph: {
+      type: "website",
+      url: canonicalUrl,
+      siteName: SITE.name,
+      title: current.title,
+      description: current.description,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: current.title,
+      description: current.description,
     },
   };
 }

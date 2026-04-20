@@ -1,20 +1,48 @@
 "use client";
 
-import { pricingMatrix } from "@/lib/pricing";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { PLACES } from "@/config/places";
+import { getPublicBookableServiceTypes } from "@/lib/public/serviceCatalog";
+import { getLocalizedServiceName } from "@/lib/public/serviceDisplay";
 
-const VEHICLE_LABELS: Record<string, Record<string, string>> = {
-  tr: { "vip-6": "VIP 6 Kişilik", "vip-10": "VIP 10 Kişilik", "vip-16": "VIP 16 Kişilik" },
-  de: { "vip-6": "VIP 6 Sitze", "vip-10": "VIP 10 Sitze", "vip-16": "VIP 16 Sitze" },
-  en: { "vip-6": "VIP 6-Seat", "vip-10": "VIP 10-Seat", "vip-16": "VIP 16-Seat" },
-  ru: { "vip-6": "VIP 6 мест", "vip-10": "VIP 10 мест", "vip-16": "VIP 16 мест" },
+type ServiceTypeItem = {
+  id: string;
+  nameDe: string;
+  nameEn: string;
+  nameTr: string;
+  nameRu: string;
+  isActive?: boolean;
+  isBookable?: boolean;
+  is_active?: boolean;
+  is_bookable?: boolean;
 };
 
 const SECTION_TITLE: Record<string, string> = {
-  tr: "Fiyatlar (Antalya Havalimanı çıkışlı)",
-  de: "Preise (ab Flughafen Antalya)",
-  en: "Pricing (from Antalya Airport)",
-  ru: "Цены (из аэропорта Анталии)",
+  tr: "Servis tipine göre teklifler (Antalya Havalimanı çıkışlı)",
+  de: "Angebote nach Service-Typ (ab Flughafen Antalya)",
+  en: "Quotes by service type (from Antalya Airport)",
+  ru: "Расчёт по типу сервиса (из аэропорта Анталии)",
 };
+
+const CTA_LABEL: Record<string, string> = {
+  tr: "Teklif al ve rezervasyon talebi gönder",
+  de: "Angebot erhalten und Buchungsanfrage senden",
+  en: "Get quote and send reservation request",
+  ru: "Получить расчёт и отправить заявку",
+};
+
+function labelToKey(label: string): string | undefined {
+  return PLACES.find((p) => p.label === label)?.id;
+}
+
+type PriceEntry = { key: string; price: number };
+
+function toLang(lang: string): "de" | "en" | "tr" | "ru" {
+  return lang === "de" || lang === "en" || lang === "tr" || lang === "ru"
+    ? lang
+    : "en";
+}
 
 export default function PricingPreview({
   priceKey,
@@ -23,15 +51,64 @@ export default function PricingPreview({
   priceKey: string;
   lang: string;
 }) {
-  // Look in the AYT row first, then check if priceKey itself is a from-key
-  const aytRow = pricingMatrix["Antalya Airport (AYT)"];
-  const priceObj = aytRow?.[priceKey] ?? pricingMatrix[priceKey]?.["Antalya Airport (AYT)"];
-  if (!priceObj) return null;
+  const [prices, setPrices] = useState<PriceEntry[]>([]);
+  const [serviceTypes, setServiceTypes] = useState<ServiceTypeItem[]>([]);
 
-  const vehicles = VEHICLE_LABELS[lang] || VEHICLE_LABELS.en;
-  const prices = (["vip-6", "vip-10", "vip-16"] as const)
-    .map((key) => ({ key, price: priceObj[key] }))
-    .filter((p) => p.price != null);
+  useEffect(() => {
+    let cancelled = false;
+
+    fetch("/api/public/service-types")
+      .then((r) => (r.ok ? r.json() : { items: [] }))
+      .then((data) => {
+        if (cancelled) return;
+        const items = getPublicBookableServiceTypes((data?.items ?? []) as ServiceTypeItem[]);
+        setServiceTypes(items);
+      })
+      .catch(() => {
+        if (!cancelled) setServiceTypes([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!serviceTypes.length) {
+      setPrices([]);
+      return;
+    }
+
+    const toKey = labelToKey(priceKey) ?? priceKey.toLowerCase();
+    const fromKey = "ayt";
+    let cancelled = false;
+
+    Promise.all(
+      serviceTypes.map(async (st) => {
+        try {
+          const res = await fetch(
+            `/api/public/route-price?from_key=${encodeURIComponent(fromKey)}&to_key=${encodeURIComponent(toKey)}&vehicle_type=${encodeURIComponent(st.id)}`,
+          );
+          if (!res.ok) return null;
+          const data = await res.json();
+          return { key: st.id, price: data.basePriceEur as number };
+        } catch {
+          return null;
+        }
+      }),
+    ).then((results) => {
+      if (cancelled) return;
+      const valid: PriceEntry[] = [];
+      for (const r of results) {
+        if (r) valid.push(r);
+      }
+      setPrices(valid);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [priceKey, serviceTypes]);
 
   if (!prices.length) return null;
 
@@ -44,7 +121,13 @@ export default function PricingPreview({
             key={key}
             className="rounded-lg border border-white/10 bg-white/[0.02] p-4 text-center"
           >
-            <div className="text-sm text-white/50">{vehicles[key] || key}</div>
+            <div className="text-sm text-white/50">
+              {(() => {
+                const type = serviceTypes.find((st) => st.id === key);
+                if (!type) return key;
+                return getLocalizedServiceName(type, toLang(lang));
+              })()}
+            </div>
             <div className="mt-1 text-2xl font-extrabold text-green-400">
               {price}€
             </div>
@@ -53,13 +136,21 @@ export default function PricingPreview({
       </div>
       <p className="mt-2 text-xs text-white/40">
         {lang === "de"
-          ? "Einmaliger Festpreis (hin), inkl. MwSt. • Nachtfahrt & Wartezeit inklusive."
+          ? "Richtpreis pro Strecke inkl. MwSt., basierend auf Service-Typ. Paket-/Variantenwahl kann den Endpreis beeinflussen. Keine Online-Zahlung."
           : lang === "en"
-            ? "One-way fixed price, incl. VAT. Night rides & waiting time included."
+            ? "One-way estimate incl. VAT based on service type. Package/variant selection may affect final quote. No online payment."
             : lang === "ru"
-              ? "Фиксированная цена в одну сторону, вкл. НДС. Ночные поездки и ожидание включены."
-              : "Tek yön sabit fiyat, KDV dahil. Gece seferi ve bekleme süresi fiyata dahildir."}
+              ? "Ориентировочная цена в одну сторону с НДС по типу сервиса. Выбор пакета/варианта может повлиять на финальный расчёт. Онлайн-оплаты нет."
+              : "Servis tipine göre tek yön teklif, KDV dahil. Paket/varyant seçimi nihai teklifi etkileyebilir. Online ödeme yok."}
       </p>
+      <div className="mt-4 text-center">
+        <Link
+          href="/#rezervasyon"
+          className="inline-block rounded-xl border-2 border-blue-600 bg-transparent px-5 py-2.5 text-sm font-semibold text-blue-400 hover:bg-blue-600 hover:text-white active:scale-95 transition-all duration-200"
+        >
+          {CTA_LABEL[lang] || CTA_LABEL.en}
+        </Link>
+      </div>
     </section>
   );
 }

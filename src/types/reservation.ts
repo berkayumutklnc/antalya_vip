@@ -21,6 +21,8 @@ export interface ReservationFormData {
   baggageCount?: number | null;
 
   vehicleType?: VehicleType;
+  serviceTypeId?: string;
+  serviceVariantKey?: string;
   price: number;
 
   note?: string | null;
@@ -55,7 +57,6 @@ export const VEHICLES: {
     bags: 4,
     image: "/vehicles/vip-6.jpg",
     features: ["Wi-Fi", "USB", "Klima", "Su", "4× Bagaj"],
-    basePriceEur: 65,
   },
   {
     id: "vip-10",
@@ -64,7 +65,6 @@ export const VEHICLES: {
     bags: 8,
     image: "/vehicles/vip-10.jpg",
     features: ["Wi-Fi", "USB", "Klima", "Su", "8× Bagaj"],
-    basePriceEur: 90,
   },
   {
     id: "vip-16",
@@ -73,11 +73,5 @@ export const VEHICLES: {
     bags: 8,
     image: "/vehicles/vip-16.jpg",
     features: ["Wi-Fi", "USB", "Klima", "Su", "8× Bagaj"],
-    basePriceEur: 90,
   },
 ];
-
-export function genPNR() {
-  const n = Math.floor(10000 + Math.random() * 90000);
-  return `TRF-${n}`;
-}

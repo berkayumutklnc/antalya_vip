@@ -22,6 +22,8 @@ const makeDefault = (lang: ReservationFormData["lang"]): ReservationFormData => 
   baggageCount: 0,
 
   vehicleType: undefined,
+  serviceTypeId: undefined,
+  serviceVariantKey: undefined,
   price: 0,
 
   note: "",

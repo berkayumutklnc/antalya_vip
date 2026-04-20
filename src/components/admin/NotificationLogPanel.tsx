@@ -16,8 +16,16 @@ interface NLog {
 
 const CHANNEL_LABELS: Record<string, string> = {
   email: "E-posta",
+  telegram: "Telegram",
   whatsapp_link: "WhatsApp",
   system: "Sistem",
+};
+
+const CHANNEL_COLORS: Record<string, string> = {
+  email: "bg-blue-900/30 text-blue-300",
+  telegram: "bg-cyan-900/30 text-cyan-300",
+  whatsapp_link: "bg-green-900/30 text-green-300",
+  system: "bg-white/5 text-white/60",
 };
 
 const STATUS_COLORS: Record<string, string> = {
@@ -145,7 +153,7 @@ export default function NotificationLogPanel({ rid }: { rid: string }) {
             <div key={log.id} className="rounded border border-white/5 bg-neutral-800/50 p-2 text-sm">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs px-1.5 py-0.5 rounded bg-white/5 text-white/60">
+                  <span className={`text-xs px-1.5 py-0.5 rounded ${CHANNEL_COLORS[log.channel] || "bg-white/5 text-white/60"}`}>
                     {CHANNEL_LABELS[log.channel] || log.channel}
                   </span>
                   <span className="font-medium">

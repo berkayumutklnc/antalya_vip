@@ -6,9 +6,10 @@
 
 ## Pre-launch Blockers (Require Business Input)
 
-- [ ] **Firebase env vars** — all 7 client keys + 1 server key (see `docs/prelaunch-blockers.md` §1)
-- [ ] **NEXT_PUBLIC_ADMIN_UID** — Firebase UID for admin access
-- [ ] **EmailJS credentials** — 6 server-side vars for email notifications
+- [ ] **Supabase env vars** — `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (see `docs/prelaunch-blockers.md` §1)
+- [ ] **NEXT_PUBLIC_ADMIN_UID** — Supabase Auth UID for admin access
+- [ ] **Resend API key** — `RESEND_API_KEY` + verify sending domain in Resend dashboard
+- [ ] **Telegram bot** — `TELEGRAM_BOT_TOKEN` + `TELEGRAM_ADMIN_CHAT_IDS` for admin alerts
 - [ ] **NEXT_PUBLIC_GA_ID** — Google Analytics 4 measurement ID
 - [ ] **Legal page review** — Business owner must review `/datenschutz`, `/impressum`, `/agb` for accuracy
 - [ ] **Cancellation window alignment** — AGB says 24h, code enforces 12h — business decision required
@@ -23,12 +24,12 @@
 - [x] `anonymize_ip: true` in GA config
 - [x] GA consent mode gate (analytics_storage default denied until user accepts)
 - [x] Consent banner with accept/deny (GDPR compliant)
-- [x] Firebase admin SDK in production dependencies
-- [x] Firebase client env vars validated at runtime (no `!` assertions)
+- [x] Supabase service-role client for server-side admin operations
+- [x] Supabase env vars validated at runtime (no `!` assertions)
 
 ### Testing
 - [x] Vitest test infrastructure configured
-- [x] 61 unit tests: pricing, reservation state machine, places, transfer routes
+- [x] 7 test suites: pricing, server pricing, places, reservation state machine, transfer routes, notification logs, notification templates
 - [x] Smoke test checklist documented (`docs/smoke-test.md`)
 
 ### Analytics
@@ -44,16 +45,20 @@
 
 ### Environment & Config
 - [x] `src/lib/env.ts` — runtime env validation with fail-fast in production
-- [x] `src/lib/firebase.ts` — client env vars validated with clear error messages
+- [x] `src/lib/supabase.ts` — client env vars validated with clear error messages
 - [x] `src/instrumentation.ts` — validates env on server start
 - [x] `.env.example` — documents all env vars
 
 ### Code Hygiene
 - [x] Dead `src/lib/email.ts` (client-side EmailJS) removed
+- [x] Dead `src/lib/server/email.ts` (server-side legacy EmailJS) removed — Phase 6
 - [x] Dead `src/lib/reservations.ts` (@deprecated) removed
 - [x] Dead `src/components/WhatsAppButton.tsx` removed
 - [x] Dead `src/app/legal/impressum.tsx` (duplicate) removed
 - [x] Dead dependencies removed: `@emailjs/browser`, `@fullcalendar/*`
+- [x] Dead `genPNR()` removed from `types/reservation.ts` — replaced by `server/pnr.ts` — Phase 6
+- [x] Misleading hardcoded `basePriceEur` removed from VEHICLES array — actual pricing is DB-backed — Phase 6
+- [x] Public/commercial surfaces now hide legacy `vip-6`; new booking/pricing default to `vip-10` and `vip-16`
 - [x] OG image: dynamic generation via `opengraph-image.tsx` (removed reference to non-existent `/og.jpg`)
 - [x] WhatsAppFab wired into layout (was defined but never rendered)
 

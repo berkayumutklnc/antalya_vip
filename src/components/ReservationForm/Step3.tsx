@@ -2,10 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { VehicleType } from "@/types";
-import { istToUtcMs, addMinutes } from "@/utils/time";
 import { useI18nPublic } from "@/lib/i18n-public";
 import Image from "next/image";
-import { VEHICLE_CATALOG } from "@/lib/vehicleCatalog";
+import { getPublicBookableServiceTypes } from "@/lib/public/serviceCatalog";
+
 const FEAT_ICON: Record<string, string> = {
   wifi: "📶",
   usb: "🔌",
@@ -14,17 +14,40 @@ const FEAT_ICON: Record<string, string> = {
   luggage: "🧳",
 };
 
+type ServiceTypeItem = {
+  id: string;
+  slug: string;
+  nameDe: string;
+  nameEn: string;
+  nameTr: string;
+  nameRu: string;
+  capacity: number;
+  image: string;
+  features: string[];
+  variants: {
+    key: string;
+    nameDe: string;
+    nameEn: string;
+    nameTr: string;
+    nameRu: string;
+    priceModifierEur: number;
+    sortOrder: number;
+  }[];
+};
+
 type FormShape = {
   lang: "de" | "en" | "tr" | "ru";
   from: string;
   to: string;
   date?: string;
-  time?: string; 
+  time?: string;
   adults: number;
   babySeat: number;
   phone: string;
   email: string;
   vehicleType?: VehicleType;
+  serviceTypeId?: string;
+  serviceVariantKey?: string;
   price?: number | null;
 };
 
@@ -40,6 +63,16 @@ const SLOT_MIN = 60;
 const clamp = (n: number, min: number, max: number) =>
   Math.max(min, Math.min(max, n));
 
+function getName(item: { nameDe: string; nameEn: string; nameTr: string; nameRu: string }, lang: string): string {
+  switch (lang) {
+    case "tr": return item.nameTr;
+    case "en": return item.nameEn;
+    case "de": return item.nameDe;
+    case "ru": return item.nameRu;
+    default: return item.nameEn;
+  }
+}
+
 export default function Step3({
   formData,
   updateData,
@@ -48,12 +81,13 @@ export default function Step3({
   nextStep,
 }: Props) {
   const { t } = useI18nPublic();
-  const [availabilityByType, setAvailabilityByType] = useState<Record<VehicleType, boolean>>(
-    { "vip-6": true, "vip-10": true, "vip-16": true } as any
-  );
-  const [loading, setLoading] = useState(true);
+  const [serviceTypes, setServiceTypes] = useState<ServiceTypeItem[]>([]);
+  const [availabilityByType, setAvailabilityByType] = useState<Record<string, boolean>>({});
+  const [loadingTypes, setLoadingTypes] = useState(true);
+  const [loadingAvail, setLoadingAvail] = useState(true);
   const [err, setErr] = useState<string | null>(null);
-  const [selected, setSelected] = useState<VehicleType | null>(formData.vehicleType ?? null);
+  const [selectedType, setSelectedType] = useState<string | null>(formData.serviceTypeId ?? formData.vehicleType ?? null);
+  const [selectedVariant, setSelectedVariant] = useState<string | null>(formData.serviceVariantKey ?? null);
 
   const patchForm = (patch: Partial<FormShape>) => {
     if (updateData) updateData(patch);
@@ -64,14 +98,33 @@ export default function Step3({
   const setBaby = (n: number) => patchForm({ babySeat: clamp(n, 0, 3) });
 
   const babySeatWarning = Number(formData.babySeat) > 1;
-
   const dateTimeReady = Boolean(formData.date && formData.time);
 
+  // Fetch service types from DB
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setLoadingTypes(true);
+      try {
+        const res = await fetch("/api/public/service-types");
+        if (!res.ok) throw new Error("Failed to load service types");
+        const data = await res.json();
+        if (!cancelled) setServiceTypes(getPublicBookableServiceTypes(data.items ?? []));
+      } catch (e: any) {
+        if (!cancelled) setErr(e?.message ?? String(e));
+      } finally {
+        if (!cancelled) setLoadingTypes(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  // Check availability
   useEffect(() => {
     if (!dateTimeReady) return;
     let cancelled = false;
     (async () => {
-      setLoading(true);
+      setLoadingAvail(true);
       setErr(null);
       try {
         const params = new URLSearchParams({
@@ -83,26 +136,52 @@ export default function Step3({
         if (!res.ok) throw new Error("Availability check failed");
         const data = await res.json();
         if (cancelled) return;
-        const map: Record<VehicleType, boolean> = { "vip-6": true, "vip-10": true, "vip-16": true } as any;
+        const map: Record<string, boolean> = {};
         for (const entry of data.types || []) {
-          map[entry.type as VehicleType] = entry.available;
+          map[entry.type as string] = entry.available;
         }
         setAvailabilityByType(map);
       } catch (e: any) {
         if (!cancelled) setErr(e?.message ?? String(e));
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) setLoadingAvail(false);
       }
     })();
     return () => { cancelled = true; };
   }, [dateTimeReady, formData.date, formData.time]);
 
-  function choose(tkey: VehicleType) {
-    setSelected(tkey);
-    patchForm({ vehicleType: tkey });
+  const selectedTypeObj = useMemo(
+    () => serviceTypes.find((st) => st.id === selectedType) ?? null,
+    [serviceTypes, selectedType],
+  );
+
+  function chooseType(typeId: string) {
+    setSelectedType(typeId);
+    const st = serviceTypes.find((s) => s.id === typeId);
+    // Auto-select first variant if only one, or "standard" if available
+    const variants = st?.variants ?? [];
+    let autoVariant: string | null = null;
+    if (variants.length === 1) {
+      autoVariant = variants[0].key;
+    } else if (variants.length > 1) {
+      const std = variants.find((v) => v.key === "standard");
+      autoVariant = std ? "standard" : null;
+    }
+    setSelectedVariant(autoVariant);
+    patchForm({
+      vehicleType: typeId as VehicleType,
+      serviceTypeId: typeId,
+      serviceVariantKey: autoVariant ?? undefined,
+    });
   }
 
-  const canContinue = dateTimeReady && !!selected;
+  function chooseVariant(variantKey: string) {
+    setSelectedVariant(variantKey);
+    patchForm({ serviceVariantKey: variantKey });
+  }
+
+  const loading = loadingTypes || loadingAvail;
+  const canContinue = dateTimeReady && !!selectedType && !!selectedVariant;
 
   return (
     <div className="space-y-6">
@@ -119,6 +198,7 @@ export default function Step3({
           {t("step3.pickDateFirst")}
         </div>
       )}
+
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="rounded-lg border border-white/10 p-4">
           <label className="block text-sm font-medium mb-2">{t("step3.adults")}</label>
@@ -185,62 +265,92 @@ export default function Step3({
       ) : err ? (
         <div className="text-red-400">{t("step3.error")}: {err}</div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {(["vip-6", "vip-10", "vip-16"] as VehicleType[]).map((tkey) => {
-            const cat = VEHICLE_CATALOG[tkey];
-            const available = availabilityByType[tkey];
-            const active = selected === tkey;
+        <>
+          {/* Service type cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {serviceTypes.map((st) => {
+              const available = availabilityByType[st.id] !== false;
+              const active = selectedType === st.id;
 
-            return (
-              <button
-                key={tkey}
-                type="button"
-                onClick={() => choose(tkey)}
-                disabled={!available || !dateTimeReady}
-                className={[ 
-                  "text-left rounded-lg border p-0 overflow-hidden transition",
-                  active ? "border-blue-500 ring-2 ring-blue-500/40 bg-white/5" : "border-white/10 hover:border-white/20",
-                  !available || !dateTimeReady ? "opacity-50 cursor-not-allowed" : "",
-                ].join(" ")}
-              >
-                {cat?.image ? (
-                  <Image
-                    src={cat.image}
-                    alt={cat.title}
-                    width={800}
-                    height={450}
-                    className="h-36 w-full object-cover"
-                  />
-                ) : (
-                  <div className="h-36 w-full bg-gradient-to-br from-neutral-800 to-neutral-900" />
-                )}
+              return (
+                <button
+                  key={st.id}
+                  type="button"
+                  onClick={() => chooseType(st.id)}
+                  disabled={!available || !dateTimeReady}
+                  className={[
+                    "text-left rounded-lg border p-0 overflow-hidden transition",
+                    active ? "border-blue-500 ring-2 ring-blue-500/40 bg-white/5" : "border-white/10 hover:border-white/20",
+                    !available || !dateTimeReady ? "opacity-50 cursor-not-allowed" : "",
+                  ].join(" ")}
+                >
+                  {st.image ? (
+                    <Image
+                      src={st.image}
+                      alt={getName(st, formData.lang)}
+                      width={800}
+                      height={450}
+                      className="h-36 w-full object-cover"
+                    />
+                  ) : (
+                    <div className="h-36 w-full bg-gradient-to-br from-neutral-800 to-neutral-900" />
+                  )}
 
-                <div className="p-4 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="text-lg font-semibold">
-                      {cat?.title || "VIP"} ({t("fleet.seats", { n: cat?.capacity ?? (tkey === "vip-6" ? 6 : 10) })})
+                  <div className="p-4 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="text-lg font-semibold">
+                        {getName(st, formData.lang)} ({t("fleet.seats", { n: st.capacity })})
+                      </div>
+                      <div className={`text-xs px-2 py-1 rounded ${available ? "bg-emerald-900/40 text-emerald-300" : "bg-red-900/40 text-red-300"}`}>
+                        {available ? t("step3.available") : t("step3.unavailable")}
+                      </div>
                     </div>
-                    <div className={`text-xs px-2 py-1 rounded ${available ? "bg-emerald-900/40 text-emerald-300" : "bg-red-900/40 text-red-300"}`}>
-                      {available ? t("step3.available") : t("step3.unavailable")}
+                    <div className="flex flex-wrap gap-2">
+                      {(st.features || []).map((f) => (
+                        <span
+                          key={f}
+                          className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-2 py-1 text-xs text-white/80"
+                          title={t(`feature.${f}`)}
+                        >
+                          <span>{FEAT_ICON[f] || "•"}</span>
+                          <span>{t(`feature.${f}`)}</span>
+                        </span>
+                      ))}
                     </div>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    {(cat?.features || []).map((f) => (
-                      <span
-                        key={f}
-                        className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-2 py-1 text-xs text-white/80"
-                        title={t(`feature.${f}`)}
-                      >
-                        <span>{FEAT_ICON[f] || "•"}</span>
-                        <span>{t(`feature.${f}`)}</span>
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </button>
-            );
-          })}
-        </div>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Variant selection */}
+          {selectedTypeObj && selectedTypeObj.variants.length > 1 && (
+            <div className="space-y-3">
+              <h3 className="text-lg font-medium">{t("step3.variant")}</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {selectedTypeObj.variants.map((v) => {
+                  const active = selectedVariant === v.key;
+                  return (
+                    <button
+                      key={v.key}
+                      type="button"
+                      onClick={() => chooseVariant(v.key)}
+                      className={[
+                        "text-left rounded-lg border p-4 transition",
+                        active ? "border-blue-500 ring-2 ring-blue-500/40 bg-white/5" : "border-white/10 hover:border-white/20",
+                      ].join(" ")}
+                    >
+                      <div className="font-semibold">{getName(v, formData.lang)}</div>
+                      {v.priceModifierEur > 0 && (
+                        <div className="text-sm text-green-400 mt-1">+€{v.priceModifierEur}</div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       <div className="flex items-center justify-between">

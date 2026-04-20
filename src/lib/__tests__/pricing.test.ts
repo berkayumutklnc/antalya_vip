@@ -22,7 +22,7 @@ describe("pricingMatrix", () => {
 });
 
 describe("getPrice", () => {
-  it("returns correct price for AYT → Belek vip-6", () => {
+  it("returns correct legacy fallback price for AYT → Belek vip-6", () => {
     expect(getPrice("Antalya Airport (AYT)", "Belek", "vip-6")).toBe(70);
   });
 
@@ -30,7 +30,7 @@ describe("getPrice", () => {
     expect(getPrice("Antalya Airport (AYT)", "Alanya", "vip-16")).toBe(250);
   });
 
-  it("handles reverse lookup (Belek → AYT)", () => {
+  it("handles reverse lookup for legacy vip-6 routes (Belek → AYT)", () => {
     expect(getPrice("Belek", "Antalya Airport (AYT)", "vip-6")).toBe(70);
   });
 

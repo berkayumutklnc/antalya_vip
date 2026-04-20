@@ -10,7 +10,7 @@ export async function POST(req: Request) {
   try {
     await verifyAdminToken(req);
     const db = getAdminClient();
-    const { action } = await req.json();
+    const { action, includeLegacyVip6 } = await req.json();
 
     switch (action) {
       case "purge_reservations": {
@@ -37,13 +37,21 @@ export async function POST(req: Request) {
       case "seed_vehicles": {
         const now = new Date().toISOString();
         const seeds = [
-          { type: "vip-6", plate: "07 VIP 001", driver_name: "Ali Genç", driver_phone: "+905550000001", created_at: now, updated_at: now },
-          { type: "vip-6", plate: "34 TL 5416", driver_name: "Berkay Umut KILINÇ", driver_phone: "+905550000002", created_at: now, updated_at: now },
           { type: "vip-10", plate: "07 ABC 101", driver_name: "Mehmet Kaya", driver_phone: "+905550000003", created_at: now, updated_at: now },
           { type: "vip-16", plate: "07 ABC 201", driver_name: "Mehmet Kaya", driver_phone: "+905550000003", created_at: now, updated_at: now },
         ];
+        if (includeLegacyVip6 === true) {
+          seeds.push(
+            { type: "vip-6", plate: "07 VIP 001", driver_name: "Ali Genç", driver_phone: "+905550000001", created_at: now, updated_at: now },
+            { type: "vip-6", plate: "34 TL 5416", driver_name: "Berkay Umut KILINÇ", driver_phone: "+905550000002", created_at: now, updated_at: now },
+          );
+        }
         const { data } = await db.from("vehicles").insert(seeds).select("id");
-        return NextResponse.json({ ok: true, created: data?.length ?? 0 });
+        return NextResponse.json({
+          ok: true,
+          created: data?.length ?? 0,
+          legacyVip6Included: includeLegacyVip6 === true,
+        });
       }
 
       default:

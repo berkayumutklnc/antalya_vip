@@ -242,3 +242,48 @@ export const NOTIFICATION_TYPE_LABELS: Record<NotificationType, string> = {
   cancel_rejected_customer: "Müşteri İptal Ret Bildirimi",
   status_changed_customer: "Müşteri Durum Değişikliği",
 };
+
+// ---------------------------------------------------------------------------
+// Telegram message templates (HTML parse mode)
+// ---------------------------------------------------------------------------
+
+export function getTelegramMessage(
+  type: NotificationType,
+  data: TemplateData,
+): string | null {
+  switch (type) {
+    case "reservation_created_admin":
+      return [
+        `🆕 <b>Yeni Rezervasyon</b>`,
+        ``,
+        `<b>Kod:</b> ${esc(data.code)}`,
+        `<b>Misafir:</b> ${esc(data.fullName)}`,
+        `<b>Telefon:</b> ${esc(data.phone)}`,
+        `<b>E-posta:</b> ${esc(data.email)}`,
+        `<b>Güzergah:</b> ${esc(data.from)} → ${esc(data.to)}`,
+        `<b>Tarih:</b> ${esc(data.date)} ${esc(data.time)}`,
+        `<b>Kişi:</b> ${data.adults ?? 1} yetişkin${data.babySeat ? ` + ${data.babySeat} bebek koltuğu` : ""}`,
+        `<b>Araç:</b> ${esc(data.vehicleType ?? "-")}`,
+        data.price ? `<b>Fiyat:</b> €${data.price}` : "",
+      ].filter(Boolean).join("\n");
+
+    case "cancel_requested_admin":
+      return [
+        `❌ <b>İptal Talebi</b>`,
+        ``,
+        `<b>Kod:</b> ${esc(data.code)}`,
+        `<b>Misafir:</b> ${esc(data.fullName)}`,
+        `<b>Güzergah:</b> ${esc(data.from)} → ${esc(data.to)}`,
+        `<b>Tarih:</b> ${esc(data.date)} ${esc(data.time)}`,
+        data.cancelReason ? `<b>Sebep:</b> ${esc(data.cancelReason)}` : "",
+      ].filter(Boolean).join("\n");
+
+    default:
+      return null;
+  }
+}
+
+/** Escape HTML special chars for Telegram HTML parse mode */
+function esc(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}

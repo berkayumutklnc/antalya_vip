@@ -42,7 +42,7 @@
 ## 5. Admin Panel
 
 - [ ] Navigate to `/admin/login`
-- [ ] Sign in with admin Firebase credentials
+- [ ] Sign in with admin Supabase credentials
 - [ ] `/admin` dashboard loads — shows reservation stats
 - [ ] `/admin/reservations` — list of reservations visible
 - [ ] Click a reservation → detail page loads
@@ -51,10 +51,12 @@
 
 ## 6. Notifications
 
-- [ ] After creating a reservation, check EmailJS dashboard for sent email
+- [ ] After creating a reservation, check Resend dashboard for sent email
+- [ ] After creating a reservation, check Telegram admin chat for alert message
 - [ ] After assigning vehicle, check for assignment notification email
 - [ ] In admin detail view: "Resend notification" button works
-- [ ] Check server logs for `[notify]` entries
+- [ ] In admin detail view: notification log shows email + telegram entries with correct statuses
+- [ ] Check server logs for `[notify]` and `[notifyTelegram]` entries
 
 ## 7. Consent & Analytics
 

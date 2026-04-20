@@ -33,7 +33,7 @@ interface TransferLandingFullProps {
 
 /** New data-driven landing page component */
 export function TransferLandingFull({ route, lang: langProp }: TransferLandingFullProps) {
-  const { lang: contextLang } = useI18nPublic();
+  const { lang: contextLang, t } = useI18nPublic();
   const rawLang = langProp || contextLang || "de";
   const validLang = (["tr", "de", "en", "ru"] as const).includes(rawLang as "tr")
     ? (rawLang as "tr" | "de" | "en" | "ru")
@@ -67,7 +67,7 @@ export function TransferLandingFull({ route, lang: langProp }: TransferLandingFu
               href="/#rezervasyon"
 className="inline-block rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white shadow-lg shadow-blue-600/20 hover:bg-blue-700 active:scale-95 transition-all duration-200"
             >
-              {validLang === "de" ? "Jetzt buchen" : validLang === "en" ? "Book Now" : validLang === "ru" ? "Забронировать" : "Şimdi Rezervasyon"}
+              {t("landing.cta.book")}
             </Link>
           </div>
         </header>
@@ -76,7 +76,7 @@ className="inline-block rounded-xl bg-blue-600 px-6 py-3 font-semibold text-whit
         {route.distances.length > 0 && (
           <section>
             <h2 className="text-xl font-bold mb-4">
-              {validLang === "de" ? "Routen & Fahrtzeiten" : validLang === "en" ? "Routes & Travel Times" : validLang === "ru" ? "Маршруты и время в пути" : "Rotalar & Süre"}
+              {t("landing.routes.title")}
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {route.distances.map((d) => (
@@ -88,7 +88,7 @@ className="inline-block rounded-xl bg-blue-600 px-6 py-3 font-semibold text-whit
             </div>
             {route.distanceKm > 0 && (
               <p className="mt-2 text-sm text-white/40">
-                {validLang === "de" ? `~${route.distanceKm} km vom Flughafen Antalya` : validLang === "en" ? `~${route.distanceKm} km from Antalya Airport` : validLang === "ru" ? `~${route.distanceKm} км от аэропорта Анталии` : `Antalya Havalimanı'ndan ~${route.distanceKm} km`}
+                {t("landing.routes.distance", { km: String(route.distanceKm) })}
               </p>
             )}
           </section>
@@ -100,7 +100,7 @@ className="inline-block rounded-xl bg-blue-600 px-6 py-3 font-semibold text-whit
         {/* Why Zenturo */}
         <section>
           <h2 className="text-xl font-bold mb-4">
-            {validLang === "de" ? `Warum ${SITE.shortName}?` : validLang === "en" ? `Why ${SITE.shortName}?` : validLang === "ru" ? `Почему ${SITE.shortName}?` : `Niçin ${SITE.shortName}?`}
+            {t("landing.whyUs.title", { name: SITE.shortName })}
           </h2>
           <ul className="space-y-2">
             {c.whyUs.map((item, i) => (
@@ -115,7 +115,7 @@ className="inline-block rounded-xl bg-blue-600 px-6 py-3 font-semibold text-whit
         {/* FAQ */}
         <section>
           <h2 className="text-xl font-bold mb-4">
-            {validLang === "de" ? "Häufige Fragen" : validLang === "en" ? "FAQ" : validLang === "ru" ? "Частые вопросы" : "Sık Sorulanlar"}
+            {t("landing.faq.title")}
           </h2>
           <div className="divide-y divide-white/10 rounded-xl border border-white/10">
             {c.faqs.map((faq, i) => (
@@ -130,16 +130,17 @@ className="inline-block rounded-xl bg-blue-600 px-6 py-3 font-semibold text-whit
         </section>
 
         {/* Trust signals */}
-        <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
           {[
-            { icon: "🛫", tr: "Uçuş Takibi", de: "Flugverfolgung", en: "Flight Tracking", ru: "Отслеживание" },
-            { icon: "👶", tr: "Ücretsiz Koltuk", de: "Gratis Kindersitz", en: "Free Child Seat", ru: "Детское кресло" },
-            { icon: "💰", tr: "Sabit Fiyat", de: "Festpreis", en: "Fixed Price", ru: "Фиксированная цена" },
-            { icon: "🕐", tr: "7/24 Hizmet", de: "24/7 Service", en: "24/7 Service", ru: "24/7 сервис" },
+            { icon: "🛫", title: t("landing.trust.flight"), desc: t("landing.trust.flightDesc") },
+            { icon: "👶", title: t("landing.trust.child"), desc: t("landing.trust.childDesc") },
+            { icon: "💰", title: t("landing.trust.price"), desc: t("landing.trust.priceDesc") },
+            { icon: "🕐", title: t("landing.trust.support"), desc: t("landing.trust.supportDesc") },
           ].map((b) => (
-            <div key={b.icon} className="rounded-lg border border-white/10 bg-white/[0.02] p-3 text-center">
+            <div key={b.icon} className="rounded-lg border border-white/10 bg-white/[0.02] p-4 text-center">
               <div className="text-2xl">{b.icon}</div>
-              <div className="mt-1 text-sm font-medium">{b[validLang]}</div>
+              <div className="mt-1 text-sm font-semibold">{b.title}</div>
+              <div className="mt-1 text-xs text-white/50">{b.desc}</div>
             </div>
           ))}
         </section>
@@ -147,17 +148,17 @@ className="inline-block rounded-xl bg-blue-600 px-6 py-3 font-semibold text-whit
         {/* CTA */}
         <section className="rounded-xl border border-blue-500/30 bg-blue-950/20 p-6 text-center">
           <h2 className="text-xl font-bold">
-            {validLang === "de" ? "Jetzt Ihren Transfer buchen" : validLang === "en" ? "Book your transfer now" : validLang === "ru" ? "Забронируйте трансфер сейчас" : "Hemen transferinizi rezerve edin"}
+            {t("landing.cta.title")}
           </h2>
           <p className="mt-2 text-white/70">
-            {validLang === "de" ? "Transparente Festpreise • Kostenlose Stornierung bis 24h vorher" : validLang === "en" ? "Transparent fixed pricing • Free cancellation up to 24h before" : validLang === "ru" ? "Прозрачные фиксированные цены • Бесплатная отмена до 24ч" : "Şeffaf sabit fiyat • 24 saat öncesine kadar ücretsiz iptal"}
+            {t("landing.cta.subtitle")}
           </p>
           <div className="mt-4 flex flex-wrap justify-center gap-3">
             <Link
               href="/#rezervasyon"
               className="inline-block rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white shadow-lg shadow-blue-600/20 hover:bg-blue-700 active:scale-95 transition-all duration-200"
             >
-              {validLang === "de" ? "Jetzt buchen" : validLang === "en" ? "Book Now" : validLang === "ru" ? "Забронировать" : "Şimdi Rezervasyon"}
+              {t("landing.cta.book")}
             </Link>
             <WhatsAppReserveButton city={route.slug} />
           </div>

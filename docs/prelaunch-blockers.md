@@ -10,20 +10,14 @@
 
 | Variable | Purpose | Where to Get |
 |----------|---------|--------------|
-| `FIREBASE_SERVICE_ACCOUNT_BASE64` | Server-side Firestore / Auth | Firebase Console → Project Settings → Service accounts → Generate new private key → base64-encode the JSON |
-| `NEXT_PUBLIC_FIREBASE_API_KEY` | Client Firebase SDK | Firebase Console → Project Settings → General → Web app config |
-| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | Client Firebase Auth | Same as above |
-| `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | Client Firestore | Same as above |
-| `NEXT_PUBLIC_FIREBASE_STORAGE` | Client Storage bucket | Same as above |
-| `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | Client messaging | Same as above |
-| `NEXT_PUBLIC_FIREBASE_APP_ID` | Client app identifier | Same as above |
-| `NEXT_PUBLIC_ADMIN_UID` | Admin dashboard access | Firebase Console → Authentication → Users → copy UID of admin user |
-| `EMAILJS_SERVICE_ID` | Server-side email notifications | EmailJS dashboard → Email Services |
-| `EMAILJS_PUBLIC_KEY` | EmailJS auth | EmailJS dashboard → Account → API Keys |
-| `EMAILJS_PRIVATE_KEY` | EmailJS server auth | Same as above |
-| `EMAILJS_TEMPLATE_ID` | Reservation confirmation email | EmailJS dashboard → Email Templates |
-| `EMAILJS_ASSIGN_TEMPLATE_ID` | Vehicle assignment email | Same (create separate template or reuse) |
-| `EMAILJS_CANCEL_TEMPLATE_ID` | Cancellation email | Same |
+| `NEXT_PUBLIC_SUPABASE_URL` | Client Supabase connection | Supabase Dashboard → Project Settings → API → Project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Client Supabase anonymous key | Supabase Dashboard → Project Settings → API → `anon` `public` key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server-side admin operations | Supabase Dashboard → Project Settings → API → `service_role` key (keep secret!) |
+| `NEXT_PUBLIC_ADMIN_UID` | Admin dashboard access | Supabase Dashboard → Authentication → Users → copy UID of admin user |
+| `RESEND_API_KEY` | Server-side email via Resend | Resend dashboard → API Keys |
+| `RESEND_FROM_EMAIL` | Sender address for emails | e.g. `Zenturo Travel <noreply@zenturotravel.com>` (must verify domain in Resend) |
+| `TELEGRAM_BOT_TOKEN` | Admin Telegram alerts | BotFather → /newbot → copy token |
+| `TELEGRAM_ADMIN_CHAT_IDS` | Comma-separated Telegram chat IDs | Message bot, use /getUpdates to find chat_id |
 | `NEXT_PUBLIC_GA_ID` | Google Analytics 4 | GA4 Admin → Data Streams → Measurement ID (G-XXXXXXXXXX) |
 
 ### Optional (have working defaults)
@@ -100,7 +94,7 @@ Configured in `src/config/site.ts` with current defaults:
 
 **Total external blockers: 3 categories**
 
-1. **15 env vars** need real values from Firebase, EmailJS, and GA4 dashboards
+1. **9 env vars** need real values from Supabase, Resend, Telegram, and GA4 dashboards
 2. **5 legal pages** need business owner review and confirmation
 3. **1 policy discrepancy** (24h vs 12h cancellation) needs business decision
 

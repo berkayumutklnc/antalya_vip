@@ -16,6 +16,8 @@ export const CreateReservationSchema = z.object({
   adults: z.number().int().min(1).max(50).optional().default(1),
   babySeat: z.number().int().min(0).max(10).optional().default(0),
   vehicleType: z.enum(vehicleTypes).optional(),
+  serviceTypeId: z.string().max(50).optional(),
+  serviceVariantKey: z.string().max(50).optional(),
   flightNo: z.string().max(20).nullish(),
   terminal: z.string().max(30).nullish(),
   baggageCount: z.number().int().min(0).max(99).nullish(),

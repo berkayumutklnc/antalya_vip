@@ -6,7 +6,7 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-export type NotificationChannel = "email" | "whatsapp_link" | "system";
+export type NotificationChannel = "email" | "telegram" | "whatsapp_link" | "system";
 export type NotificationLogStatus = "sent" | "failed" | "skipped" | "generated";
 export type TriggeredBy = "public" | "admin" | "system";
 

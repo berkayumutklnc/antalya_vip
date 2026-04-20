@@ -1,6 +1,6 @@
 # Supabase Schema Reference
 
-> Last updated: 2026-04-12 — migration hardening pass
+> Last updated: Phase 6 — added telegram channel, verified all Phase 2–5 columns
 
 ## Tables
 
@@ -24,7 +24,13 @@
 | `adults` | INT | Default 1 |
 | `baby_seat` | INT | Default 0 |
 | `vehicle_type` | TEXT | `vip-6`, `vip-10`, `vip-16` |
-| `price` | NUMERIC | Nullable |
+| `service_type_id` | TEXT | FK → service_types.id. Matches vehicle_type during transition. |
+| `service_variant_key` | TEXT | e.g. `standard`, `maybach` |
+| `price` | NUMERIC | Nullable. Backward-compat alias for `quoted_total_price`. |
+| `quoted_base_price` | NUMERIC | Route base price snapshot at booking time |
+| `variant_surcharge` | NUMERIC | Variant surcharge snapshot (default 0, Phase 2) |
+| `quoted_total_price` | NUMERIC | Final quoted price = base + surcharge |
+| `currency` | TEXT | Default `EUR` |
 | `lang` | TEXT | Default `de` |
 | `vehicle_id` | UUID FK → vehicles | Set on assignment |
 | `plate` | TEXT | Denormalized from vehicle on assignment |
@@ -56,6 +62,60 @@
 | `capacity` | INT | |
 | `created_at` | TIMESTAMPTZ | Default `now()` |
 | `updated_at` | TIMESTAMPTZ | Default `now()` |
+
+### `route_prices`
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID PK | Auto-generated |
+| `from_key` | TEXT NOT NULL | Canonical place key (e.g. `ayt`, `belek`) |
+| `to_key` | TEXT NOT NULL | Canonical place key |
+| `vehicle_type` | TEXT NOT NULL | `vip-6`, `vip-10`, `vip-16` |
+| `base_price_eur` | NUMERIC NOT NULL | Base price in EUR (must be > 0) |
+| `is_active` | BOOLEAN | Default `true`. Soft-delete sets to `false`. |
+| `updated_by` | TEXT | Admin UID who last modified |
+| `created_at` | TIMESTAMPTZ | Default `now()` |
+| `updated_at` | TIMESTAMPTZ | Default `now()` |
+
+**Constraints:** `UNIQUE(from_key, to_key, vehicle_type)`, `CHECK(base_price_eur > 0)`
+
+### `service_types`
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | TEXT PK | e.g. `vip-10`, `vip-16` |
+| `slug` | TEXT UNIQUE NOT NULL | URL-friendly slug |
+| `name_de` | TEXT | German name |
+| `name_en` | TEXT | English name |
+| `name_tr` | TEXT | Turkish name |
+| `name_ru` | TEXT | Russian name |
+| `capacity` | INT | Seat count |
+| `image` | TEXT | Path to vehicle image |
+| `features` | JSONB | Array of feature keys e.g. `["wifi","usb","ac"]` |
+| `sort_order` | INT | Display order |
+| `is_active` | BOOLEAN | Default `true` |
+| `is_bookable` | BOOLEAN | Default `true`. `false` = visible but not selectable for new bookings |
+| `created_at` | TIMESTAMPTZ | Default `now()` |
+| `updated_at` | TIMESTAMPTZ | Default `now()` |
+
+### `service_variants`
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID PK | Auto-generated |
+| `service_type_id` | TEXT FK → service_types | Parent service type |
+| `key` | TEXT NOT NULL | e.g. `standard`, `maybach` |
+| `name_de` | TEXT | German name |
+| `name_en` | TEXT | English name |
+| `name_tr` | TEXT | Turkish name |
+| `name_ru` | TEXT | Russian name |
+| `price_modifier_eur` | NUMERIC | Surcharge in EUR (default 0) |
+| `sort_order` | INT | Display order |
+| `is_active` | BOOLEAN | Default `true` |
+| `created_at` | TIMESTAMPTZ | Default `now()` |
+| `updated_at` | TIMESTAMPTZ | Default `now()` |
+
+**Constraints:** `UNIQUE(service_type_id, key)`
 
 ### `blocked_slots`
 
@@ -89,7 +149,7 @@
 | `id` | UUID PK | Auto-generated |
 | `reservation_id` | TEXT | Reservation **code** (not UUID FK). |
 | `reservation_code` | TEXT | Redundant — same as reservation_id |
-| `channel` | TEXT | `email`, `whatsapp_link`, `system` |
+| `channel` | TEXT | `email`, `telegram`, `whatsapp_link`, `system` |
 | `notification_type` | TEXT | e.g. `reservation_created_customer` |
 | `recipient` | TEXT | Email or phone |
 | `status` | TEXT | `sent`, `failed`, `skipped`, `generated` |
@@ -129,4 +189,6 @@ CREATE INDEX idx_blocked_slots_vehicle ON blocked_slots(vehicle_id);
 CREATE INDEX idx_reservation_events_rid ON reservation_events(reservation_id);
 CREATE INDEX idx_notification_logs_rid ON notification_logs(reservation_id);
 CREATE INDEX idx_notification_logs_dedupe ON notification_logs(dedupe_key, status, created_at);
+CREATE INDEX idx_route_prices_route ON route_prices(from_key, to_key);
+CREATE INDEX idx_route_prices_type ON route_prices(vehicle_type);
 ```

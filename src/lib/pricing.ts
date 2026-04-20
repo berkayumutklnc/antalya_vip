@@ -1,3 +1,10 @@
+/**
+ * @deprecated — Legacy hardcoded pricing matrix.
+ * Authoritative pricing now comes from the `route_prices` table via
+ * `src/lib/server/pricing.ts`. This module is kept only as a fallback
+ * for routes not yet seeded in the database. Do NOT add new prices here.
+ * Will be removed once DB seed is fully verified.
+ */
 import type { VehicleType } from "@/types/reservation";
 
 export interface RoutePricing {

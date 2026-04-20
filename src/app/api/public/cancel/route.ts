@@ -3,7 +3,7 @@ import { getAdminClient } from "@/lib/supabaseAdmin";
 import { PublicCancelSchema } from "@/lib/validation/publicLookup";
 import { canRequestCancel } from "@/lib/domain/reservationStatus";
 import { logCancelRequested } from "@/lib/server/reservationEvents";
-import { notify } from "@/lib/server/notifications";
+import { notify, notifyTelegram } from "@/lib/server/notifications";
 import { SITE } from "@/config/site";
 import { publicCancelLimiter, getClientIp } from "@/lib/server/rateLimit";
 export const runtime = "nodejs";
@@ -86,6 +86,23 @@ export async function POST(req: Request) {
       triggeredBy: "public",
       recipientOverride: SITE.email,
     }).catch((e) => console.error("[notify] cancel_requested_admin failed:", e));
+
+    notifyTelegram({
+      db,
+      type: "cancel_requested_admin",
+      data: {
+        code: d.code ?? normCode,
+        email: d.email ?? normMail,
+        fullName: d.full_name ?? "-",
+        from: d.from ?? "",
+        to: d.to ?? "",
+        date: d.date ?? "",
+        time: d.time ?? "",
+        phone: d.phone ?? "",
+        cancelReason: trimmedReason,
+      },
+      triggeredBy: "public",
+    }).catch((e) => console.error("[notifyTelegram] cancel_requested_admin failed:", e));
 
     return NextResponse.json({ ok: true });
   } catch {

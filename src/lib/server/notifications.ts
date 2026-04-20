@@ -1,12 +1,13 @@
 /**
  * Central notification service.
  *
- * Routes call `notify()` instead of provider-specific code directly.
- * The service handles:
+ * Routes call `notify()` / `notifyTelegram()` instead of provider-specific
+ * code directly. The service handles:
  *  1. Template lookup
  *  2. Deduplication check
- *  3. Email dispatch via EmailJS
- *  4. Logging the attempt to notification_logs
+ *  3. Email dispatch via Resend
+ *  4. Telegram dispatch via Bot API
+ *  5. Logging every attempt to notification_logs
  *
  * Design:
  * - All notifications are non-blocking fire-and-forget by default
@@ -15,73 +16,141 @@
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { Resend } from "resend";
 import {
   type NotificationType,
   type TemplateData,
   getEmailTemplate,
+  getTelegramMessage,
 } from "./notificationTemplates";
 import {
   writeNotificationLog,
   isDuplicateNotification,
   type TriggeredBy,
 } from "./notificationLog";
+import { sendToAdmins, isTelegramConfigured } from "./telegram";
 
 // ---------------------------------------------------------------------------
-// Email provider (EmailJS REST)
+// Email provider (Resend)
 // ---------------------------------------------------------------------------
 
-const SERVICE_ID = process.env.EMAILJS_SERVICE_ID;
-const PUBLIC_KEY = process.env.EMAILJS_PUBLIC_KEY;
-const PRIVATE_KEY = process.env.EMAILJS_PRIVATE_KEY;
+const RESEND_API_KEY = process.env.RESEND_API_KEY ?? "";
+const EMAIL_FROM = process.env.RESEND_FROM_EMAIL ?? "Zenturo Travel <noreply@zenturotravel.com>";
 
-const TEMPLATE_IDS: Record<string, string | undefined> = {
-  reservation: process.env.EMAILJS_TEMPLATE_ID,
-  assign: process.env.EMAILJS_ASSIGN_TEMPLATE_ID || process.env.EMAILJS_TEMPLATE_ID,
-  cancel: process.env.EMAILJS_CANCEL_TEMPLATE_ID || process.env.EMAILJS_TEMPLATE_ID,
-};
+let _resend: Resend | null = null;
+function getResend(): Resend | null {
+  if (!RESEND_API_KEY) return null;
+  if (!_resend) _resend = new Resend(RESEND_API_KEY);
+  return _resend;
+}
 
 function emailConfigured(): boolean {
-  return Boolean(SERVICE_ID && PUBLIC_KEY && TEMPLATE_IDS.reservation);
+  return Boolean(RESEND_API_KEY);
 }
 
 interface EmailSendResult {
   ok: boolean;
-  statusCode?: number;
+  id?: string;
   error?: string;
 }
 
-async function sendViaEmailJs(
+/**
+ * Build a plain-text email body from template params.
+ * Resend sends actual emails (subject + body) rather than
+ * filling a third-party template, so we construct the content here.
+ */
+function buildEmailBody(
   templateKey: string,
   params: Record<string, unknown>,
+): { subject: string; html: string } {
+  const code = String(params.id ?? params.code ?? "");
+  const name = String(params.fullName ?? "");
+  const from = String(params.from ?? "");
+  const to = String(params.to ?? "");
+  const date = String(params.date ?? "");
+  const time = String(params.time ?? "");
+
+  switch (templateKey) {
+    case "reservation":
+      return {
+        subject: `Rezervasyon ${code} — ${from} → ${to}`,
+        html: [
+          `<h2>Rezervasyon Bilgileri</h2>`,
+          `<p><strong>Kod:</strong> ${code}</p>`,
+          `<p><strong>Ad:</strong> ${name}</p>`,
+          `<p><strong>Güzergah:</strong> ${from} → ${to}</p>`,
+          `<p><strong>Tarih:</strong> ${date} ${time}</p>`,
+          `<p><strong>Kişi:</strong> ${params.passengers ?? 1} yetişkin, ${params.babySeat ?? 0} bebek koltuğu</p>`,
+          `<p><strong>Araç:</strong> ${params.vehicleType ?? "-"}</p>`,
+          params.price && params.price !== "-" ? `<p><strong>Fiyat:</strong> €${params.price}</p>` : "",
+          `<p><strong>Telefon:</strong> ${params.phone ?? "-"}</p>`,
+          `<p><strong>E-posta:</strong> ${params.email ?? "-"}</p>`,
+          params.status ? `<p><strong>Durum:</strong> ${params.status}</p>` : "",
+          `<br/><p>Zenturo Travel</p>`,
+        ].filter(Boolean).join("\n"),
+      };
+
+    case "assign":
+      return {
+        subject: `Araç Atandı — Kod ${code}`,
+        html: [
+          `<h2>Araç Atama Bildirimi</h2>`,
+          `<p><strong>Kod:</strong> ${code}</p>`,
+          `<p><strong>Güzergah:</strong> ${from} → ${to}</p>`,
+          `<p><strong>Tarih:</strong> ${date} ${time}</p>`,
+          `<p><strong>Şoför:</strong> ${params.driverName ?? "-"} (${params.driverPhone ?? "-"})</p>`,
+          `<p><strong>Plaka:</strong> ${params.vehiclePlate ?? "-"}</p>`,
+          `<br/><p>Zenturo Travel</p>`,
+        ].join("\n"),
+      };
+
+    case "cancel":
+      return {
+        subject: `İptal Bildirimi — Kod ${code}`,
+        html: [
+          `<h2>İptal Bildirimi</h2>`,
+          `<p><strong>Kod:</strong> ${code}</p>`,
+          `<p><strong>Ad:</strong> ${name}</p>`,
+          `<p><strong>Güzergah:</strong> ${from} → ${to}</p>`,
+          `<p><strong>Tarih:</strong> ${date} ${time}</p>`,
+          `<p><strong>Sebep:</strong> ${params.reason ?? "-"}</p>`,
+          `<br/><p>Zenturo Travel</p>`,
+        ].join("\n"),
+      };
+
+    default:
+      return {
+        subject: `Zenturo Travel Bildirim — ${code}`,
+        html: `<p>Rezervasyon kodu: ${code}</p>`,
+      };
+  }
+}
+
+async function sendViaResend(
+  templateKey: string,
+  params: Record<string, unknown>,
+  recipientEmail: string,
 ): Promise<EmailSendResult> {
-  if (!emailConfigured()) {
-    return { ok: false, error: "EmailJS not configured" };
+  const resend = getResend();
+  if (!resend) {
+    return { ok: false, error: "Resend not configured (missing RESEND_API_KEY)" };
   }
 
-  const templateId = TEMPLATE_IDS[templateKey];
-  if (!templateId) {
-    return { ok: false, error: `No template ID for key: ${templateKey}` };
-  }
-
-  const body: Record<string, unknown> = {
-    service_id: SERVICE_ID,
-    template_id: templateId,
-    user_id: PUBLIC_KEY,
-    template_params: params,
-  };
-  if (PRIVATE_KEY) body.accessToken = PRIVATE_KEY;
+  const { subject, html } = buildEmailBody(templateKey, params);
 
   try {
-    const res = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+    const { data, error } = await resend.emails.send({
+      from: EMAIL_FROM,
+      to: [recipientEmail],
+      subject,
+      html,
     });
-    if (res.ok) {
-      return { ok: true, statusCode: res.status };
+
+    if (error) {
+      return { ok: false, error: error.message?.slice(0, 500) ?? "Resend error" };
     }
-    const text = await res.text().catch(() => "");
-    return { ok: false, statusCode: res.status, error: text.slice(0, 500) };
+
+    return { ok: true, id: data?.id };
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);
     return { ok: false, error: msg.slice(0, 500) };
@@ -112,11 +181,11 @@ export interface NotifyResult {
 }
 
 /**
- * Central notification dispatch.
+ * Central email notification dispatch.
  *
  * 1. Looks up email template for the notification type
  * 2. Checks deduplication window (60s default)
- * 3. Sends email via provider
+ * 3. Sends email via Resend
  * 4. Writes notification_logs entry
  *
  * Returns a result object — never throws.
@@ -178,8 +247,8 @@ export async function notify(opts: NotifyOptions): Promise<NotifyResult> {
       return { sent: false, skipped: true, error: `No template for ${type}`, logId };
     }
 
-    // Send
-    const result = await sendViaEmailJs(template.templateKey, template.params);
+    // Send via Resend
+    const result = await sendViaResend(template.templateKey, template.params, recipient);
 
     const logId = await writeNotificationLog(db, {
       reservationId: data.code,
@@ -189,7 +258,7 @@ export async function notify(opts: NotifyOptions): Promise<NotifyResult> {
       recipient,
       status: result.ok ? "sent" : "failed",
       errorMessage: result.error ?? null,
-      providerMeta: result.statusCode ? { statusCode: result.statusCode } : null,
+      providerMeta: result.id ? { resendId: result.id } : null,
       triggeredBy,
       triggeredById,
       dedupeKey,
@@ -197,7 +266,7 @@ export async function notify(opts: NotifyOptions): Promise<NotifyResult> {
     });
 
     if (!result.ok) {
-      console.error(`[notify] ${type} failed for ${data.code}:`, result.error);
+      console.error(`[notify] ${type} email failed for ${data.code}:`, result.error);
     }
 
     return { sent: result.ok, skipped: false, error: result.error ?? null, logId };
@@ -205,7 +274,6 @@ export async function notify(opts: NotifyOptions): Promise<NotifyResult> {
     const msg = e instanceof Error ? e.message : String(e);
     console.error(`[notify] unexpected error for ${type}/${data.code}:`, msg);
 
-    // Best-effort log even on unexpected errors
     let logId: string | null = null;
     try {
       logId = await writeNotificationLog(db, {
@@ -227,6 +295,130 @@ export async function notify(opts: NotifyOptions): Promise<NotifyResult> {
     }
 
     return { sent: false, skipped: false, error: msg, logId };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Telegram notification dispatch
+// ---------------------------------------------------------------------------
+
+export interface TelegramNotifyResult {
+  sent: boolean;
+  recipientCount: number;
+  errors: string[];
+  logIds: string[];
+}
+
+/**
+ * Send a Telegram notification to all configured admin chat IDs.
+ *
+ * Builds a Telegram-specific message from the template registry,
+ * sends to each admin, and logs each attempt individually.
+ *
+ * Returns a result object — never throws.
+ */
+export async function notifyTelegram(opts: {
+  db: SupabaseClient;
+  type: NotificationType;
+  data: TemplateData;
+  triggeredBy: TriggeredBy;
+  triggeredById?: string | null;
+}): Promise<TelegramNotifyResult> {
+  const { db, type, data, triggeredBy, triggeredById = null } = opts;
+
+  const result: TelegramNotifyResult = { sent: false, recipientCount: 0, errors: [], logIds: [] };
+
+  try {
+    if (!isTelegramConfigured()) {
+      // Log that Telegram is not configured (single entry)
+      const logId = await writeNotificationLog(db, {
+        reservationId: data.code,
+        reservationCode: data.code,
+        channel: "telegram",
+        notificationType: type,
+        recipient: "admin",
+        status: "skipped",
+        errorMessage: "Telegram not configured",
+        providerMeta: null,
+        triggeredBy,
+        triggeredById,
+        dedupeKey: null,
+        timestamp: Date.now(),
+      });
+      result.logIds.push(logId);
+      return result;
+    }
+
+    const message = getTelegramMessage(type, data);
+    if (!message) {
+      const logId = await writeNotificationLog(db, {
+        reservationId: data.code,
+        reservationCode: data.code,
+        channel: "telegram",
+        notificationType: type,
+        recipient: "admin",
+        status: "skipped",
+        errorMessage: `No Telegram template for type: ${type}`,
+        providerMeta: null,
+        triggeredBy,
+        triggeredById,
+        dedupeKey: null,
+        timestamp: Date.now(),
+      });
+      result.logIds.push(logId);
+      return result;
+    }
+
+    const sendResults = await sendToAdmins(message);
+    result.recipientCount = sendResults.length;
+
+    for (const sr of sendResults) {
+      const logId = await writeNotificationLog(db, {
+        reservationId: data.code,
+        reservationCode: data.code,
+        channel: "telegram",
+        notificationType: type,
+        recipient: sr.chatId || "admin",
+        status: sr.ok ? "sent" : "failed",
+        errorMessage: sr.error ?? null,
+        providerMeta: sr.statusCode ? { statusCode: sr.statusCode, chatId: sr.chatId } : null,
+        triggeredBy,
+        triggeredById,
+        dedupeKey: null,
+        timestamp: Date.now(),
+      });
+      result.logIds.push(logId);
+      if (sr.ok) result.sent = true;
+      if (sr.error) result.errors.push(sr.error);
+    }
+
+    return result;
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error(`[notifyTelegram] unexpected error for ${type}/${data.code}:`, msg);
+
+    try {
+      const logId = await writeNotificationLog(db, {
+        reservationId: data.code,
+        reservationCode: data.code,
+        channel: "telegram",
+        notificationType: type,
+        recipient: "admin",
+        status: "failed",
+        errorMessage: msg.slice(0, 500),
+        providerMeta: null,
+        triggeredBy,
+        triggeredById,
+        dedupeKey: null,
+        timestamp: Date.now(),
+      });
+      result.logIds.push(logId);
+    } catch {
+      // Logging failure, give up
+    }
+
+    result.errors.push(msg);
+    return result;
   }
 }
 

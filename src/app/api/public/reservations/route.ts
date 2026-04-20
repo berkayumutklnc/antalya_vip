@@ -1,15 +1,15 @@
 import { NextResponse } from "next/server";
 import { getAdminClient } from "@/lib/supabaseAdmin";
 import { CreateReservationSchema } from "@/lib/validation/reservation";
-import { getPrice } from "@/lib/pricing";
+import { validateBookingEligibility } from "@/lib/server/bookingGuard";
+import { computeQuotedPrice } from "@/lib/server/pricing";
 import { istToUtcMs } from "@/utils/time";
 import { generateUniquePNR } from "@/lib/server/pnr";
 import { normalizePlaceFields } from "@/lib/domain/places";
 import { logCreated } from "@/lib/server/reservationEvents";
-import { notify } from "@/lib/server/notifications";
+import { notify, notifyTelegram } from "@/lib/server/notifications";
 import { SITE } from "@/config/site";
 import { reservationCreateLimiter, getClientIp } from "@/lib/server/rateLimit";
-import type { VehicleType } from "@/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -34,14 +34,45 @@ export async function POST(req: Request) {
     const input = parsed.data;
     const db = getAdminClient();
 
-    const price = input.vehicleType
-      ? getPrice(input.from, input.to, input.vehicleType as VehicleType)
-      : null;
+    // ── Gate 1: Service type + variant eligibility ──────────────
+    const guard = await validateBookingEligibility(
+      db,
+      input.serviceTypeId,
+      input.vehicleType,
+      input.serviceVariantKey,
+    );
+    if (!guard.ok) {
+      return NextResponse.json({ error: guard.error }, { status: guard.status });
+    }
+
+    const place = normalizePlaceFields(input.from, input.to);
+
+    // ── Gate 2: Price must resolve ──────────────────────────────
+    if (!place.fromKey || !place.toKey) {
+      return NextResponse.json(
+        { error: "Could not resolve route for pricing" },
+        { status: 400 },
+      );
+    }
+
+    const quote = await computeQuotedPrice(
+      db,
+      place.fromKey,
+      place.toKey,
+      guard.serviceTypeId,
+      guard.serviceVariantKey,
+    );
+
+    if (quote.quotedTotalPrice == null) {
+      return NextResponse.json(
+        { error: "Price could not be determined for this route and service type" },
+        { status: 400 },
+      );
+    }
 
     const startAt = istToUtcMs(input.date, input.time);
     const code = await generateUniquePNR(db);
     const now = new Date().toISOString();
-    const place = normalizePlaceFields(input.from, input.to);
 
     const payload = {
       code,
@@ -58,8 +89,14 @@ export async function POST(req: Request) {
       status: "pending" as const,
       adults: input.adults,
       baby_seat: input.babySeat,
-      vehicle_type: input.vehicleType ?? null,
-      price,
+      vehicle_type: input.vehicleType ?? guard.serviceTypeId,
+      service_type_id: guard.serviceTypeId,
+      service_variant_key: guard.serviceVariantKey,
+      price: quote.quotedTotalPrice,
+      quoted_base_price: quote.quotedBasePrice,
+      variant_surcharge: quote.variantSurcharge,
+      quoted_total_price: quote.quotedTotalPrice,
+      currency: quote.currency,
       lang: input.lang,
       cancel_requested: false,
       cancel_reason: null,
@@ -83,7 +120,7 @@ export async function POST(req: Request) {
       reservationId: code,
       reservationCode: code,
       actorType: "public",
-      meta: { from: input.from, to: input.to, vehicleType: input.vehicleType ?? null, price },
+      meta: { from: input.from, to: input.to, vehicleType: input.vehicleType ?? null, price: quote.quotedTotalPrice },
     }).catch((e) => console.error("[audit] reservation_created failed:", e));
 
     // Notifications (non-blocking)
@@ -97,7 +134,7 @@ export async function POST(req: Request) {
       adults: input.adults,
       babySeat: input.babySeat,
       vehicleType: input.vehicleType,
-      price,
+      price: quote.quotedTotalPrice,
       email: input.email.toLowerCase(),
       phone: input.phone,
       lang: input.lang,
@@ -106,6 +143,8 @@ export async function POST(req: Request) {
       .catch((e) => console.error("[notify] reservation_created_customer failed:", e));
     notify({ db, type: "reservation_created_admin", data: tplData, triggeredBy: "public", recipientOverride: SITE.email })
       .catch((e) => console.error("[notify] reservation_created_admin failed:", e));
+    notifyTelegram({ db, type: "reservation_created_admin", data: tplData, triggeredBy: "public" })
+      .catch((e) => console.error("[notifyTelegram] reservation_created_admin failed:", e));
 
     return NextResponse.json({ id: code, code }, { status: 201 });
   } catch (e: any) {

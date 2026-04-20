@@ -22,6 +22,7 @@ async function getAuthHeaders(): Promise<HeadersInit> {
 function DangerZoneInner() {
   const [log, setLog] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
+  const [includeLegacyVip6, setIncludeLegacyVip6] = useState(false);
 
   const push = (m: string) => setLog((xs) => [m, ...xs]);
 
@@ -73,11 +74,11 @@ function DangerZoneInner() {
       const res = await fetch("/api/admin/tools/reset", {
         method: "POST",
         headers,
-        body: JSON.stringify({ action: "seed_vehicles" }),
+        body: JSON.stringify({ action: "seed_vehicles", includeLegacyVip6 }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      push(`seed: ${data.created ?? 0} araç oluşturuldu.`);
+      push(`seed: ${data.created ?? 0} araç oluşturuldu.${data.legacyVip6Included ? " (legacy vip-6 dahil)" : ""}`);
     } catch (e: any) {
       push("Hata (seed): " + (e?.message ?? String(e)));
     } finally {
@@ -106,10 +107,18 @@ function DangerZoneInner() {
         />
         <ActionCard
           title="Demo Araçları Seed Et"
-          desc="3 örnek aracı merge eder."
+          desc="Varsayılan olarak sadece ticari teklif araçlarını (vip-10, vip-16) oluşturur."
           onClick={seedVehicles}
           disabled={busy}
         />
+        <label className="flex items-center gap-2 rounded-lg border border-white/10 p-3 text-sm">
+          <input
+            type="checkbox"
+            checked={includeLegacyVip6}
+            onChange={(e) => setIncludeLegacyVip6(e.target.checked)}
+          />
+          Legacy vip-6 araçlarını da seed et (yalnızca geçmiş veri uyumluluğu için)
+        </label>
       </div>
 
       <div className="rounded border border-white/10 p-3">

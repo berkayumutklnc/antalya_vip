@@ -1,11 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
-import { getPrice } from "@/lib/pricing";
+import React, { useEffect, useState } from "react";
+import { PLACES } from "@/config/places";
 import type { VehicleType } from "@/types";
 import { makeReservationIcs, downloadIcs } from "@/utils/ics";
 import { istToUtcMs } from "@/utils/time";
 import { useI18nPublic } from "@/lib/i18n-public";
+import {
+  resolveServiceTypeDisplayName,
+  resolveVariantDisplay,
+  type ServiceTypeDisplayItem,
+} from "@/lib/public/serviceDisplay";
 
 type ReservationFormDataStep4 = {
   lang: "de" | "en" | "tr" | "ru";
@@ -20,6 +25,8 @@ type ReservationFormDataStep4 = {
   phone: string;
   email: string;
   vehicleType?: VehicleType;
+  serviceTypeId?: string;
+  serviceVariantKey?: string;
   price?: number | null;
 
   flightNo?: string;
@@ -55,10 +62,81 @@ export default function Step4({
   const [err, setErr] = useState<string | null>(null);
   const [ok, setOk] = useState<boolean>(Boolean(submitted));
 
-  const autoPrice =
-    formData.from && formData.to && formData.vehicleType
-      ? getPrice(formData.from, formData.to, formData.vehicleType)
-      : null;
+  // Server-fetched price quote
+  const [quote, setQuote] = useState<{
+    basePriceEur: number;
+    variantSurcharge: number;
+    totalPriceEur: number;
+  } | null>(null);
+  const [serviceTypes, setServiceTypes] = useState<ServiceTypeDisplayItem[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetch("/api/public/service-types")
+      .then((r) => (r.ok ? r.json() : { items: [] }))
+      .then((data) => {
+        if (cancelled) return;
+        setServiceTypes((data?.items ?? []) as ServiceTypeDisplayItem[]);
+      })
+      .catch(() => {
+        if (!cancelled) setServiceTypes([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    const typeKey = formData.serviceTypeId || formData.vehicleType;
+    if (!formData.from || !formData.to || !typeKey) {
+      setQuote(null);
+      return;
+    }
+
+    const fromKey = PLACES.find((p) => p.label === formData.from)?.id ?? formData.from;
+    const toKey = PLACES.find((p) => p.label === formData.to)?.id ?? formData.to;
+    let cancelled = false;
+
+    const params = new URLSearchParams({
+      from_key: fromKey,
+      to_key: toKey,
+      vehicle_type: typeKey,
+    });
+    if (formData.serviceVariantKey) {
+      params.set("variant_key", formData.serviceVariantKey);
+    }
+
+    fetch(`/api/public/route-price?${params}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (cancelled || !data) return;
+        setQuote({
+          basePriceEur: data.basePriceEur,
+          variantSurcharge: data.variantSurcharge ?? 0,
+          totalPriceEur: data.totalPriceEur,
+        });
+      })
+      .catch(() => {});
+
+    return () => { cancelled = true; };
+  }, [formData.from, formData.to, formData.vehicleType, formData.serviceTypeId, formData.serviceVariantKey]);
+
+  const serviceTypeLabel = resolveServiceTypeDisplayName({
+    lang: formData.lang,
+    serviceTypeId: formData.serviceTypeId,
+    vehicleType: formData.vehicleType,
+    serviceTypes,
+  });
+
+  const variantLabel = resolveVariantDisplay({
+    lang: formData.lang,
+    serviceTypeId: formData.serviceTypeId || formData.vehicleType,
+    serviceVariantKey: formData.serviceVariantKey,
+    variantSurchargeEur: quote?.variantSurcharge,
+    serviceTypes,
+  });
 
   const missing =
     !formData.from || !formData.to || !formData.date || !formData.time ||
@@ -104,6 +182,8 @@ export default function Step4({
           adults: Number.isFinite(Number(formData.adults)) ? Number(formData.adults) : 1,
           babySeat: Number.isFinite(Number(formData.babySeat)) ? Number(formData.babySeat) : 0,
           vehicleType: formData.vehicleType ?? undefined,
+          serviceTypeId: formData.serviceTypeId ?? undefined,
+          serviceVariantKey: formData.serviceVariantKey ?? undefined,
           flightNo: formData.flightNo,
           terminal: formData.terminal,
           baggageCount: formData.baggageCount,
@@ -197,13 +277,25 @@ export default function Step4({
         <Row label={t("step4.row.fullName")} value={`${formData.firstName} ${formData.lastName}`.trim()} />
         <Row label={t("step4.row.phone")} value={formData.phone} />
         <Row label={t("step4.row.email")} value={formData.email} />
-        <Row label={t("step4.row.vehicle")} value={formData.vehicleType ?? "—"} />
-        <Row
-          label={t("step4.row.price")}
-          value={
-            formData.price ? `€${formData.price}` : autoPrice ? `€${autoPrice}` : "—"
-          }
-        />
+        <Row label={t("step4.row.vehicle")} value={serviceTypeLabel ?? "—"} />
+        {variantLabel && (
+          <Row label={t("step4.row.variant")} value={variantLabel} />
+        )}
+        {quote ? (
+          <>
+            <Row label={t("step4.row.basePrice")} value={`€${quote.basePriceEur}`} />
+            {quote.variantSurcharge > 0 && (
+              <Row label={t("step4.row.surcharge")} value={`+€${quote.variantSurcharge}`} />
+            )}
+            <Row label={t("step4.row.quotedTotal")} value={`€${quote.totalPriceEur}`} highlight />
+          </>
+        ) : (
+          <Row label={t("step4.row.price")} value={formData.price ? `€${formData.price}` : "—"} />
+        )}
+        <div className="pt-2 text-xs text-white/60 space-y-1">
+          <p>{t("step4.quote.note")}</p>
+          <p>{t("step4.payment.note")}</p>
+        </div>
       </div>
 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
   <div>
@@ -292,11 +384,11 @@ export default function Step4({
   );
 }
 
-function Row({ label, value }: { label: string; value: any }) {
+function Row({ label, value, highlight }: { label: string; value: any; highlight?: boolean }) {
   return (
-    <div className="flex justify-between border-b border-white/10 pb-2">
+    <div className={`flex justify-between border-b border-white/10 pb-2 ${highlight ? "font-bold text-green-400" : ""}`}>
       <span className="text-white/60">{label}:</span>
-      <span className="font-semibold">{String(value ?? "—")}</span>
+      <span className={highlight ? "font-bold" : "font-semibold"}>{String(value ?? "—")}</span>
     </div>
   );
 }

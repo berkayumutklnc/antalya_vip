@@ -11,6 +11,8 @@ const NAV = [
   { href: "/admin", key: "nav.dashboard", icon: "🏠" },
   { href: "/admin/reservations", key: "nav.reservations", icon: "🧾" },
   { href: "/admin/vehicles", key: "nav.vehicles", icon: "🚐" },
+  { href: "/admin/pricing", key: "nav.pricing", icon: "💰" },
+  { href: "/admin/service-catalog", key: "nav.serviceCatalog", icon: "📦" },
   { href: "/admin/calendar", key: "nav.calendar", icon: "🗓️" },
 ] as const;
 

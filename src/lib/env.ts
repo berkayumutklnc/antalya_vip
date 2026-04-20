@@ -22,13 +22,13 @@ export const env = {
     return process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
   },
 
-  // ── EmailJS (server) ───────────────────────────────────────────────────
-  get EMAILJS_SERVICE_ID() { return optional("EMAILJS_SERVICE_ID"); },
-  get EMAILJS_PUBLIC_KEY() { return optional("EMAILJS_PUBLIC_KEY"); },
-  get EMAILJS_PRIVATE_KEY() { return optional("EMAILJS_PRIVATE_KEY"); },
-  get EMAILJS_TEMPLATE_ID() { return optional("EMAILJS_TEMPLATE_ID"); },
-  get EMAILJS_ASSIGN_TEMPLATE_ID() { return optional("EMAILJS_ASSIGN_TEMPLATE_ID"); },
-  get EMAILJS_CANCEL_TEMPLATE_ID() { return optional("EMAILJS_CANCEL_TEMPLATE_ID"); },
+  // ── Resend (email) ──────────────────────────────────────────────────────
+  get RESEND_API_KEY() { return optional("RESEND_API_KEY"); },
+  get RESEND_FROM_EMAIL() { return optional("RESEND_FROM_EMAIL", "Zenturo Travel <noreply@zenturotravel.com>"); },
+
+  // ── Telegram (admin alerts) ────────────────────────────────────────────
+  get TELEGRAM_BOT_TOKEN() { return optional("TELEGRAM_BOT_TOKEN"); },
+  get TELEGRAM_ADMIN_CHAT_IDS() { return optional("TELEGRAM_ADMIN_CHAT_IDS"); },
 
   // ── Public vars (safe to read anywhere) ────────────────────────────────
   NEXT_PUBLIC_SITE_URL: optional("NEXT_PUBLIC_SITE_URL", "https://zenturotravel.com"),
@@ -53,9 +53,9 @@ export function validateServerEnv(): void {
 
   // warn-if-missing (degraded but functional)
   for (const name of [
-    "EMAILJS_SERVICE_ID",
-    "EMAILJS_PUBLIC_KEY",
-    "EMAILJS_PRIVATE_KEY",
+    "RESEND_API_KEY",
+    "TELEGRAM_BOT_TOKEN",
+    "TELEGRAM_ADMIN_CHAT_IDS",
     "NEXT_PUBLIC_GA_ID",
   ]) {
     if (!process.env[name]) warn.push(name);

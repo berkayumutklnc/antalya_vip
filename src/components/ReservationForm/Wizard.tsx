@@ -21,7 +21,9 @@ type FormShape = {
   lastName: string;
   phone: string;
   email: string;
-  vehicleType?: VehicleType; 
+  vehicleType?: VehicleType;
+  serviceTypeId?: string;
+  serviceVariantKey?: string;
   price?: number | null;
 };
 
@@ -38,6 +40,8 @@ const makeInitial = (lang: FormShape["lang"]): FormShape => ({
   phone: "",
   email: "",
   vehicleType: undefined,
+  serviceTypeId: undefined,
+  serviceVariantKey: undefined,
   price: undefined,
 });
 
@@ -79,6 +83,8 @@ export default function Wizard() {
           adults: formData.adults,
           babySeat: formData.babySeat,
           vehicleType: formData.vehicleType,
+          serviceTypeId: formData.serviceTypeId,
+          serviceVariantKey: formData.serviceVariantKey,
           acceptPolicy: true,
           acceptKvkk: true,
         }),

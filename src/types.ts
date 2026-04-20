@@ -1,5 +1,33 @@
 export type VehicleType = "vip-6" | "vip-10" | "vip-16";
 
+export interface ServiceType {
+  id: string;
+  slug: string;
+  nameDe: string;
+  nameEn: string;
+  nameTr: string;
+  nameRu: string;
+  capacity: number;
+  image: string;
+  features: string[];
+  sortOrder: number;
+  isActive: boolean;
+  isBookable: boolean;
+}
+
+export interface ServiceVariant {
+  id: string;
+  serviceTypeId: string;
+  key: string;
+  nameDe: string;
+  nameEn: string;
+  nameTr: string;
+  nameRu: string;
+  priceModifierEur: number;
+  sortOrder: number;
+  isActive: boolean;
+}
+
 export interface BlockedSlot {
   startAt: number;
   endAt: number;
@@ -51,6 +79,10 @@ export interface Reservation {
   email: string;
 
   price?: number | null;
+  quotedBasePrice?: number | null;
+  variantSurcharge?: number | null;
+  quotedTotalPrice?: number | null;
+  currency?: string | null;
   cancel?: {
     requested: boolean;
     reason: string | null;
@@ -58,6 +90,8 @@ export interface Reservation {
     canceledAt: number | null;
   } | null;
   vehicleType?: VehicleType;
+  serviceTypeId?: string | null;
+  serviceVariantKey?: string | null;
   vehicleId?: string;
   plate?: string;
   driverName?: string;
