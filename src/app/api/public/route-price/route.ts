@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAdminClient } from "@/lib/supabaseAdmin";
 import { computeQuotedPrice } from "@/lib/server/pricing";
+import { validateBookingEligibility } from "@/lib/server/bookingGuard";
 import { availabilityLimiter, getClientIp } from "@/lib/server/rateLimit";
 
 export const runtime = "nodejs";
@@ -27,9 +28,20 @@ export async function GET(req: Request) {
   }
 
   const db = getAdminClient();
-  const result = await computeQuotedPrice(db, fromKey, toKey, vehicleType, variantKey);
+  const guard = await validateBookingEligibility(db, undefined, vehicleType, variantKey);
+  if (!guard.ok) {
+    return NextResponse.json({ error: guard.error }, { status: guard.status });
+  }
 
-  if (result.quotedBasePrice === null) {
+  const result = await computeQuotedPrice(
+    db,
+    fromKey,
+    toKey,
+    guard.serviceTypeId,
+    guard.serviceVariantKey,
+  );
+
+  if (result.quotedBasePrice === null || result.quotedTotalPrice === null) {
     return NextResponse.json(
       { error: "No price found for this route" },
       { status: 404 },

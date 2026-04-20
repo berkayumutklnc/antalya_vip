@@ -1,6 +1,6 @@
 # Supabase Schema Reference
 
-> Last updated: Phase 6 — added telegram channel, verified all Phase 2–5 columns
+> Last updated: Phase D pricing list integration — added final airport-origin route price migration (`docs/migration-phase4-airport-final-pricing.sql`)
 
 ## Tables
 

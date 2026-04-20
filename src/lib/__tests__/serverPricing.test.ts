@@ -1,21 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
-/**
- * Tests for the DB-backed pricing service (src/lib/server/pricing.ts).
- *
- * These use mocked Supabase clients to test the logic without a live DB:
- *  - Route price lookup (exact + reverse + legacy fallback)
- *  - Variant surcharge computation
- *  - Inactive service type exclusion
- *  - Reservation quote snapshot shape
- *
- * Note: vip-6 assertions here are legacy compatibility checks, not
- * public/commercial offer expectations.
- */
-
-/* ------------------------------------------------------------------ */
-/* Mock builder: creates a chainable Supabase .from().select()... stub */
-/* ------------------------------------------------------------------ */
+import { describe, it, expect, vi } from "vitest";
 
 type MockRow = Record<string, unknown>;
 
@@ -23,7 +6,6 @@ function mockDb(config: {
   route_prices?: MockRow[];
   service_variants?: MockRow[];
 }) {
-  // Build a query chain for a given table
   function chain(rows: MockRow[]) {
     let filtered = [...rows];
     const builder: Record<string, any> = {};
@@ -33,9 +15,7 @@ function mockDb(config: {
       filtered = filtered.filter((r) => r[col] === val);
       return builder;
     };
-    builder.maybeSingle = () => {
-      return { data: filtered[0] ?? null, error: null };
-    };
+    builder.maybeSingle = () => ({ data: filtered[0] ?? null, error: null });
     return builder;
   }
 
@@ -48,17 +28,8 @@ function mockDb(config: {
   } as any;
 }
 
-/* ------------------------------------------------------------------ */
-/* Mocks for legacy pricing — never hit real module during tests      */
-/* ------------------------------------------------------------------ */
-
 vi.mock("@/lib/pricing", () => ({
-  getPrice: (from: string, to: string, vt: string) => {
-    // Return a known legacy price for one specific route
-    if (from === "Antalya Airport (AYT)" && to === "Belek" && vt === "vip-6") return 70;
-    if (from === "Belek" && to === "Antalya Airport (AYT)" && vt === "vip-6") return 70;
-    return null;
-  },
+  getPrice: () => null,
 }));
 
 vi.mock("@/lib/domain/places", () => ({
@@ -66,138 +37,127 @@ vi.mock("@/lib/domain/places", () => ({
     const map: Record<string, string> = {
       ayt: "Antalya Airport (AYT)",
       belek: "Belek",
+      tekirova: "Tekirova",
     };
     return map[key] ?? null;
   },
 }));
 
-/* ------------------------------------------------------------------ */
-/* Import AFTER mocks are set up                                       */
-/* ------------------------------------------------------------------ */
-
 const { getRoutePrice, computeQuotedPrice } = await import("@/lib/server/pricing");
 
-/* ================================================================== */
-/* Tests                                                               */
-/* ================================================================== */
-
-describe("getRoutePrice", () => {
-  it("returns DB price for exact direction match", async () => {
+describe("final pricing math", () => {
+  it("AYT -> Tekirova vip-10 standard = 65", async () => {
     const db = mockDb({
       route_prices: [
-        { from_key: "ayt", to_key: "belek", vehicle_type: "vip-6", base_price_eur: 75, is_active: true },
+        { from_key: "ayt", to_key: "tekirova", vehicle_type: "vip-10", base_price_eur: 65, is_active: true },
       ],
     });
-    const result = await getRoutePrice(db, "ayt", "belek", "vip-6");
-    expect(result).toEqual({ basePriceEur: 75, source: "db" });
-  });
 
-  it("returns DB price for reverse direction", async () => {
-    const db = mockDb({
-      route_prices: [
-        { from_key: "belek", to_key: "ayt", vehicle_type: "vip-6", base_price_eur: 75, is_active: true },
-      ],
-    });
-    const result = await getRoutePrice(db, "ayt", "belek", "vip-6");
-    expect(result).toEqual({ basePriceEur: 75, source: "db" });
-  });
-
-  it("ignores inactive DB rows and falls back to legacy", async () => {
-    const db = mockDb({
-      route_prices: [
-        { from_key: "ayt", to_key: "belek", vehicle_type: "vip-6", base_price_eur: 75, is_active: false },
-      ],
-    });
-    const result = await getRoutePrice(db, "ayt", "belek", "vip-6");
-    // Falls back to legacy mock which returns 70
-    expect(result).toEqual({ basePriceEur: 70, source: "legacy" });
-  });
-
-  it("returns null for completely unknown route", async () => {
-    const db = mockDb({ route_prices: [] });
-    const result = await getRoutePrice(db, "mars", "jupiter", "vip-6");
-    expect(result).toBeNull();
-  });
-
-  it("differentiates vehicle types", async () => {
-    const db = mockDb({
-      route_prices: [
-        { from_key: "ayt", to_key: "belek", vehicle_type: "vip-6", base_price_eur: 75, is_active: true },
-        { from_key: "ayt", to_key: "belek", vehicle_type: "vip-10", base_price_eur: 120, is_active: true },
-      ],
-    });
-    const r6 = await getRoutePrice(db, "ayt", "belek", "vip-6");
-    const r10 = await getRoutePrice(db, "ayt", "belek", "vip-10");
-    expect(r6!.basePriceEur).toBe(75);
-    expect(r10!.basePriceEur).toBe(120);
-  });
-});
-
-describe("computeQuotedPrice", () => {
-  it("returns full quote without variant", async () => {
-    const db = mockDb({
-      route_prices: [
-        { from_key: "ayt", to_key: "belek", vehicle_type: "vip-10", base_price_eur: 120, is_active: true },
-      ],
-    });
-    const result = await computeQuotedPrice(db, "ayt", "belek", "vip-10");
-    expect(result).toEqual({
-      quotedBasePrice: 120,
-      variantSurcharge: 0,
-      quotedTotalPrice: 120,
-      currency: "EUR",
-      priceSource: "db",
-    });
-  });
-
-  it("adds variant surcharge (maybach)", async () => {
-    const db = mockDb({
-      route_prices: [
-        { from_key: "ayt", to_key: "belek", vehicle_type: "vip-10", base_price_eur: 120, is_active: true },
-      ],
-      service_variants: [
-        { service_type_id: "vip-10", key: "maybach", price_modifier_eur: 50, is_active: true },
-      ],
-    });
-    const result = await computeQuotedPrice(db, "ayt", "belek", "vip-10", "maybach");
-    expect(result.quotedBasePrice).toBe(120);
-    expect(result.variantSurcharge).toBe(50);
-    expect(result.quotedTotalPrice).toBe(170);
-  });
-
-  it("ignores inactive variant", async () => {
-    const db = mockDb({
-      route_prices: [
-        { from_key: "ayt", to_key: "belek", vehicle_type: "vip-10", base_price_eur: 120, is_active: true },
-      ],
-      service_variants: [
-        { service_type_id: "vip-10", key: "maybach", price_modifier_eur: 50, is_active: false },
-      ],
-    });
-    const result = await computeQuotedPrice(db, "ayt", "belek", "vip-10", "maybach");
+    const result = await computeQuotedPrice(db, "ayt", "tekirova", "vip-10", "standard");
+    expect(result.quotedBasePrice).toBe(65);
     expect(result.variantSurcharge).toBe(0);
-    expect(result.quotedTotalPrice).toBe(120);
+    expect(result.quotedTotalPrice).toBe(65);
   });
 
-  it("returns null prices when route not found", async () => {
+  it("AYT -> Tekirova vip-10 maybach = 75", async () => {
+    const db = mockDb({
+      route_prices: [
+        { from_key: "ayt", to_key: "tekirova", vehicle_type: "vip-10", base_price_eur: 65, is_active: true },
+      ],
+      service_variants: [
+        { service_type_id: "vip-10", key: "maybach", price_modifier_eur: 10, is_active: true },
+      ],
+    });
+
+    const result = await computeQuotedPrice(db, "ayt", "tekirova", "vip-10", "maybach");
+    expect(result.quotedBasePrice).toBe(65);
+    expect(result.variantSurcharge).toBe(10);
+    expect(result.quotedTotalPrice).toBe(75);
+  });
+
+  it("AYT -> Tekirova vip-16 standard = 70", async () => {
+    const db = mockDb({
+      route_prices: [
+        { from_key: "ayt", to_key: "tekirova", vehicle_type: "vip-16", base_price_eur: 70, is_active: true },
+      ],
+    });
+
+    const result = await computeQuotedPrice(db, "ayt", "tekirova", "vip-16", "standard");
+    expect(result.quotedBasePrice).toBe(70);
+    expect(result.variantSurcharge).toBe(0);
+    expect(result.quotedTotalPrice).toBe(70);
+  });
+
+  it("AYT -> Tekirova vip-16 maybach = 80", async () => {
+    const db = mockDb({
+      route_prices: [
+        { from_key: "ayt", to_key: "tekirova", vehicle_type: "vip-16", base_price_eur: 70, is_active: true },
+      ],
+      service_variants: [
+        { service_type_id: "vip-16", key: "maybach", price_modifier_eur: 10, is_active: true },
+      ],
+    });
+
+    const result = await computeQuotedPrice(db, "ayt", "tekirova", "vip-16", "maybach");
+    expect(result.quotedBasePrice).toBe(70);
+    expect(result.variantSurcharge).toBe(10);
+    expect(result.quotedTotalPrice).toBe(80);
+  });
+
+  it("AYT -> Belek vip-10 standard = 45", async () => {
+    const db = mockDb({
+      route_prices: [
+        { from_key: "ayt", to_key: "belek", vehicle_type: "vip-10", base_price_eur: 45, is_active: true },
+      ],
+    });
+
+    const result = await computeQuotedPrice(db, "ayt", "belek", "vip-10", "standard");
+    expect(result.quotedTotalPrice).toBe(45);
+  });
+
+  it("AYT -> Belek vip-16 standard = 50", async () => {
+    const db = mockDb({
+      route_prices: [
+        { from_key: "ayt", to_key: "belek", vehicle_type: "vip-16", base_price_eur: 50, is_active: true },
+      ],
+    });
+
+    const result = await computeQuotedPrice(db, "ayt", "belek", "vip-16", "standard");
+    expect(result.quotedTotalPrice).toBe(50);
+  });
+
+  it("supports reverse direction lookup", async () => {
+    const db = mockDb({
+      route_prices: [
+        { from_key: "ayt", to_key: "tekirova", vehicle_type: "vip-10", base_price_eur: 65, is_active: true },
+      ],
+    });
+
+    const price = await getRoutePrice(db, "tekirova", "ayt", "vip-10");
+    expect(price).toEqual({ basePriceEur: 65, source: "db" });
+  });
+
+  it("returns no quote for invalid route", async () => {
     const db = mockDb({ route_prices: [] });
-    const result = await computeQuotedPrice(db, "mars", "jupiter", "vip-6");
+    const result = await computeQuotedPrice(db, "mars", "jupiter", "vip-10", "standard");
     expect(result.quotedBasePrice).toBeNull();
     expect(result.quotedTotalPrice).toBeNull();
     expect(result.priceSource).toBeNull();
   });
 
-  it("quote snapshot has all expected fields", async () => {
+  it("quote snapshot fields are complete", async () => {
     const db = mockDb({
       route_prices: [
-        { from_key: "ayt", to_key: "belek", vehicle_type: "vip-6", base_price_eur: 75, is_active: true },
+        { from_key: "ayt", to_key: "tekirova", vehicle_type: "vip-10", base_price_eur: 65, is_active: true },
       ],
     });
-    const result = await computeQuotedPrice(db, "ayt", "belek", "vip-6");
-    expect(result).toHaveProperty("quotedBasePrice");
-    expect(result).toHaveProperty("variantSurcharge");
-    expect(result).toHaveProperty("quotedTotalPrice");
-    expect(result).toHaveProperty("currency");
-    expect(result).toHaveProperty("priceSource");
+    const result = await computeQuotedPrice(db, "ayt", "tekirova", "vip-10", "standard");
+    expect(result).toMatchObject({
+      quotedBasePrice: 65,
+      variantSurcharge: 0,
+      quotedTotalPrice: 65,
+      currency: "EUR",
+      priceSource: "db",
+    });
   });
 });

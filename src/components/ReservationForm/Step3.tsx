@@ -187,6 +187,10 @@ export default function Step3({
     <div className="space-y-6">
       <h2 className="text-xl font-semibold">{t("step3.title")}</h2>
 
+      <div className="rounded-md border border-blue-600/40 bg-blue-900/20 p-3 text-blue-100 text-sm">
+        <p>{t("step3.pricingModel.note")}</p>
+      </div>
+
       {babySeatWarning && (
         <div className="rounded-md border border-yellow-600/40 bg-yellow-900/20 p-3 text-yellow-200">
           {t("step3.babySeat.warn")}
@@ -343,6 +347,9 @@ export default function Step3({
                       <div className="font-semibold">{getName(v, formData.lang)}</div>
                       {v.priceModifierEur > 0 && (
                         <div className="text-sm text-green-400 mt-1">+€{v.priceModifierEur}</div>
+                      )}
+                      {v.key === "maybach" && (
+                        <div className="text-xs text-white/60 mt-1">{t("step3.variant.maybachNote")}</div>
                       )}
                     </button>
                   );

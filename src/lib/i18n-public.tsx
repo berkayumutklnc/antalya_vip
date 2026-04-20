@@ -105,6 +105,8 @@ const dictionaries = {
     "step3.back": "Geri",
     "step3.next": "Devam",
     "step3.variant": "Paket Seçimi",
+    "step3.pricingModel.note": "Canli teklif, rota + servis tipi + pakete gore hesaplanir: VIP-10 Standart baz fiyat, Maybach +10 EUR; VIP-16 Standart VIP-10 bazina gore +5 EUR.",
+    "step3.variant.maybachNote": "Maybach paketi: +10 EUR",
 
     "step4.title": "Özet & Onay",
     "step4.row.from": "Nereden",
@@ -313,6 +315,8 @@ const dictionaries = {
     "step3.back": "Back",
     "step3.next": "Continue",
     "step3.variant": "Choose Package",
+    "step3.pricingModel.note": "Live quote is calculated by route + service type + package: VIP-10 Standard uses base fare, Maybach adds +10 EUR; VIP-16 Standard is +5 EUR versus VIP-10 base.",
+    "step3.variant.maybachNote": "Maybach package: +10 EUR",
 
     "step4.title": "Summary & Confirm",
     "step4.row.from": "From",
@@ -524,6 +528,8 @@ const dictionaries = {
     "step3.back": "Zurück",
     "step3.next": "Weiter",
     "step3.variant": "Paket wählen",
+    "step3.pricingModel.note": "Das Live-Angebot wird nach Route + Service-Typ + Paket berechnet: VIP-10 Standard ist der Basispreis, Maybach +10 EUR; VIP-16 Standard liegt +5 EUR ueber der VIP-10 Basis.",
+    "step3.variant.maybachNote": "Maybach-Paket: +10 EUR",
 
     "step4.title": "Zusammenfassung & Bestätigung",
     "step4.row.from": "Von",
@@ -733,6 +739,8 @@ const dictionaries = {
     "step3.back": "Назад",
     "step3.next": "Далее",
     "step3.variant": "Выбор пакета",
+    "step3.pricingModel.note": "Онлайн-расчет формируется по маршруту + типу сервиса + пакету: VIP-10 Standard = базовый тариф, Maybach +10 EUR; VIP-16 Standard = +5 EUR к базе VIP-10.",
+    "step3.variant.maybachNote": "Пакет Maybach: +10 EUR",
 
     "step4.title": "Итог & Подтверждение",
     "step4.row.from": "Откуда",

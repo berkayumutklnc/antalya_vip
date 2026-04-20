@@ -23,6 +23,25 @@ describe("PLACES config", () => {
   it("exports correct PLACE_LABELS count", () => {
     expect(PLACE_LABELS.length).toBe(PLACES.length);
   });
+
+  it("includes required canonical airport pricing keys", () => {
+    const ids = new Set(PLACES.map((p) => p.id));
+    for (const key of [
+      "ayt",
+      "tekirova",
+      "beldibi",
+      "kemer",
+      "side",
+      "belek",
+      "gundogdu",
+      "kizilagac",
+      "okurcalar",
+      "konakli",
+      "alanya",
+    ]) {
+      expect(ids.has(key)).toBe(true);
+    }
+  });
 });
 
 describe("placeById", () => {

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { PLACES } from "@/config/places";
 import { getPublicBookableServiceTypes } from "@/lib/public/serviceCatalog";
-import { getLocalizedServiceName } from "@/lib/public/serviceDisplay";
+import { getLocalizedServiceName, resolveServiceTypeDisplayName } from "@/lib/public/serviceDisplay";
 
 type ServiceTypeItem = {
   id: string;
@@ -30,6 +30,13 @@ const CTA_LABEL: Record<string, string> = {
   de: "Angebot erhalten und Buchungsanfrage senden",
   en: "Get quote and send reservation request",
   ru: "Получить расчёт и отправить заявку",
+};
+
+const MODEL_NOTE: Record<string, string> = {
+  tr: "Gosterilen fiyatlar standart paket baz fiyatlardir. Maybach paketi +10 EUR uygulanir.",
+  de: "Die angezeigten Preise sind Standard-Basispreise. Fuer das Maybach-Paket gilt +10 EUR.",
+  en: "Shown prices are standard package base fares. Maybach package adds +10 EUR.",
+  ru: "Показаны базовые тарифы пакета Standard. Пакет Maybach: +10 EUR.",
 };
 
 function labelToKey(label: string): string | undefined {
@@ -124,7 +131,13 @@ export default function PricingPreview({
             <div className="text-sm text-white/50">
               {(() => {
                 const type = serviceTypes.find((st) => st.id === key);
-                if (!type) return key;
+                if (!type) {
+                  return resolveServiceTypeDisplayName({
+                    lang: toLang(lang),
+                    serviceTypeId: key,
+                    serviceTypes: serviceTypes as any,
+                  }) ?? "VIP";
+                }
                 return getLocalizedServiceName(type, toLang(lang));
               })()}
             </div>
@@ -135,6 +148,9 @@ export default function PricingPreview({
         ))}
       </div>
       <p className="mt-2 text-xs text-white/40">
+        {MODEL_NOTE[lang] || MODEL_NOTE.en}
+      </p>
+      <p className="mt-1 text-xs text-white/40">
         {lang === "de"
           ? "Richtpreis pro Strecke inkl. MwSt., basierend auf Service-Typ. Paket-/Variantenwahl kann den Endpreis beeinflussen. Keine Online-Zahlung."
           : lang === "en"

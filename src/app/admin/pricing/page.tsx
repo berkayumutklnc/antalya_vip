@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import AdminGate from "@/components/AdminGate";
 import { useI18n } from "@/lib/i18n-admin";
 import { getSupabaseClient } from "@/lib/supabase";
+import { PLACES } from "@/config/places";
 
 type RoutePrice = {
   id: string;
@@ -28,23 +29,7 @@ type ServiceType = {
   isBookable: boolean;
 };
 
-const PLACE_OPTIONS = [
-  { id: "ayt", label: "Antalya Airport (AYT)" },
-  { id: "antalya", label: "Antalya City Center" },
-  { id: "lara", label: "Lara" },
-  { id: "kundu", label: "Kundu" },
-  { id: "belek", label: "Belek" },
-  { id: "side", label: "Side" },
-  { id: "manavgat", label: "Manavgat" },
-  { id: "alanya", label: "Alanya" },
-  { id: "kemer", label: "Kemer" },
-  { id: "kas", label: "Kaş" },
-  { id: "kalkan", label: "Kalkan" },
-  { id: "goynuk", label: "Göynük" },
-  { id: "beldibi", label: "Beldibi" },
-  { id: "cirali", label: "Çıralı" },
-  { id: "olimpos", label: "Olimpos" },
-];
+const PLACE_OPTIONS = PLACES;
 
 const LEGACY_SERVICE_TYPES = ["vip-6"] as const;
 

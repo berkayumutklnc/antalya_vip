@@ -25,6 +25,20 @@ function titleCaseFromKey(s: string): string {
     .join(" ");
 }
 
+function standardLabel(lang: Lang): string {
+  switch (lang) {
+    case "tr":
+      return "Standart";
+    case "de":
+      return "Standard";
+    case "ru":
+      return "Стандарт";
+    case "en":
+    default:
+      return "Standard";
+  }
+}
+
 export function getLocalizedServiceName(item: LocalizedName, lang: Lang): string {
   switch (lang) {
     case "tr":
@@ -70,11 +84,15 @@ export function resolveVariantDisplay(args: {
   serviceTypes?: ServiceTypeDisplayItem[];
 }): string | null {
   const key = args.serviceVariantKey;
-  if (!key || key === "standard") return null;
+  if (!key) return null;
 
   const type = (args.serviceTypes ?? []).find((s) => s.id === args.serviceTypeId);
   const variant = type?.variants?.find((v) => v.key === key);
-  const name = variant ? getLocalizedServiceName(variant, args.lang) : titleCaseFromKey(key);
+  const name = variant
+    ? getLocalizedServiceName(variant, args.lang)
+    : key === "standard"
+      ? standardLabel(args.lang)
+      : titleCaseFromKey(key);
   const surcharge = Number(args.variantSurchargeEur ?? variant?.priceModifierEur ?? 0);
 
   if (surcharge > 0) {

@@ -63,7 +63,13 @@ export async function POST(req: Request) {
       guard.serviceVariantKey,
     );
 
-    if (quote.quotedTotalPrice == null) {
+    if (
+      quote.quotedBasePrice == null ||
+      quote.quotedTotalPrice == null ||
+      !Number.isFinite(quote.quotedBasePrice) ||
+      !Number.isFinite(quote.variantSurcharge) ||
+      !Number.isFinite(quote.quotedTotalPrice)
+    ) {
       return NextResponse.json(
         { error: "Price could not be determined for this route and service type" },
         { status: 400 },
