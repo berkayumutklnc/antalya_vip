@@ -22,11 +22,20 @@ interface ResDetail {
   adults: number;
   babySeat: number;
   vehicleType: string | null;
+  serviceTypeId: string | null;
+  serviceVariantKey: string | null;
   vehicleId: string | null;
   plate: string | null;
   driverName: string | null;
   driverPhone: string | null;
   price: number | null;
+  quotedBasePrice: number | null;
+  variantSurcharge: number | null;
+  quotedTotalPrice: number | null;
+  flightNo: string | null;
+  terminal: string | null;
+  baggageCount: number | null;
+  note: string | null;
   createdAt: number;
   updatedAt: number;
   cancel?: { requested: boolean; reason?: string } | null;
@@ -100,11 +109,20 @@ export default function ReservationDetailPage() {
           adults: Number(found.adults ?? 1),
           babySeat: Number(found.babySeat ?? 0),
           vehicleType: found.vehicleType ?? null,
+          serviceTypeId: found.serviceTypeId ?? null,
+          serviceVariantKey: found.serviceVariantKey ?? null,
           vehicleId: found.vehicleId ?? null,
           plate: found.plate ?? null,
           driverName: found.driverName ?? null,
           driverPhone: found.driverPhone ?? null,
           price: found.price ?? null,
+          quotedBasePrice: found.quotedBasePrice ?? null,
+          variantSurcharge: found.variantSurcharge ?? null,
+          quotedTotalPrice: found.quotedTotalPrice ?? null,
+          flightNo: found.flightNo ?? null,
+          terminal: found.terminal ?? null,
+          baggageCount: found.baggageCount ?? null,
+          note: found.note ?? null,
           createdAt: found.createdAt ?? 0,
           updatedAt: found.updatedAt ?? 0,
           cancel: found.cancel ?? null,
@@ -162,14 +180,49 @@ export default function ReservationDetailPage() {
                   <div>Yetişkin: {res.adults} • Bebek Koltuk: {res.babySeat}</div>
                 </div>
                 <div>
-                  <div className="text-white/60 text-xs mb-1">Araç</div>
-                  <div>{res.vehicleType || "—"} {res.plate ? `• ${res.plate}` : ""}</div>
+                  <div className="text-white/60 text-xs mb-1">Araç Tipi</div>
+                  <div className="font-medium">{res.vehicleType || "—"}</div>
+                  {res.serviceVariantKey && (
+                    <div className={`inline-block mt-1 px-2 py-0.5 rounded text-xs font-semibold ${
+                      res.serviceVariantKey === "maybach"
+                        ? "bg-yellow-700/40 text-yellow-200"
+                        : "bg-blue-900/40 text-blue-200"
+                    }`}>
+                      {res.serviceVariantKey === "maybach" ? "🏅 Maybach" : "✅ Standart"}
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <div className="text-white/60 text-xs mb-1">Atanan Araç</div>
+                  <div>{res.plate ? res.plate : "Henüz atanmadı"}</div>
                   <div className="text-white/50">{res.driverName || ""} {res.driverPhone ? `• ${res.driverPhone}` : ""}</div>
                 </div>
                 <div>
                   <div className="text-white/60 text-xs mb-1">Fiyat</div>
-                  <div>{res.price != null ? `€${res.price}` : "—"}</div>
+                  <div className="font-medium">
+                    {res.quotedTotalPrice != null
+                      ? `€${res.quotedTotalPrice}${res.variantSurcharge ? ` (baz €${res.quotedBasePrice} + €${res.variantSurcharge} paket)` : ""}`
+                      : res.price != null ? `€${res.price}` : "—"}
+                  </div>
                 </div>
+                {(res.flightNo || res.terminal) && (
+                  <div>
+                    <div className="text-white/60 text-xs mb-1">Uçuş</div>
+                    <div>{res.flightNo || ""} {res.terminal ? `• ${res.terminal}` : ""}</div>
+                  </div>
+                )}
+                {res.baggageCount != null && res.baggageCount > 0 && (
+                  <div>
+                    <div className="text-white/60 text-xs mb-1">Bagaj</div>
+                    <div>{res.baggageCount} adet</div>
+                  </div>
+                )}
+                {res.note && (
+                  <div className="md:col-span-2">
+                    <div className="text-white/60 text-xs mb-1">Not</div>
+                    <div className="text-white/80 whitespace-pre-wrap">{res.note}</div>
+                  </div>
+                )}
               </div>
 
               {res.cancel?.requested && (

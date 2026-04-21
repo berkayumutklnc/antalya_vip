@@ -140,6 +140,7 @@ export async function POST(req: Request) {
       adults: input.adults,
       babySeat: input.babySeat,
       vehicleType: input.vehicleType,
+      serviceVariantKey: guard.serviceVariantKey ?? input.serviceVariantKey ?? null,
       price: quote.quotedTotalPrice,
       email: input.email.toLowerCase(),
       phone: input.phone,

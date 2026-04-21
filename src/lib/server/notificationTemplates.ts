@@ -43,6 +43,7 @@ export interface TemplateData {
   adults?: number;
   babySeat?: number;
   vehicleType?: string | null;
+  serviceVariantKey?: string | null;
   price?: number | null;
   email: string;
   phone: string;
@@ -264,6 +265,9 @@ export function getTelegramMessage(
         `<b>Tarih:</b> ${esc(data.date)} ${esc(data.time)}`,
         `<b>Kişi:</b> ${data.adults ?? 1} yetişkin${data.babySeat ? ` + ${data.babySeat} bebek koltuğu` : ""}`,
         `<b>Araç:</b> ${esc(data.vehicleType ?? "-")}`,
+        data.serviceVariantKey
+          ? `<b>Paket:</b> ${data.serviceVariantKey === "maybach" ? "🏅 Maybach" : "✅ Standart"}`
+          : "",
         data.price ? `<b>Fiyat:</b> €${data.price}` : "",
       ].filter(Boolean).join("\n");
 
