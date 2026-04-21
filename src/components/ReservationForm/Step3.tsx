@@ -5,6 +5,7 @@ import type { VehicleType } from "@/types";
 import { useI18nPublic } from "@/lib/i18n-public";
 import Image from "next/image";
 import { getPublicBookableServiceTypes } from "@/lib/public/serviceCatalog";
+import { PLACES } from "@/config/places";
 
 const FEAT_ICON: Record<string, string> = {
   wifi: "📶",
@@ -71,6 +72,16 @@ function getName(item: { nameDe: string; nameEn: string; nameTr: string; nameRu:
     case "ru": return item.nameRu;
     default: return item.nameEn;
   }
+}
+
+function resolvePlaceKey(raw: string): string {
+  const normalized = String(raw || "").trim().toLocaleLowerCase();
+  const place = PLACES.find(
+    (p) =>
+      p.id.toLocaleLowerCase() === normalized ||
+      p.label.toLocaleLowerCase() === normalized,
+  );
+  return place?.id ?? String(raw || "").trim();
 }
 
 export default function Step3({
@@ -154,6 +165,42 @@ export default function Step3({
     () => serviceTypes.find((st) => st.id === selectedType) ?? null,
     [serviceTypes, selectedType],
   );
+
+  // Persist a live quote into form state so Step4 can always render a price fallback.
+  useEffect(() => {
+    if (!selectedType || !selectedVariant || !formData.from || !formData.to) {
+      patchForm({ price: undefined });
+      return;
+    }
+
+    let cancelled = false;
+    const fromKey = resolvePlaceKey(formData.from);
+    const toKey = resolvePlaceKey(formData.to);
+    const params = new URLSearchParams({
+      from_key: fromKey,
+      to_key: toKey,
+      vehicle_type: selectedType,
+      variant_key: selectedVariant,
+    });
+
+    fetch(`/api/public/route-price?${params}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (cancelled) return;
+        if (!data || !Number.isFinite(Number(data.totalPriceEur))) {
+          patchForm({ price: undefined });
+          return;
+        }
+        patchForm({ price: Number(data.totalPriceEur) });
+      })
+      .catch(() => {
+        if (!cancelled) patchForm({ price: undefined });
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [formData.from, formData.to, selectedType, selectedVariant]);
 
   function chooseType(typeId: string) {
     setSelectedType(typeId);

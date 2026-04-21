@@ -12,6 +12,16 @@ import {
   type ServiceTypeDisplayItem,
 } from "@/lib/public/serviceDisplay";
 
+function resolvePlaceKey(raw: string): string {
+  const normalized = String(raw || "").trim().toLocaleLowerCase();
+  const place = PLACES.find(
+    (p) =>
+      p.id.toLocaleLowerCase() === normalized ||
+      p.label.toLocaleLowerCase() === normalized,
+  );
+  return place?.id ?? String(raw || "").trim();
+}
+
 type ReservationFormDataStep4 = {
   lang: "de" | "en" | "tr" | "ru";
   from: string;
@@ -95,8 +105,8 @@ export default function Step4({
       return;
     }
 
-    const fromKey = PLACES.find((p) => p.label === formData.from)?.id ?? formData.from;
-    const toKey = PLACES.find((p) => p.label === formData.to)?.id ?? formData.to;
+    const fromKey = resolvePlaceKey(formData.from);
+    const toKey = resolvePlaceKey(formData.to);
     let cancelled = false;
 
     const params = new URLSearchParams({
@@ -111,14 +121,23 @@ export default function Step4({
     fetch(`/api/public/route-price?${params}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
-        if (cancelled || !data) return;
+        if (cancelled) return;
+        if (!data) {
+          setQuote(null);
+          return;
+        }
         setQuote({
           basePriceEur: data.basePriceEur,
           variantSurcharge: data.variantSurcharge ?? 0,
           totalPriceEur: data.totalPriceEur,
         });
+        if (updateData && Number.isFinite(Number(data.totalPriceEur))) {
+          updateData({ price: Number(data.totalPriceEur) });
+        }
       })
-      .catch(() => {});
+      .catch(() => {
+        if (!cancelled) setQuote(null);
+      });
 
     return () => { cancelled = true; };
   }, [formData.from, formData.to, formData.vehicleType, formData.serviceTypeId, formData.serviceVariantKey]);
@@ -290,7 +309,10 @@ export default function Step4({
             <Row label={t("step4.row.quotedTotal")} value={`€${quote.totalPriceEur}`} highlight />
           </>
         ) : (
-          <Row label={t("step4.row.price")} value={formData.price ? `€${formData.price}` : "—"} />
+          <Row
+            label={t("step4.row.price")}
+            value={formData.price != null ? `€${formData.price}` : "—"}
+          />
         )}
         <div className="pt-2 text-xs text-white/60 space-y-1">
           <p>{t("step4.quote.note")}</p>
