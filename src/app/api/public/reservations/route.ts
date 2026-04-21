@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { getAdminClient } from "@/lib/supabaseAdmin";
 import { CreateReservationSchema } from "@/lib/validation/reservation";
 import { validateBookingEligibility } from "@/lib/server/bookingGuard";
@@ -146,12 +146,18 @@ export async function POST(req: Request) {
       phone: input.phone,
       lang: input.lang,
     };
-    notify({ db, type: "reservation_created_customer", data: tplData, triggeredBy: "public" })
-      .catch((e) => console.error("[notify] reservation_created_customer failed:", e));
-    notify({ db, type: "reservation_created_admin", data: tplData, triggeredBy: "public", recipientOverride: SITE.email })
-      .catch((e) => console.error("[notify] reservation_created_admin failed:", e));
-    notifyTelegram({ db, type: "reservation_created_admin", data: tplData, triggeredBy: "public" })
-      .catch((e) => console.error("[notifyTelegram] reservation_created_admin failed:", e));
+    // Notifications — wrapped in after() so Vercel guarantees execution
+    // even after the response is already returned to the client
+    after(async () => {
+      await Promise.allSettled([
+        notify({ db, type: "reservation_created_customer", data: tplData, triggeredBy: "public" })
+          .catch((e) => console.error("[notify] reservation_created_customer failed:", e)),
+        notify({ db, type: "reservation_created_admin", data: tplData, triggeredBy: "public", recipientOverride: SITE.email })
+          .catch((e) => console.error("[notify] reservation_created_admin failed:", e)),
+        notifyTelegram({ db, type: "reservation_created_admin", data: tplData, triggeredBy: "public" })
+          .catch((e) => console.error("[notifyTelegram] reservation_created_admin failed:", e)),
+      ]);
+    });
 
     return NextResponse.json({ id: code, code }, { status: 201 });
   } catch (e: any) {
