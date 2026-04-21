@@ -316,6 +316,7 @@ export interface TelegramNotifyResult {
  * sends to each admin, and logs each attempt individually.
  *
  * Returns a result object — never throws.
+ * DB logging failures never block the actual Telegram send.
  */
 export async function notifyTelegram(opts: {
   db: SupabaseClient;
@@ -325,88 +326,25 @@ export async function notifyTelegram(opts: {
   triggeredById?: string | null;
 }): Promise<TelegramNotifyResult> {
   const { db, type, data, triggeredBy, triggeredById = null } = opts;
-
   const result: TelegramNotifyResult = { sent: false, recipientCount: 0, errors: [], logIds: [] };
 
-  try {
-    if (!isTelegramConfigured()) {
-      // Log that Telegram is not configured (single entry)
-      const logId = await writeNotificationLog(db, {
-        reservationId: data.code,
-        reservationCode: data.code,
-        channel: "telegram",
-        notificationType: type,
-        recipient: "admin",
-        status: "skipped",
-        errorMessage: "Telegram not configured",
-        providerMeta: null,
-        triggeredBy,
-        triggeredById,
-        dedupeKey: null,
-        timestamp: Date.now(),
-      });
-      result.logIds.push(logId);
-      return result;
-    }
-
-    const message = getTelegramMessage(type, data);
-    if (!message) {
-      const logId = await writeNotificationLog(db, {
-        reservationId: data.code,
-        reservationCode: data.code,
-        channel: "telegram",
-        notificationType: type,
-        recipient: "admin",
-        status: "skipped",
-        errorMessage: `No Telegram template for type: ${type}`,
-        providerMeta: null,
-        triggeredBy,
-        triggeredById,
-        dedupeKey: null,
-        timestamp: Date.now(),
-      });
-      result.logIds.push(logId);
-      return result;
-    }
-
-    const sendResults = await sendToAdmins(message);
-    result.recipientCount = sendResults.length;
-
-    for (const sr of sendResults) {
-      const logId = await writeNotificationLog(db, {
-        reservationId: data.code,
-        reservationCode: data.code,
-        channel: "telegram",
-        notificationType: type,
-        recipient: sr.chatId || "admin",
-        status: sr.ok ? "sent" : "failed",
-        errorMessage: sr.error ?? null,
-        providerMeta: sr.statusCode ? { statusCode: sr.statusCode, chatId: sr.chatId } : null,
-        triggeredBy,
-        triggeredById,
-        dedupeKey: null,
-        timestamp: Date.now(),
-      });
-      result.logIds.push(logId);
-      if (sr.ok) result.sent = true;
-      if (sr.error) result.errors.push(sr.error);
-    }
-
-    return result;
-  } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : String(e);
-    console.error(`[notifyTelegram] unexpected error for ${type}/${data.code}:`, msg);
-
+  // Safe log helper — DB errors never throw to the caller
+  const safeLog = async (
+    status: "sent" | "failed" | "skipped",
+    recipient = "admin",
+    errorMessage: string | null = null,
+    providerMeta: Record<string, unknown> | null = null,
+  ) => {
     try {
       const logId = await writeNotificationLog(db, {
         reservationId: data.code,
         reservationCode: data.code,
         channel: "telegram",
         notificationType: type,
-        recipient: "admin",
-        status: "failed",
-        errorMessage: msg.slice(0, 500),
-        providerMeta: null,
+        recipient,
+        status,
+        errorMessage,
+        providerMeta,
         triggeredBy,
         triggeredById,
         dedupeKey: null,
@@ -414,12 +352,46 @@ export async function notifyTelegram(opts: {
       });
       result.logIds.push(logId);
     } catch {
-      // Logging failure, give up
+      // notification_logs table may not exist yet — silently ignore
     }
+  };
 
+  if (!isTelegramConfigured()) {
+    console.warn(`[notifyTelegram] Telegram not configured (missing env vars) — skipping for ${type}/${data.code}`);
+    await safeLog("skipped", "admin", "Telegram not configured");
+    return result;
+  }
+
+  const message = getTelegramMessage(type, data);
+  if (!message) {
+    await safeLog("skipped", "admin", `No Telegram template for type: ${type}`);
+    return result;
+  }
+
+  let sendResults: Awaited<ReturnType<typeof sendToAdmins>>;
+  try {
+    sendResults = await sendToAdmins(message);
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error(`[notifyTelegram] sendToAdmins threw for ${type}/${data.code}:`, msg);
+    await safeLog("failed", "admin", msg.slice(0, 500));
     result.errors.push(msg);
     return result;
   }
+
+  result.recipientCount = sendResults.length;
+  for (const sr of sendResults) {
+    if (sr.ok) result.sent = true;
+    if (sr.error) result.errors.push(sr.error);
+    await safeLog(
+      sr.ok ? "sent" : "failed",
+      sr.chatId || "admin",
+      sr.error ?? null,
+      sr.statusCode ? { statusCode: sr.statusCode, chatId: sr.chatId } : null,
+    );
+  }
+
+  return result;
 }
 
 // ---------------------------------------------------------------------------
