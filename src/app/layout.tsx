@@ -41,6 +41,9 @@ export const metadata: Metadata = {
     shortcut: "/logo.png",
     apple: "/apple-touch-icon.png",
   },
+  verification: {
+    google: "6VwMfLBLcJUrMrHtfrw15AZh36TaIQeTpPZFQBnxTRM",
+  },
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
