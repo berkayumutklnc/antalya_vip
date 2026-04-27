@@ -12,10 +12,10 @@ export default function LocalBusinessJSONLD() {
     areaServed: ["Antalya","Antalya Airport","Lara","Kundu","Belek","Side","Alanya","Kemer"],
     address: {
       "@type": "PostalAddress",
-      streetAddress: "Yeşilköy, Antalya Havaalanı Dış Hatlar Terminali 1",
-      addressLocality: "Muratpaşa",
+      streetAddress: "Side Mahallesi, Side Caddesi, No: 42",
+      addressLocality: "Manavgat",
       addressRegion: "Antalya",
-      postalCode: "07230",
+      postalCode: "07600",
       addressCountry: "TR",
     },
     openingHours: "Mo-Su 00:00-23:59",

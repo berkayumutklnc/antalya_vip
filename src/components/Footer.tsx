@@ -126,7 +126,31 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-white/10 pt-4 text-xs text-white/60 md:flex-row">
+        {/* TURSAB Premium Badge */}
+        <div className="mt-10 flex justify-center">
+          <div className="relative flex items-center gap-4 rounded-2xl border border-amber-500/40 bg-gradient-to-br from-amber-950/40 via-yellow-900/20 to-amber-950/40 px-8 py-5 shadow-[0_0_30px_rgba(245,158,11,0.12)] backdrop-blur-sm">
+            {/* Left decorative line */}
+            <div className="h-12 w-px bg-gradient-to-b from-transparent via-amber-500/60 to-transparent" />
+            {/* Shield icon */}
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400/20 to-yellow-600/10 ring-1 ring-amber-500/40">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-7 w-7 text-amber-400">
+                <path fillRule="evenodd" d="M12 1.5a5.25 5.25 0 0 0-5.25 5.25v3a3 3 0 0 0-3 3v6.75a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3v-6.75a3 3 0 0 0-3-3v-3c0-2.9-2.35-5.25-5.25-5.25Zm3.75 8.25v-3a3.75 3.75 0 1 0-7.5 0v3h7.5Z" clipRule="evenodd" />
+              </svg>
+            </div>
+            {/* Text */}
+            <div className="flex flex-col gap-0.5">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-500/80">Yetkili Belge Tescili</span>
+              <span className="bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 bg-clip-text text-sm font-bold text-transparent">
+                Golden Goat Turizm Seyehat Acentesi
+              </span>
+              <span className="text-xs font-medium tracking-wider text-amber-400/80">TÜRSAB Belge No: 11302</span>
+            </div>
+            {/* Right decorative line */}
+            <div className="h-12 w-px bg-gradient-to-b from-transparent via-amber-500/60 to-transparent" />
+          </div>
+        </div>
+
+        <div className="mt-6 flex flex-col items-center justify-between gap-3 border-t border-white/10 pt-4 text-xs text-white/60 md:flex-row">
           <div>
             © {year} {SITE.name}. {rights} —{" "}
             <Link

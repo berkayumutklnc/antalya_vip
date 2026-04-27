@@ -1,5 +1,6 @@
 import "./globals.css";
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import GA from "@/components/analytics/GA";
 import ConsentBanner from "@/components/ConsentBanner";
 import WhatsAppFab from "@/components/WhatsAppFab";
@@ -35,6 +36,11 @@ export const metadata: Metadata = {
       "VIP transfer from AYT to hotels & cities. 24/7 meet & greet, flight tracking.",
   },
   twitter: { card: "summary_large_image", title: `Antalya VIP Transfer | ${SITE.shortName}`, description: "AYT → Hotel VIP Transfer" },
+  icons: {
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
@@ -49,6 +55,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <Footer />
           <WhatsAppFab />
           <ConsentBanner />
+          <Analytics />
         </I18nPublicProvider>
       </body>
     </html>

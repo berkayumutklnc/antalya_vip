@@ -57,8 +57,6 @@ export default function Header() {
       >
         {safeT(t, "header.cta.whatsapp", "WhatsApp")}
       </a>
-
-      <LanguageSwitchPublic />
     </nav>
   );
 
@@ -71,6 +69,7 @@ export default function Header() {
 
         <div className="hidden items-center gap-6 md:flex">
           <Nav />
+          <LanguageSwitchPublic />
           <Link
             href="/#rezervasyon"
             className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-5 py-2.5 font-semibold text-white shadow-lg shadow-blue-600/20 hover:bg-blue-700 active:scale-95 transition-all duration-200"
@@ -79,8 +78,10 @@ export default function Header() {
           </Link>
         </div>
 
-        <button
-          className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-white/15 hover:bg-white/10 transition-colors duration-200 md:hidden"
+        <div className="flex items-center gap-2 md:hidden">
+          <LanguageSwitchPublic />
+          <button
+          className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-white/15 hover:bg-white/10 transition-colors duration-200"
           onClick={() => setOpen((s) => !s)}
           aria-label="Navigation menu"
           aria-expanded={open}
@@ -93,6 +94,7 @@ export default function Header() {
             )}
           </svg>
         </button>
+        </div>
       </div>
 
       {open && (

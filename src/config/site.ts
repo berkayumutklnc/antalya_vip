@@ -11,7 +11,7 @@ export const SITE = {
   whatsapp: process.env.NEXT_PUBLIC_WHATSAPP ?? "+905461909056",
   email: process.env.NEXT_PUBLIC_EMAIL ?? "semirgultopluyan7@gmail.com",
   address:
-    "Yeşilköy, Antalya Havaalanı Dış Hatlar Terminali 1, 07230 Muratpaşa/Antalya",
+    "Side Mahallesi, Side Caddesi, No: 42, Manavgat / ANTALYA",
 
   defaultLang: (process.env.NEXT_PUBLIC_DEFAULT_LANG as "de" | "en" | "tr" | "ru") ?? "de",
   supportedLangs: ["de", "en", "tr", "ru"] as const,
