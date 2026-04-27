@@ -60,8 +60,8 @@ export const VEHICLES: {
   },
   {
     id: "vip-10",
-    title: "VIP Minibus (10 Koltuk)",
-    seats: 10,
+    title: "VIP Minibus (7 Koltuk)",
+    seats: 7,
     bags: 8,
     image: "/vehicles/vip-10.jpg",
     features: ["Wi-Fi", "USB", "Klima", "Su", "8× Bagaj"],
