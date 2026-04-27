@@ -1,6 +1,7 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import GA from "@/components/analytics/GA";
 import ConsentBanner from "@/components/ConsentBanner";
 import WhatsAppFab from "@/components/WhatsAppFab";
@@ -59,6 +60,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <WhatsAppFab />
           <ConsentBanner />
           <Analytics />
+          <SpeedInsights />
         </I18nPublicProvider>
       </body>
     </html>
