@@ -6,7 +6,7 @@ export const SITE = {
   /** Legal entity name for impressum / AGB / contracts */
   legalName: "Zenturo Travel",
 
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://zenturotravel.com",
+  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.zenturotravel.com.tr",
   phone: process.env.NEXT_PUBLIC_PHONE ?? "+905461909056",
   whatsapp: process.env.NEXT_PUBLIC_WHATSAPP ?? "+905461909056",
   email: process.env.NEXT_PUBLIC_EMAIL ?? "semirgultopluyan7@gmail.com",

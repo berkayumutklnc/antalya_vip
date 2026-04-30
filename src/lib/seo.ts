@@ -9,7 +9,7 @@ import type { Metadata } from "next";
 import { SITE } from "@/config/site";
 import type { TransferRoute } from "@/content/transfers";
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://zenturotravel.com";
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.zenturotravel.com.tr";
 
 // ---------------------------------------------------------------------------
 // Transfer page metadata builder

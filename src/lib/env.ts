@@ -31,7 +31,7 @@ export const env = {
   get TELEGRAM_ADMIN_CHAT_IDS() { return optional("TELEGRAM_ADMIN_CHAT_IDS"); },
 
   // ── Public vars (safe to read anywhere) ────────────────────────────────
-  NEXT_PUBLIC_SITE_URL: optional("NEXT_PUBLIC_SITE_URL", "https://zenturotravel.com"),
+  NEXT_PUBLIC_SITE_URL: optional("NEXT_PUBLIC_SITE_URL", "https://www.zenturotravel.com.tr"),
   NEXT_PUBLIC_GA_ID: optional("NEXT_PUBLIC_GA_ID"),
 
   NODE_ENV: optional("NODE_ENV", "development"),

@@ -12,7 +12,7 @@ import Footer from "@/components/Footer";
 import { getServerLang } from "@/lib/i18n";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://zenturotravel.com"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://www.zenturotravel.com.tr"),
   title: {
     default: `Antalya VIP Transfer | ${SITE.shortName}`,
     template: `%s | ${SITE.shortName}`,

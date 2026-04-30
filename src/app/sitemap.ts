@@ -8,8 +8,12 @@ const staticRoutes = [
   "/policies/cancellation", "/policies/privacy",
 ];
 
+// Sitemap her zaman tek canonical host üzerinden yayınlanır.
+// Google Search Console üzerinden bu domain ile gönderilmeli.
+const CANONICAL_HOST = "https://www.zenturotravel.com.tr";
+
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = process.env.NEXT_PUBLIC_SITE_URL || "https://zenturotravel.com";
+  const base = CANONICAL_HOST;
   const now = new Date();
   const langs = ["de", "en", "tr", "ru"] as const;
 

@@ -5,7 +5,7 @@ export default function BreadcrumbJsonLd({
   items: Array<{ name: string; url: string }>;
 }) {
   const base =
-    process.env.NEXT_PUBLIC_SITE_URL || "https://zenturotravel.com";
+    process.env.NEXT_PUBLIC_SITE_URL || "https://www.zenturotravel.com.tr";
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
